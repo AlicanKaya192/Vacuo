@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Vacuo.App.PanelWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    Title="Vacuo">
+
+    <Grid x:Name="Root"
+          Background="{StaticResource VoidBrush}"
+          Padding="14"
+          RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="200" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="VACUO"
+                       CharacterSpacing="300"
+                       FontSize="15"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource InkBrush}" />
+            <TextBlock x:Name="Tagline"
+                       FontSize="12"
+                       VerticalAlignment="Center"
+                       Foreground="{StaticResource InkSecondaryBrush}" />
+        </StackPanel>
+
+        <canvas:CanvasAnimatedControl x:Name="VoidCanvas"
+                                      Grid.Row="1"
+                                      ClearColor="#FF0A0811"
+                                      Paused="True"
+                                      IsFixedTimeStep="False"
+                                      Update="OnVoidUpdate"
+                                      Draw="OnVoidDraw" />
+
+        <StackPanel x:Name="Cards" Grid.Row="2" Spacing="8">
+            <StackPanel.Transform3D>
+                <PerspectiveTransform3D Depth="700" />
+            </StackPanel.Transform3D>
+            <Border x:Name="DiskCard" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock x:Name="DiskTitle" Style="{StaticResource CardTitleStyle}" />
+                    <TextBlock x:Name="DiskBody" Style="{StaticResource CardBodyStyle}" />
+                </StackPanel>
+            </Border>
+            <Border x:Name="MemoryCard" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock x:Name="MemoryTitle" Style="{StaticResource CardTitleStyle}" />
+                    <TextBlock x:Name="MemoryBody" Style="{StaticResource CardBodyStyle}" />
+                </StackPanel>
+            </Border>
+            <Border x:Name="OrganizeCard" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock x:Name="OrganizeTitle" Style="{StaticResource CardTitleStyle}" />
+                    <TextBlock x:Name="OrganizeBody" Style="{StaticResource CardBodyStyle}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <Button x:Name="QuitButton"
+                Grid.Row="3"
+                HorizontalAlignment="Right"
+                Click="OnQuitClick" />
+    </Grid>
+</Window>

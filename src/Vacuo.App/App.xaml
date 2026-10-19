@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Application
+    x:Class="Vacuo.App.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    RequestedTheme="Dark">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- VOID palette A (Ametist), chosen 2026-10-19 -->
+            <Color x:Key="VoidColor">#FF0A0811</Color>
+            <Color x:Key="SurfaceColor">#FF14101D</Color>
+            <Color x:Key="SurfaceRaisedColor">#FF1D172A</Color>
+            <Color x:Key="LineColor">#FF2C2441</Color>
+            <Color x:Key="InkColor">#FFECE7F5</Color>
+            <Color x:Key="InkSecondaryColor">#FFABA1BF</Color>
+            <Color x:Key="AccentColor">#FF9D7CFF</Color>
+
+            <SolidColorBrush x:Key="VoidBrush" Color="{StaticResource VoidColor}" />
+            <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="{StaticResource SurfaceRaisedColor}" />
+            <SolidColorBrush x:Key="LineBrush" Color="{StaticResource LineColor}" />
+            <SolidColorBrush x:Key="InkBrush" Color="{StaticResource InkColor}" />
+            <SolidColorBrush x:Key="InkSecondaryBrush" Color="{StaticResource InkSecondaryColor}" />
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+
+            <Style x:Key="CardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="12" />
+            </Style>
+            <Style x:Key="CardTitleStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="FontSize" Value="14" />
+            </Style>
+            <Style x:Key="CardBodyStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}" />
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="Margin" Value="0,4,0,0" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

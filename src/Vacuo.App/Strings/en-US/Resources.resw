@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppTagline" xml:space="preserve">
+    <value>Make room, honestly.</value>
+  </data>
+  <data name="TrayTooltip" xml:space="preserve">
+    <value>Vacuo</value>
+  </data>
+  <data name="DiskTitle" xml:space="preserve">
+    <value>Disk</value>
+  </data>
+  <data name="DiskFreeFormat" xml:space="preserve">
+    <value>{0} {1} free of {2}</value>
+  </data>
+  <data name="MemoryTitle" xml:space="preserve">
+    <value>Memory</value>
+  </data>
+  <data name="MemoryPlaceholder" xml:space="preserve">
+    <value>Memory pressure arrives in v0.3.</value>
+  </data>
+  <data name="OrganizeTitle" xml:space="preserve">
+    <value>Organize</value>
+  </data>
+  <data name="OrganizePlaceholder" xml:space="preserve">
+    <value>Folder rules arrive in v0.2.</value>
+  </data>
+  <data name="QuitButton" xml:space="preserve">
+    <value>Quit Vacuo</value>
+  </data>
+</root>

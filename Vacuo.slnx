@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/Vacuo.App/Vacuo.App.csproj" />
+    <Project Path="src/Vacuo.Core/Vacuo.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Vacuo.Core.Tests/Vacuo.Core.Tests.csproj" />
+  </Folder>
+</Solution>
