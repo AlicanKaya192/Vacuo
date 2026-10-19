@@ -1,0 +1,23 @@
+# .NET build output
+bin/
+obj/
+*.user
+*.suo
+
+# Visual Studio and editors
+.vs/
+.vscode/
+.idea/
+
+# Packaging
+AppPackages/
+BundleArtifacts/
+*.msix
+*.appx
+
+# Test results
+TestResults/
+
+# Windows
+Thumbs.db
+desktop.ini
