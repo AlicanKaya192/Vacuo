@@ -24,7 +24,7 @@ public partial class App : Application
         var localizer = new Localizer(options.Language);
         _measurement = options.MeasurementPath is null ? null : new MeasurementLog(options.MeasurementPath);
 
-        _panel = new PanelWindow(localizer, _measurement);
+        _panel = new PanelWindow(localizer, _measurement, options.ForceReducedMotion);
         _panel.QuitRequested += (_, _) => Quit();
 
         string iconPath = Path.Combine(AppContext.BaseDirectory, TrayIconFile);
@@ -34,6 +34,11 @@ public partial class App : Application
         if (options.OpenPanelAtStart)
         {
             _panel.Toggle();
+        }
+
+        if (options.Script is not null && _measurement is not null)
+        {
+            _ = new MeasurementScript(_panel, _measurement, Quit).RunAsync(options.Script);
         }
     }
 

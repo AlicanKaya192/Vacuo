@@ -15,6 +15,7 @@ internal sealed class MeasurementLog(string path)
     private readonly Lock _gate = new();
     private readonly List<double> _frameIntervalsMs = [];
     private readonly List<double> _panelOpenMs = [];
+    private readonly Dictionary<string, double> _phasesMs = [];
     private double? _coldStartMs;
     private long _panelRequestedAt;
     private long _lastFrameAt;
@@ -26,6 +27,15 @@ internal sealed class MeasurementLog(string path)
         {
             _panelRequestedAt = Stopwatch.GetTimestamp();
             _lastFrameAt = 0;
+        }
+    }
+
+    /// <summary>Records when a phase began or ended, in milliseconds since the process started.</summary>
+    public void MarkPhase(string name)
+    {
+        lock (_gate)
+        {
+            _phasesMs[name] = SinceProcessStartMs();
         }
     }
 
@@ -42,7 +52,7 @@ internal sealed class MeasurementLog(string path)
         long now = Stopwatch.GetTimestamp();
         lock (_gate)
         {
-            _coldStartMs ??= (DateTime.Now - Process.GetCurrentProcess().StartTime).TotalMilliseconds;
+            _coldStartMs ??= SinceProcessStartMs();
 
             if (_panelRequestedAt != 0)
             {
@@ -66,6 +76,7 @@ internal sealed class MeasurementLog(string path)
             var report = new
             {
                 ColdStartToFirstFrameMs = _coldStartMs,
+                PhasesMs = _phasesMs,
                 PanelOpenToFirstFrameMs = _panelOpenMs,
                 LastParticleCount = _particleCount,
                 FrameIntervalsMs = _frameIntervalsMs,
@@ -73,4 +84,7 @@ internal sealed class MeasurementLog(string path)
             File.WriteAllText(path, JsonSerializer.Serialize(report, JsonOptions));
         }
     }
+
+    private static double SinceProcessStartMs() =>
+        (DateTime.Now - Process.GetCurrentProcess().StartTime).TotalMilliseconds;
 }

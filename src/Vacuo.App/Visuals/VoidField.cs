@@ -33,7 +33,8 @@ internal sealed class VoidField
         _count = particleCount;
         for (int i = 0; i < _count; i++)
         {
-            _particles[i] = Spawn(Random.Shared.NextSingle());
+            // Start outside the horizon; a still frame (animations off) shows this layout as is.
+            _particles[i] = Spawn(Horizon + Random.Shared.NextSingle() * (1 - Horizon));
         }
     }
 

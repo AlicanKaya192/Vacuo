@@ -34,15 +34,16 @@ public sealed partial class PanelWindow : Window
     private readonly Localizer _localizer;
     private readonly MeasurementLog? _measurement;
     private readonly VoidField _voidField = new(ParticleCount);
-    private readonly bool _animationsEnabled = new UISettings().AnimationsEnabled;
+    private readonly bool _animationsEnabled;
     private DateTime _hiddenAt = DateTime.MinValue;
     private bool _isOpen;
     private bool _shuttingDown;
 
-    internal PanelWindow(Localizer localizer, MeasurementLog? measurement)
+    internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion)
     {
         _localizer = localizer;
         _measurement = measurement;
+        _animationsEnabled = !forceReducedMotion && new UISettings().AnimationsEnabled;
         InitializeComponent();
 
         Handle = WindowNative.GetWindowHandle(this);
