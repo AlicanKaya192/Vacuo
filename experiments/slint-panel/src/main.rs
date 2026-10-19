@@ -149,11 +149,12 @@ fn main() -> Result<(), slint::PlatformError> {
     let options = Options::parse(std::env::args().skip(1));
     let language = options.language.clone().unwrap_or_else(system::windows_language);
     let turkish = language.to_ascii_lowercase().starts_with("tr");
+
+    let ui = PanelWindow::new()?;
+    // Creating the window lets Slint pick the Windows language, so the choice comes after it.
     if let Err(error) = slint::select_bundled_translation(if turkish { "tr" } else { "en" }) {
         eprintln!("could not select the translation: {error}");
     }
-
-    let ui = PanelWindow::new()?;
     if let Some(drive) = system::system_drive() {
         ui.set_drive(drive.root.into());
         ui.set_free_space(system::format_bytes(drive.free_bytes, turkish).into());
