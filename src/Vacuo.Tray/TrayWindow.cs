@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using Vacuo.Core.Hosting;
 using static Vacuo.Tray.NativeMethods;
 
 namespace Vacuo.Tray;
@@ -21,6 +22,7 @@ internal sealed class TrayWindow : IDisposable
     // Kept in a field so the delegate is not collected while Windows still calls it.
     private readonly WindowProc _windowProc;
     private readonly uint _taskbarCreatedMessage;
+    private readonly uint _panelHiddenMessage = RegisterWindowMessage(PanelProtocol.PanelHiddenMessage);
     private readonly nint _icon;
     private readonly string _tooltip;
     private bool _iconAdded;
@@ -47,6 +49,8 @@ internal sealed class TrayWindow : IDisposable
     public event Action? ClosePanelRequested;
 
     public event Action? PanelExited;
+
+    public event Action? PanelHidden;
 
     public event Action? QuitRequested;
 
@@ -168,6 +172,12 @@ internal sealed class TrayWindow : IDisposable
             case QuitMessage:
                 QuitRequested?.Invoke();
                 return 0;
+        }
+
+        if (message == _panelHiddenMessage)
+        {
+            PanelHidden?.Invoke();
+            return 0;
         }
 
         if (message == _taskbarCreatedMessage)

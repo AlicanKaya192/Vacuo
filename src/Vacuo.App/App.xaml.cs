@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Vacuo.App.Hosting;
 using Vacuo.App.Localization;
 using Vacuo.App.Measurement;
 using Vacuo.App.Tray;
@@ -12,6 +13,7 @@ public partial class App : Application
 
     private PanelWindow? _panel;
     private TrayIcon? _tray;
+    private TrayChannel? _channel;
     private MeasurementLog? _measurement;
 
     public App()
@@ -29,7 +31,7 @@ public partial class App : Application
 
         if (options.PanelOnly)
         {
-            RunAsPanelProcess(_panel);
+            RunAsPanelProcess(_panel, options);
             return;
         }
 
@@ -50,18 +52,37 @@ public partial class App : Application
         }
     }
 
-    // Started by Vacuo.Tray: show the panel at once and end the process when it hides,
-    // so the WinUI memory is only in use while the panel is on screen.
-    private void RunAsPanelProcess(PanelWindow panel)
+    // Started by Vacuo.Tray: show the panel at once. Once hidden, the process waits a while
+    // so a quick reopen is instant, then ends so the WinUI memory is given back.
+    private void RunAsPanelProcess(PanelWindow panel, LaunchOptions options)
     {
-        // Queued: Hidden can fire inside the window's own Closing handler.
-        panel.Hidden += (_, _) => panel.DispatcherQueue.TryEnqueue(() => Quit(PanelProtocol.PanelClosedExitCode));
+        _channel = new TrayChannel(panel.Handle, options.TrayWindow);
+        var linger = panel.DispatcherQueue.CreateTimer();
+        linger.Interval = options.Linger;
+        linger.IsRepeating = false;
+        linger.Tick += (_, _) => Quit(PanelProtocol.PanelClosedExitCode);
+
+        panel.Hidden += (_, _) =>
+        {
+            _channel.NotifyPanelHidden();
+            linger.Start();
+        };
+        _channel.ShowRequested += (_, _) =>
+        {
+            linger.Stop();
+            if (!panel.IsOpen)
+            {
+                panel.Toggle();
+            }
+        };
+        _channel.QuitRequested += (_, _) => Quit(PanelProtocol.PanelClosedExitCode);
         panel.QuitRequested += (_, _) => Quit(PanelProtocol.QuitAllExitCode);
         panel.Toggle();
     }
 
     private void Quit(int exitCode)
     {
+        _channel?.Dispose();
         _tray?.Dispose();
         _measurement?.Save();
         _panel?.Shutdown();

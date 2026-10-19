@@ -1,10 +1,13 @@
+using Vacuo.Core.Hosting;
+
 namespace Vacuo.Tray;
 
 /// <summary>
 /// Vacuo's resident process: only the logo in the notification area. A click starts the
-/// WinUI panel (Vacuo.exe) as a separate process that ends when the panel closes.
-/// Switches: <c>--panel &lt;path&gt;</c>, <c>--lang en-US</c>, and for Stage 0 measurement
-/// <c>--measure-dir &lt;folder&gt;</c> with <c>--script idle|coldstart|full</c>.
+/// WinUI panel (Vacuo.exe) as a separate process, or shows it again while that process is
+/// still waiting after being closed. Switches: <c>--panel &lt;path&gt;</c>, <c>--lang en-US</c>,
+/// and for Stage 0 measurement <c>--measure-dir &lt;folder&gt;</c>, <c>--linger-seconds &lt;n&gt;</c>
+/// with <c>--script idle|coldstart|full|linger</c>.
 /// </summary>
 internal static class Program
 {
@@ -21,6 +24,7 @@ internal static class Program
         using var window = new TrayWindow(Path.Combine(AppContext.BaseDirectory, TrayIconFile), Tooltip);
         var panel = new PanelProcess(
             options.PanelPath ?? Path.Combine(AppContext.BaseDirectory, PanelExecutable),
+            window.Handle,
             options.PanelArguments,
             window.PostPanelExited)
         {
@@ -30,6 +34,7 @@ internal static class Program
         window.IconClicked += panel.Toggle;
         window.OpenPanelRequested += panel.Open;
         window.ClosePanelRequested += panel.Close;
+        window.PanelHidden += panel.HandleHidden;
         window.PanelExited += () =>
         {
             panel.HandleExited();
@@ -40,7 +45,7 @@ internal static class Program
         };
         window.QuitRequested += () =>
         {
-            panel.Close();
+            panel.Quit();
             window.Quit();
         };
 
@@ -77,8 +82,8 @@ internal sealed record TrayOptions(string? PanelPath, string? MeasurementDirecto
                 case "--script" when i + 1 < args.Count:
                     script = args[++i];
                     break;
-                case "--lang" when i + 1 < args.Count:
-                    // Passed on: the panel shows the text, the tray has none.
+                case "--lang" or PanelProtocol.LingerSecondsSwitch when i + 1 < args.Count:
+                    // Passed on: the panel shows the text and decides how long it waits.
                     panelArguments.Add(args[i]);
                     panelArguments.Add(args[++i]);
                     break;

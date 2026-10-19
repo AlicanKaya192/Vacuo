@@ -60,6 +60,8 @@ public sealed partial class PanelWindow : Window
 
     internal nint Handle { get; }
 
+    internal bool IsOpen => _isOpen;
+
     internal void Toggle()
     {
         if (_isOpen)

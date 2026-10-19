@@ -2,7 +2,7 @@ namespace Vacuo.Tray;
 
 /// <summary>
 /// The Stage 0 scenarios of the single-process measurement, driven from the tray:
-/// <c>--script idle|coldstart|full</c>. Runs on a worker and only posts to the tray window.
+/// <c>--script idle|coldstart|full|linger</c>. Runs on a worker and only posts to the tray window.
 /// </summary>
 internal sealed class TrayScript(TrayWindow window, TrayMeasurement measurement)
 {
@@ -12,6 +12,7 @@ internal sealed class TrayScript(TrayWindow window, TrayMeasurement measurement)
     private static readonly TimeSpan ClosedDuration = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan CycleStep = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan SettleAfterClose = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan LingerObservation = TimeSpan.FromSeconds(50);
     private const int OpenCloseCycles = 5;
 
     public Task RunAsync(string mode) => mode switch
@@ -19,6 +20,7 @@ internal sealed class TrayScript(TrayWindow window, TrayMeasurement measurement)
         "idle" => RunIdleAsync(),
         "coldstart" => RunColdStartAsync(),
         "full" => RunFullAsync(),
+        "linger" => RunLingerAsync(),
         _ => throw new ArgumentException($"Unknown measurement script '{mode}'.", nameof(mode)),
     };
 
@@ -54,6 +56,17 @@ internal sealed class TrayScript(TrayWindow window, TrayMeasurement measurement)
         }
 
         measurement.MarkPhase("cycles-end");
+        window.PostQuit();
+    }
+
+    // Run with a short --linger-seconds: shows that the hidden panel process really ends
+    // and the memory drops back to the tray alone.
+    private async Task RunLingerAsync()
+    {
+        window.PostOpenPanel();
+        await Task.Delay(ColdStartHold);
+        window.PostClosePanel();
+        await PhaseAsync("after-close", LingerObservation);
         window.PostQuit();
     }
 
