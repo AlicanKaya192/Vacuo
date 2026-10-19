@@ -15,6 +15,9 @@ BundleArtifacts/
 *.msix
 *.appx
 
+# Rust build output (experiments)
+target/
+
 # Test results
 TestResults/
 

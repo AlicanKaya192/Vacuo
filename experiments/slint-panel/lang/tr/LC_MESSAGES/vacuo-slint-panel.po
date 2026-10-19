@@ -1,0 +1,37 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: tr\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "PanelWindow"
+msgid "Make room, honestly."
+msgstr "Yer aç, dürüstçe."
+
+msgctxt "PanelWindow"
+msgid "Disk"
+msgstr "Disk"
+
+msgctxt "PanelWindow"
+msgid "{0} {1} free of {2}"
+msgstr "{0} sürücüsünde {1} boş, toplam {2}"
+
+msgctxt "PanelWindow"
+msgid "Memory"
+msgstr "Bellek"
+
+msgctxt "PanelWindow"
+msgid "Memory pressure arrives in v0.3."
+msgstr "Bellek baskısı v0.3'te gelecek."
+
+msgctxt "PanelWindow"
+msgid "Organize"
+msgstr "Düzen"
+
+msgctxt "PanelWindow"
+msgid "Folder rules arrive in v0.2."
+msgstr "Klasör kuralları v0.2'de gelecek."
+
+msgctxt "PanelWindow"
+msgid "Quit Vacuo"
+msgstr "Vacuo'dan çık"

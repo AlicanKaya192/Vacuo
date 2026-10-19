@@ -1,0 +1,23 @@
+[package]
+name = "vacuo-slint-panel"
+version = "0.0.1"
+edition = "2024"
+publish = false
+description = "Stage 0 comparison: the Vacuo tray panel built with Rust and Slint."
+
+[dependencies]
+slint = "~1.18.1"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = [
+    "Win32_Foundation",
+    "Win32_Globalization",
+    "Win32_Storage_FileSystem",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Threading",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+[build-dependencies]
+slint-build = "1.18.1"

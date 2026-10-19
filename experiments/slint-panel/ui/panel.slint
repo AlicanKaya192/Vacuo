@@ -1,0 +1,125 @@
+import { Button } from "std-widgets.slint";
+
+// VOID palette A (Ametist), chosen 2026-10-19.
+global Palette {
+    out property <color> void: #0A0811;
+    out property <color> surface-raised: #1D172A;
+    out property <color> line: #2C2441;
+    out property <color> ink: #ECE7F5;
+    out property <color> ink-secondary: #ABA1BF;
+}
+
+component Card inherits Rectangle {
+    in property <string> title;
+    in property <string> body;
+    in property <bool> shown;
+    in property <duration> entry-delay;
+
+    background: Palette.surface-raised;
+    border-color: Palette.line;
+    border-width: 1px;
+    border-radius: 4px;
+    // Slint has no 3D transforms: the cards fade in one after another instead of tipping forward.
+    opacity: shown ? 1 : 0;
+    animate opacity {
+        duration: 420ms;
+        delay: root.entry-delay;
+        easing: cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+
+    VerticalLayout {
+        padding: 12px;
+        spacing: 4px;
+        Text {
+            text: root.title;
+            color: Palette.ink;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        Text {
+            text: root.body;
+            color: Palette.ink-secondary;
+            font-size: 13px;
+            wrap: word-wrap;
+        }
+    }
+}
+
+export component PanelWindow inherits Window {
+    in property <image> void-image;
+    in property <string> drive;
+    in property <string> free-space;
+    in property <string> total-space;
+    in property <bool> cards-shown;
+    callback quit();
+
+    title: "Vacuo";
+    no-frame: true;
+    always-on-top: true;
+    background: Palette.void;
+    width: 360px;
+    height: 560px;
+
+    VerticalLayout {
+        padding: 14px;
+        spacing: 12px;
+        HorizontalLayout {
+            spacing: 12px;
+            alignment: start;
+            Text {
+                text: "VACUO";
+                letter-spacing: 3px;
+                font-size: 15px;
+                font-weight: 600;
+                color: Palette.ink;
+            }
+
+            Text {
+                text: @tr("Make room, honestly.");
+                font-size: 12px;
+                color: Palette.ink-secondary;
+                vertical-alignment: center;
+            }
+        }
+
+        Image {
+            source: root.void-image;
+            height: 200px;
+            image-fit: fill;
+        }
+
+        Card {
+            title: @tr("Disk");
+            body: @tr("{0} {1} free of {2}", root.drive, root.free-space, root.total-space);
+            shown: root.cards-shown;
+            entry-delay: 0ms;
+        }
+
+        Card {
+            title: @tr("Memory");
+            body: @tr("Memory pressure arrives in v0.3.");
+            shown: root.cards-shown;
+            entry-delay: 60ms;
+        }
+
+        Card {
+            title: @tr("Organize");
+            body: @tr("Folder rules arrive in v0.2.");
+            shown: root.cards-shown;
+            entry-delay: 120ms;
+        }
+
+        Rectangle { }
+
+        HorizontalLayout {
+            alignment: end;
+            Button {
+                text: @tr("Quit Vacuo");
+                clicked => {
+                    root.quit();
+                }
+            }
+        }
+    }
+}
