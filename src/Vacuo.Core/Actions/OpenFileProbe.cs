@@ -52,9 +52,13 @@ public static class OpenFileProbe
         {
             using var exclusive = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException exception)
         {
-            throw new ActionRefusedException($"'{file}' cannot be opened, so it is unclear whether it is in use.");
+            throw new ActionRefusedException($"'{file}' cannot be opened, so it is unclear whether it is in use.", exception);
+        }
+        catch (Exception exception) when (exception is FileNotFoundException or DirectoryNotFoundException)
+        {
+            throw new ActionRefusedException($"'{file}' no longer exists.", exception);
         }
         catch (IOException)
         {

@@ -22,7 +22,7 @@ public static class RecyclePolicy
         string root = Path.GetPathRoot(Path.GetFullPath(path))!;
         if (!IsRecyclableDrive(new DriveInfo(root).DriveType))
         {
-            throw new ActionRefusedException($"'{root}' has no Recycle Bin, so '{path}' would be deleted for good; nothing was moved.");
+            throw new NotRecyclableException($"'{root}' has no Recycle Bin, so '{path}' would be deleted for good; nothing was moved.");
         }
     }
 }

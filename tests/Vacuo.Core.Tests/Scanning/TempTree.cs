@@ -12,6 +12,7 @@ namespace Vacuo.Core.Tests.Scanning;
 internal sealed class TempTree : IDisposable
 {
     private readonly List<(DirectoryInfo Directory, FileSystemAccessRule Rule)> _deniedRules = [];
+    private readonly List<(FileInfo File, FileSystemAccessRule Rule)> _deniedFileRules = [];
     private readonly List<string> _links = [];
 
     public TempTree()
@@ -80,6 +81,18 @@ internal sealed class TempTree : IDisposable
         _deniedRules.Add((directory, rule));
     }
 
+    [SupportedOSPlatform("windows")]
+    public void DenyReading(string relativeFilePath)
+    {
+        var file = new FileInfo(PathOf(relativeFilePath));
+        var rule = new FileSystemAccessRule(
+            WindowsIdentity.GetCurrent().User!, FileSystemRights.ReadData, AccessControlType.Deny);
+        FileSecurity security = file.GetAccessControl();
+        security.AddAccessRule(rule);
+        file.SetAccessControl(security);
+        _deniedFileRules.Add((file, rule));
+    }
+
     public void Dispose()
     {
         if (OperatingSystem.IsWindows())
@@ -105,6 +118,13 @@ internal sealed class TempTree : IDisposable
             DirectorySecurity security = directory.GetAccessControl();
             security.RemoveAccessRule(rule);
             directory.SetAccessControl(security);
+        }
+
+        foreach ((FileInfo file, FileSystemAccessRule rule) in _deniedFileRules)
+        {
+            FileSecurity security = file.GetAccessControl();
+            security.RemoveAccessRule(rule);
+            file.SetAccessControl(security);
         }
     }
 }

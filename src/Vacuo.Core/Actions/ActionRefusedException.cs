@@ -10,3 +10,9 @@ public sealed class FileInUseException(string fileInUse)
 {
     public string FileInUse { get; } = fileInUse;
 }
+
+/// <summary>
+/// The Recycle Bin cannot take the item (the drive has no bin, or the item does not fit), so it
+/// would be deleted for good; nothing was deleted.
+/// </summary>
+public sealed class NotRecyclableException(string message) : ActionRefusedException(message);

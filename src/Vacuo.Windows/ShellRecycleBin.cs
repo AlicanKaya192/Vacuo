@@ -36,7 +36,7 @@ public sealed class ShellRecycleBin(TimeProvider time) : IRecycleBin
         }
         catch (ActionRefusedException) when (sink.RefusedPermanentDelete)
         {
-            throw new ActionRefusedException($"'{path}' does not fit in the Recycle Bin, so it would be deleted for good; nothing was deleted.");
+            throw new NotRecyclableException($"'{path}' does not fit in the Recycle Bin, so it would be deleted for good; nothing was deleted.");
         }
         finally
         {
