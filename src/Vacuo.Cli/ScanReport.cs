@@ -53,6 +53,7 @@ internal static class ScanReport
         RebuildCost.RegeneratedAutomatically => "kendiliğinden oluşur",
         RebuildCost.ReinstalledByCommand => "komutla kurulur",
         RebuildCost.Redownloaded => "yeniden indirilir",
+        RebuildCost.CannotBeRebuilt => "geri getirilemez",
         _ => throw new ArgumentOutOfRangeException(nameof(cost), cost, null),
     };
 }

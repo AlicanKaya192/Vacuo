@@ -11,6 +11,15 @@ public sealed record KnownLocationRule(
     string Id, Bucket Bucket, RebuildCost Cost, KnownRoot Root, string RelativePath)
     : CacheRule(Id, Bucket, Cost);
 
+/// <summary>
+/// User files in one folder (not its subfolders) that Vacuo only suggests, such as screenshots:
+/// files with one of <paramref name="Extensions"/> that are at least <paramref name="MinimumAge"/> old.
+/// </summary>
+public sealed record UserFileRule(
+    string Id, Bucket Bucket, RebuildCost Cost, KnownRoot Root, string RelativeFolder,
+    IReadOnlySet<string> Extensions, TimeSpan MinimumAge)
+    : CacheRule(Id, Bucket, Cost);
+
 /// <summary>A folder inside a project, such as <c>node_modules</c>, recognised by its marker files.</summary>
 public sealed record ProjectArtifactRule(
     string Id, Bucket Bucket, RebuildCost Cost, Func<DirectoryInfo, bool> Matches)

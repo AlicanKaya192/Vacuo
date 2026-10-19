@@ -9,4 +9,6 @@ public enum RebuildCost
     ReinstalledByCommand,
     /// <summary>The tool downloads it again; the item's size is the download.</summary>
     Redownloaded,
+    /// <summary>The user's own file: once removed, only the Recycle Bin can bring it back.</summary>
+    CannotBeRebuilt,
 }
