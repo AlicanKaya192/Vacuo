@@ -41,8 +41,8 @@ internal static class ScanReport
 
     private static string BucketName(Bucket bucket) => bucket switch
     {
-        Bucket.RebuildsItself => "Kendini yeniden kurar",
-        Bucket.Yours => "Senin",
+        Bucket.RebuildsItself => "Önbellek ve geçici",
+        Bucket.Yours => "Kişisel dosyaların",
         Bucket.SameFiles => "Aynı dosyalar",
         Bucket.Keep => "Kalsın",
         _ => throw new ArgumentOutOfRangeException(nameof(bucket), bucket, null),

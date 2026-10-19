@@ -88,7 +88,7 @@ public class ScanCommandTests
 
         Run run = Execute(tree, "tara");
 
-        Assert.Contains("Kendini yeniden kurar: 2 öğe, 3,0 MB", run.Output);
+        Assert.Contains("Önbellek ve geçici: 2 öğe, 3,0 MB", run.Output);
         Assert.Contains("Toplam: 3,0 MB", run.Output);
     }
 

@@ -17,6 +17,15 @@ internal sealed class DiskScanCache(TimeProvider time)
 
     public bool IsStale => Latest is null || time.GetUtcNow() - _scannedAt > MaxAge;
 
+    /// <summary>Drops items that are gone (moved to the Recycle Bin) without scanning again.</summary>
+    public void Forget(IReadOnlyList<string> paths)
+    {
+        if (Latest is not null)
+        {
+            Latest = Latest.Without(paths);
+        }
+    }
+
     /// <summary>Starts a scan, or joins the one already running.</summary>
     public async Task<ScanSummary> ScanAsync()
     {

@@ -11,10 +11,14 @@ using Vacuo.App.Localization;
 using Vacuo.App.Measurement;
 using Vacuo.App.Screens;
 using Vacuo.App.Visuals;
+using Vacuo.Core.Actions;
 using Vacuo.Core.Disk;
+using Vacuo.Core.Journal;
 using Vacuo.Core.Formatting;
 using Vacuo.Core.Scanning;
+using Vacuo.Windows;
 using Windows.Graphics;
+using Windows.UI;
 using Windows.UI.ViewManagement;
 using WinRT.Interop;
 using static Vacuo.App.Tray.NativeMethods;
@@ -69,9 +73,16 @@ public sealed partial class PanelWindow : Window
         ColorTitleBar();
         UseFlyoutFrame();
         ApplyTexts();
-        DiskScreenView.Initialize(localizer);
+        var recycleBin = new ShellRecycleBin(TimeProvider.System);
+        var runner = new ActionRunner(new ActionJournal(ActionJournal.DefaultPath), recycleBin, TimeProvider.System);
+        DiskScreenView.Initialize(localizer, runner, recycleBin, _animationsEnabled);
         DiskScreenView.BackRequested += (_, _) => ShowCards();
         DiskScreenView.RescanRequested += (_, _) => RefreshDisk();
+        DiskScreenView.Moved += (_, paths) =>
+        {
+            _diskScans.Forget(paths);
+            UpdateDiskCard(_diskScans.Latest!);
+        };
 
         Activated += OnActivated;
         AppWindow.Closing += OnClosing;
@@ -123,6 +134,7 @@ public sealed partial class PanelWindow : Window
         _shuttingDown = true;
         // Stops Win2D's game-loop thread before the window goes away.
         VoidCanvas.RemoveFromVisualTree();
+        DiskScreenView.Shutdown();
         Close();
     }
 
@@ -148,15 +160,15 @@ public sealed partial class PanelWindow : Window
     private void ColorTitleBar()
     {
         var resources = Application.Current.Resources;
-        var background = (Windows.UI.Color)resources["VoidColor"];
-        var ink = (Windows.UI.Color)resources["InkColor"];
-        var inkSecondary = (Windows.UI.Color)resources["InkSecondaryColor"];
+        var background = (Color)resources["VoidColor"];
+        var ink = (Color)resources["InkColor"];
+        var inkSecondary = (Color)resources["InkSecondaryColor"];
         AppWindowTitleBar titleBar = AppWindow.TitleBar;
         titleBar.BackgroundColor = background;
         titleBar.InactiveBackgroundColor = background;
         titleBar.ButtonBackgroundColor = background;
         titleBar.ButtonInactiveBackgroundColor = background;
-        titleBar.ButtonHoverBackgroundColor = (Windows.UI.Color)resources["SurfaceRaisedColor"];
+        titleBar.ButtonHoverBackgroundColor = (Color)resources["SurfaceRaisedColor"];
         titleBar.ForegroundColor = ink;
         titleBar.ButtonForegroundColor = ink;
         titleBar.ButtonHoverForegroundColor = ink;
@@ -330,16 +342,21 @@ public sealed partial class PanelWindow : Window
 
     private void ShowDiskResult(ScanSummary summary)
     {
+        UpdateDiskCard(summary);
+        if (_showingDiskScreen)
+        {
+            DiskScreenView.Show(summary);
+        }
+    }
+
+    private void UpdateDiskCard(ScanSummary summary)
+    {
         DriveInfo drive = SystemDrive();
         _diskOverview = DiskOverview.From(summary, drive.RootDirectory.FullName, drive.AvailableFreeSpace, drive.TotalSize);
         DiskFreeText.Text = DiskTexts.Size(_localizer, _diskOverview.FreeBytes);
         DiskBody.Text = DescribeSystemDrive();
         ShowLegend(_diskOverview);
         DiskRingCanvas.Invalidate();
-        if (_showingDiskScreen)
-        {
-            DiskScreenView.Show(summary);
-        }
     }
 
     private void ShowLegend(DiskOverview overview)
@@ -347,7 +364,7 @@ public sealed partial class PanelWindow : Window
         DiskLegend.Children.Clear();
         foreach (DiskSegment segment in overview.Segments)
         {
-            // Name and size on separate lines: "Kendini yeniden kurar · 11,9 GB" does not fit the card.
+            // Name and size on separate lines: "Önbellek ve geçici · 11,9 GB" does not fit the card.
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
             row.Children.Add(new Border
             {

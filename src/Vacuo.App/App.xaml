@@ -19,8 +19,10 @@
             <Color x:Key="InkSecondaryColor">#FFABA1BF</Color>
             <Color x:Key="AccentColor">#FF9D7CFF</Color>
             <Color x:Key="WarningColor">#FFE9B964</Color>
+            <Color x:Key="WarningTintColor">#1FE9B964</Color>
 
             <SolidColorBrush x:Key="VoidBrush" Color="{StaticResource VoidColor}" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
             <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="{StaticResource SurfaceRaisedColor}" />
             <SolidColorBrush x:Key="LineBrush" Color="{StaticResource LineColor}" />
             <SolidColorBrush x:Key="InkBrush" Color="{StaticResource InkColor}" />
@@ -39,6 +41,101 @@
                 <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="FontSize" Value="14" />
+            </Style>
+            <!-- VOID buttons: own templates, so none of the stock Windows chrome shows through. -->
+            <Style x:Key="VoidPrimaryButtonStyle" TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource VoidBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Padding" Value="16,11" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Root" CornerRadius="12">
+                                <Grid.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#FFB39BFF" Offset="0" />
+                                        <GradientStop Color="#FF9D7CFF" Offset="0.5" />
+                                        <GradientStop Color="#FF7A5CE6" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Grid.Background>
+                                <Border x:Name="Shine" CornerRadius="12" Background="#33FFFFFF" Opacity="0" />
+                                <ContentPresenter Padding="{TemplateBinding Padding}"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="Center"
+                                                  Content="{TemplateBinding Content}"
+                                                  Foreground="{TemplateBinding Foreground}" />
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="Shine.Opacity" Value="1" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Opacity" Value="0.82" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Opacity" Value="0.35" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="VoidGhostButtonStyle" TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Padding" Value="16,11" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Root"
+                                  CornerRadius="12"
+                                  Background="#0DFFFFFF"
+                                  BorderThickness="1"
+                                  BorderBrush="#4D9D7CFF">
+                                <ContentPresenter Padding="{TemplateBinding Padding}"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="Center"
+                                                  Content="{TemplateBinding Content}"
+                                                  Foreground="{TemplateBinding Foreground}" />
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Background" Value="#1A9D7CFF" />
+                                                <Setter Target="Root.BorderBrush" Value="#999D7CFF" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Background" Value="#269D7CFF" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Opacity" Value="0.35" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
             <Style x:Key="CardBodyStyle" TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}" />

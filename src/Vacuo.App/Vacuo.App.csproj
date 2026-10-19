@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Vacuo.Core\Vacuo.Core.csproj" />
+    <ProjectReference Include="..\Vacuo.Windows\Vacuo.Windows.csproj" />
   </ItemGroup>
 
 </Project>

@@ -73,22 +73,19 @@
     <value>Move to Recycle Bin</value>
   </data>
   <data name="DiskPreviewTitle" xml:space="preserve">
-    <value>Preview</value>
+    <value>Move to the Recycle Bin?</value>
   </data>
   <data name="DiskPreviewFormat" xml:space="preserve">
     <value>These will go to the Recycle Bin ({0} items, {1}):</value>
   </data>
-  <data name="DiskPreviewNotYet" xml:space="preserve">
-    <value>This version only previews; nothing was moved.</value>
-  </data>
   <data name="DiskPreviewClose" xml:space="preserve">
-    <value>Close</value>
+    <value>Cancel</value>
   </data>
   <data name="Bucket_RebuildsItself" xml:space="preserve">
-    <value>Rebuilds itself</value>
+    <value>Caches and temporary</value>
   </data>
   <data name="Bucket_Yours" xml:space="preserve">
-    <value>Yours</value>
+    <value>Your personal files</value>
   </data>
   <data name="Bucket_SameFiles" xml:space="preserve">
     <value>Same files</value>
@@ -161,5 +158,50 @@
   </data>
   <data name="HideButton" xml:space="preserve">
     <value>Hide to tray</value>
+  </data>
+  <data name="DiskConfirmMove" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="DiskMoving" xml:space="preserve">
+    <value>Moving…</value>
+  </data>
+  <data name="DiskMovedFormat" xml:space="preserve">
+    <value>{0} moved to the Recycle Bin</value>
+  </data>
+  <data name="DiskMovedNote" xml:space="preserve">
+    <value>The space comes back when the Recycle Bin is emptied; Vacuo never empties it.</value>
+  </data>
+  <data name="DiskFailedFormat" xml:space="preserve">
+    <value>{0} items could not be moved:</value>
+  </data>
+  <data name="DiskMoveErrorFormat" xml:space="preserve">
+    <value>The move could not finish: {0}</value>
+  </data>
+  <data name="Failure_InUse" xml:space="preserve">
+    <value>a program is using it; close the program and try again</value>
+  </data>
+  <data name="Failure_NoAccess" xml:space="preserve">
+    <value>access is denied</value>
+  </data>
+  <data name="Failure_NotRecyclable" xml:space="preserve">
+    <value>it cannot go to the Recycle Bin and would be deleted for good; left alone</value>
+  </data>
+  <data name="Failure_Missing" xml:space="preserve">
+    <value>it is no longer there</value>
+  </data>
+  <data name="Failure_Refused" xml:space="preserve">
+    <value>could not be moved</value>
+  </data>
+  <data name="BucketHint_RebuildsItself" xml:space="preserve">
+    <value>Programs recreate these when they need them.</value>
+  </data>
+  <data name="BucketHint_Yours" xml:space="preserve">
+    <value>Vacuo only suggests these; you decide on each one.</value>
+  </data>
+  <data name="BucketHint_SameFiles" xml:space="preserve">
+    <value>Copies with exactly the same content.</value>
+  </data>
+  <data name="BucketHint_Keep" xml:space="preserve">
+    <value>System files; shown only, never offered.</value>
   </data>
 </root>

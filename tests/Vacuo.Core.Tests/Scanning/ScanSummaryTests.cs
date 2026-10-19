@@ -50,4 +50,55 @@ public class ScanSummaryTests
         Assert.Empty(summary.BucketTotals);
         Assert.Equal(0, summary.TotalBytes);
     }
+
+    [Fact]
+    public void Without_DropsTheGivenFindingsAndRecountsTotals()
+    {
+        ScanSummary summary = ScanSummary.Combine(
+            [new ScanResult([Finding("a", Cache, 10), Finding("b", Kept, 300), Finding("c", Cache, 50)], SkippedEntries: 0)]);
+
+        ScanSummary rest = summary.Without(["c"]);
+
+        Assert.Equal(["b", "a"], rest.Findings.Select(finding => finding.Path));
+        Assert.Equal([new BucketTotal(Bucket.RebuildsItself, 10, 1), new BucketTotal(Bucket.Keep, 300, 1)], rest.BucketTotals);
+        Assert.Equal(310, rest.TotalBytes);
+    }
+
+    [Fact]
+    public void Without_LastFindingOfABucket_RemovesTheBucketTotal()
+    {
+        ScanSummary summary = ScanSummary.Combine([new ScanResult([Finding("a", Cache, 10), Finding("b", Kept, 300)], SkippedEntries: 0)]);
+
+        Assert.Equal([new BucketTotal(Bucket.Keep, 300, 1)], summary.Without(["a"]).BucketTotals);
+    }
+
+    [Fact]
+    public void Without_SubtractsOnlyTheSkippedFoldersInsideRemovedFindings()
+    {
+        ScanSummary summary = ScanSummary.Combine(
+            [new ScanResult([Finding("a", Cache, 10, skipped: 2), Finding("b", Cache, 20, skipped: 1)], SkippedEntries: 4)]);
+
+        Assert.Equal(5, summary.Without(["a"]).SkippedEntries);
+    }
+
+    [Fact]
+    public void Without_MatchesPathsIgnoringCase()
+    {
+        ScanSummary summary = ScanSummary.Combine([new ScanResult([Finding(@"C:\Cache\Pip", Cache, 10)], SkippedEntries: 0)]);
+
+        Assert.Empty(summary.Without([@"c:\cache\pip"]).Findings);
+    }
+
+    [Fact]
+    public void Without_UnknownPath_LeavesTheSummaryAsItWas()
+    {
+        ScanSummary summary = ScanSummary.Combine([new ScanResult([Finding("a", Cache, 10, skipped: 1)], SkippedEntries: 2)]);
+
+        ScanSummary rest = summary.Without(["z"]);
+
+        Assert.Equal(summary.Findings, rest.Findings);
+        Assert.Equal(summary.BucketTotals, rest.BucketTotals);
+        Assert.Equal(summary.TotalBytes, rest.TotalBytes);
+        Assert.Equal(summary.SkippedEntries, rest.SkippedEntries);
+    }
 }

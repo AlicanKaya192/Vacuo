@@ -73,22 +73,19 @@
     <value>Geri Dönüşüm Kutusu'na taşı</value>
   </data>
   <data name="DiskPreviewTitle" xml:space="preserve">
-    <value>Önizleme</value>
+    <value>Geri Dönüşüm Kutusu'na taşınsın mı?</value>
   </data>
   <data name="DiskPreviewFormat" xml:space="preserve">
     <value>Şunlar Geri Dönüşüm Kutusu'na gidecek ({0} öğe, {1}):</value>
   </data>
-  <data name="DiskPreviewNotYet" xml:space="preserve">
-    <value>Bu sürümde yalnızca önizleme var; hiçbir şey taşınmadı.</value>
-  </data>
   <data name="DiskPreviewClose" xml:space="preserve">
-    <value>Kapat</value>
+    <value>Vazgeç</value>
   </data>
   <data name="Bucket_RebuildsItself" xml:space="preserve">
-    <value>Kendini yeniden kurar</value>
+    <value>Önbellek ve geçici</value>
   </data>
   <data name="Bucket_Yours" xml:space="preserve">
-    <value>Senin</value>
+    <value>Kişisel dosyaların</value>
   </data>
   <data name="Bucket_SameFiles" xml:space="preserve">
     <value>Aynı dosyalar</value>
@@ -161,5 +158,50 @@
   </data>
   <data name="HideButton" xml:space="preserve">
     <value>Tepsiye indir</value>
+  </data>
+  <data name="DiskConfirmMove" xml:space="preserve">
+    <value>Taşı</value>
+  </data>
+  <data name="DiskMoving" xml:space="preserve">
+    <value>Taşınıyor…</value>
+  </data>
+  <data name="DiskMovedFormat" xml:space="preserve">
+    <value>{0} Geri Dönüşüm Kutusu'na taşındı</value>
+  </data>
+  <data name="DiskMovedNote" xml:space="preserve">
+    <value>Yer, Geri Dönüşüm Kutusu boşaltılınca açılır; Vacuo kutuyu boşaltmaz.</value>
+  </data>
+  <data name="DiskFailedFormat" xml:space="preserve">
+    <value>{0} öğe taşınamadı:</value>
+  </data>
+  <data name="DiskMoveErrorFormat" xml:space="preserve">
+    <value>Taşıma tamamlanamadı: {0}</value>
+  </data>
+  <data name="Failure_InUse" xml:space="preserve">
+    <value>bir program kullanıyor; programı kapatıp yeniden dene</value>
+  </data>
+  <data name="Failure_NoAccess" xml:space="preserve">
+    <value>erişim izni yok</value>
+  </data>
+  <data name="Failure_NotRecyclable" xml:space="preserve">
+    <value>Geri Dönüşüm Kutusu'na gidemiyor, kalıcı silinirdi; dokunulmadı</value>
+  </data>
+  <data name="Failure_Missing" xml:space="preserve">
+    <value>artık yerinde değil</value>
+  </data>
+  <data name="Failure_Refused" xml:space="preserve">
+    <value>taşınamadı</value>
+  </data>
+  <data name="BucketHint_RebuildsItself" xml:space="preserve">
+    <value>Programlar bunları gerekince yeniden oluşturur.</value>
+  </data>
+  <data name="BucketHint_Yours" xml:space="preserve">
+    <value>Vacuo yalnızca önerir; her birine sen karar verirsin.</value>
+  </data>
+  <data name="BucketHint_SameFiles" xml:space="preserve">
+    <value>İçeriği birebir aynı kopyalar.</value>
+  </data>
+  <data name="BucketHint_Keep" xml:space="preserve">
+    <value>Sistem dosyaları; yalnızca gösterilir, seçilemez.</value>
   </data>
 </root>
