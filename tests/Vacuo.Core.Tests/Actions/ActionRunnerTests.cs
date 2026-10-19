@@ -44,6 +44,29 @@ public class ActionRunnerTests
     }
 
     [Fact]
+    public void RecordDeletedForGood_WritesAnEntryThatSaysItCannotBeUndone()
+    {
+        using var setup = new Setup();
+
+        JournalEntry entry = setup.Runner.RecordDeletedForGood(@"C:\Windows\Temp", 4096);
+
+        Assert.Equal(Now, entry.At);
+        Assert.Equal(4096, entry.SizeBytes);
+        Assert.Equal(@"C:\Windows\Temp", Assert.IsType<DeletedForGood>(entry.Undo).OriginalPath);
+        Assert.Equal([entry], setup.Journal.ReadAll());
+    }
+
+    [Fact]
+    public void Undo_DeletedForGood_RefusesAndMarksNothing()
+    {
+        using var setup = new Setup();
+        JournalEntry entry = setup.Runner.RecordDeletedForGood(setup.Tree.PathOf("gone"), 10);
+
+        Assert.Throws<ActionRefusedException>(() => setup.Runner.Undo(entry.Id));
+        Assert.Null(setup.Journal.ReadAll().Single().UndoneAt);
+    }
+
+    [Fact]
     public void Run_FolderWithAFileInUse_MovesNothingAndRecordsNothing()
     {
         using var setup = new Setup();

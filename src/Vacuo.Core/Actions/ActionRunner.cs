@@ -21,6 +21,14 @@ public sealed class ActionRunner(ActionJournal journal, IRecycleBin recycleBin, 
         return entry;
     }
 
+    /// <summary>Logs a cleanup the administrator helper did for good; it cannot be undone.</summary>
+    public JournalEntry RecordDeletedForGood(string path, long sizeBytes)
+    {
+        var entry = new JournalEntry(Guid.NewGuid(), time.GetUtcNow(), sizeBytes, new DeletedForGood(path), UndoneAt: null);
+        journal.Append(entry);
+        return entry;
+    }
+
     public void Undo(Guid entryId)
     {
         JournalEntry entry = journal.ReadAll().SingleOrDefault(entry => entry.Id == entryId)
@@ -50,6 +58,8 @@ public sealed class ActionRunner(ActionJournal journal, IRecycleBin recycleBin, 
             case RecycledItem recycled:
                 recycleBin.Restore(recycled);
                 break;
+            case DeletedForGood deleted:
+                throw new ActionRefusedException($"'{deleted.OriginalPath}' was deleted for good and cannot be put back.");
             default:
                 throw new ArgumentOutOfRangeException(nameof(undo), undo, "Unknown kind of undo record.");
         }

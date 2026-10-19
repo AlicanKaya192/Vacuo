@@ -10,6 +10,7 @@ public enum UndoFailureReason
     FolderGone,
     NotInBin,
     InUse,
+    CannotBeUndone,
     Refused,
 }
 
@@ -29,6 +30,11 @@ public sealed class JournalScreen(ActionJournal journal, ActionRunner runner)
         if (entry.UndoneAt is not null)
         {
             return UndoFailureReason.AlreadyUndone;
+        }
+
+        if (entry.Undo is DeletedForGood)
+        {
+            return UndoFailureReason.CannotBeUndone;
         }
 
         if (Path.Exists(originalPath))

@@ -97,6 +97,15 @@ public class JournalScreenTests
     }
 
     [Fact]
+    public void Undo_DeletedForGood_IsReportedCannotBeUndone()
+    {
+        using var setup = new Setup();
+        JournalEntry entry = setup.RunnerAt(Earlier).RecordDeletedForGood(setup.Tree.PathOf("gone"), 10);
+
+        Assert.Equal(UndoFailureReason.CannotBeUndone, setup.Screen.Undo(entry.Id));
+    }
+
+    [Fact]
     public void Undo_ItemNoLongerInTheBin_IsReportedNotInBin()
     {
         using var setup = new Setup();
