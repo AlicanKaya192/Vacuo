@@ -18,7 +18,9 @@ public class MoveToRecycleBinActionTests
 
         Assert.False(File.Exists(cache));
         Assert.Equal(1, bin.ItemCount);
-        Assert.Equal(new RecycledItem(tree.PathOf(@"Local\pip\Cache"), Now), undo);
+        var recycled = Assert.IsType<RecycledItem>(undo);
+        Assert.Equal(tree.PathOf(@"Local\pip\Cache"), recycled.OriginalPath);
+        Assert.Equal(Now, recycled.DeletedAt);
     }
 
     [Fact]

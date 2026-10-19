@@ -13,7 +13,7 @@ public class ActionJournalTests
         new(Guid.NewGuid(), Morning, 1234, new MovedItem(@"C:\Users\x\Desktop\a.txt", @"C:\Users\x\Documents\a.txt"), UndoneAt: null);
 
     private static JournalEntry RecycledEntry() =>
-        new(Guid.NewGuid(), Evening, 4_200_000_000, new RecycledItem(@"C:\Users\x\AppData\Local\pip\Cache", Evening), UndoneAt: null);
+        new(Guid.NewGuid(), Evening, 4_200_000_000, new RecycledItem(@"C:\Users\x\AppData\Local\pip\Cache", Evening, @"C:\$Recycle.Bin\user\$RAB12CD"), UndoneAt: null);
 
     [Fact]
     public void ReadAll_NoJournalFileYet_IsEmpty()

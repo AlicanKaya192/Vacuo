@@ -38,7 +38,7 @@ public class ActionRunnerTests
 
         Assert.Equal(Now, entry.At);
         Assert.Equal(500, entry.SizeBytes);
-        Assert.Equal(new RecycledItem(target, Now), entry.Undo);
+        Assert.Equal(target, Assert.IsType<RecycledItem>(entry.Undo).OriginalPath);
         Assert.Null(entry.UndoneAt);
         Assert.Equal([entry], setup.Journal.ReadAll());
     }

@@ -13,5 +13,8 @@ public abstract record UndoRecord(string OriginalPath);
 
 public sealed record MovedItem(string OriginalPath, string MovedTo) : UndoRecord(OriginalPath);
 
-/// <summary>The Recycle Bin knows its items by original path and deletion time.</summary>
-public sealed record RecycledItem(string OriginalPath, DateTimeOffset DeletedAt) : UndoRecord(OriginalPath);
+/// <summary>
+/// An item in the Recycle Bin. <paramref name="BinPath"/> is where the bin stores it; it tells
+/// this item apart from others deleted from the same place, so restore picks the right one.
+/// </summary>
+public sealed record RecycledItem(string OriginalPath, DateTimeOffset DeletedAt, string BinPath) : UndoRecord(OriginalPath);

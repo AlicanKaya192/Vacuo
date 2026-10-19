@@ -8,24 +8,23 @@ namespace Vacuo.Core.Tests.Actions;
 /// </summary>
 internal sealed class FakeRecycleBin(string binFolder, TimeProvider time) : IRecycleBin
 {
-    private readonly Dictionary<RecycledItem, string> _storedAt = [];
+    private readonly HashSet<string> _stored = [];
 
-    public int ItemCount => _storedAt.Count;
+    public int ItemCount => _stored.Count;
 
     public RecycledItem MoveToBin(string path)
     {
         Directory.CreateDirectory(binFolder);
-        string storedAt = Path.Combine(binFolder, Guid.NewGuid().ToString("N"));
-        MoveEntry(path, storedAt);
-        var item = new RecycledItem(path, time.GetUtcNow());
-        _storedAt.Add(item, storedAt);
-        return item;
+        string binPath = Path.Combine(binFolder, Guid.NewGuid().ToString("N"));
+        MoveEntry(path, binPath);
+        _stored.Add(binPath);
+        return new RecycledItem(path, time.GetUtcNow(), binPath);
     }
 
     public void Restore(RecycledItem item)
     {
-        MoveEntry(_storedAt[item], item.OriginalPath);
-        _storedAt.Remove(item);
+        MoveEntry(item.BinPath, item.OriginalPath);
+        _stored.Remove(item.BinPath);
     }
 
     private static void MoveEntry(string from, string to)
