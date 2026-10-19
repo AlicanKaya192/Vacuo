@@ -24,7 +24,7 @@ public static class KnownCacheRules
         Artifact("node-modules", RebuildCost.ReinstalledByCommand,
             directory => directory.Name == "node_modules" && ArtifactMarkers.HasSiblingFile(directory, "package.json")),
         Artifact("python-venv", RebuildCost.ReinstalledByCommand,
-            directory => ArtifactMarkers.HasFile(directory, "pyvenv.cfg")),
+            directory => ArtifactMarkers.HasFile(directory, "pyvenv.cfg") && ArtifactMarkers.HasPythonPackageListBeside(directory)),
         Artifact("python-bytecode", RebuildCost.RegeneratedAutomatically,
             directory => directory.Name == "__pycache__" && ArtifactMarkers.HoldsOnlyFilesWithExtension(directory, ".pyc")),
         Artifact("jupyter-checkpoints", RebuildCost.RegeneratedAutomatically,

@@ -50,6 +50,7 @@ public class ProjectArtifactScannerTests
     public void Scan_VirtualEnvironmentWithPyvenvCfg_IsFoundWhateverItsName()
     {
         using var tree = new TempTree();
+        tree.AddFile(@"projects\ml\requirements.txt", 10);
         tree.AddFile(@"projects\ml\env\pyvenv.cfg", 5);
         tree.AddFile(@"projects\ml\env\Lib\site-packages\numpy\core.pyd", 995);
 
@@ -57,6 +58,38 @@ public class ProjectArtifactScannerTests
 
         Assert.Equal("python-venv", finding.Rule.Id);
         Assert.Equal(1000, finding.Size.Bytes);
+    }
+
+    [Theory]
+    [InlineData("requirements.txt")]
+    [InlineData("requirements-dev.txt")]
+    [InlineData("pyproject.toml")]
+    [InlineData("setup.py")]
+    [InlineData("setup.cfg")]
+    [InlineData("Pipfile")]
+    [InlineData("environment.yml")]
+    [InlineData("uv.lock")]
+    [InlineData("poetry.lock")]
+    public void Scan_VirtualEnvironmentNextToAPackageList_IsFound(string packageList)
+    {
+        using var tree = new TempTree();
+        tree.AddFile($@"projects\ml\{packageList}", 10);
+        tree.AddFile(@"projects\ml\.venv\pyvenv.cfg", 5);
+
+        Assert.Equal("python-venv", Assert.Single(ScanProjects(tree)).Rule.Id);
+    }
+
+    [Theory]
+    [InlineData("notes.txt")]
+    [InlineData("requirements.md")]
+    public void Scan_VirtualEnvironmentWithoutAPackageList_IsIgnoredBecauseItCannotBeRebuilt(string otherFile)
+    {
+        using var tree = new TempTree();
+        tree.AddFile($@"projects\ml\{otherFile}", 10);
+        tree.AddFile(@"projects\ml\train.py", 10);
+        tree.AddFile(@"projects\ml\.venv\pyvenv.cfg", 5);
+
+        Assert.Empty(ScanProjects(tree));
     }
 
     [Fact]
@@ -170,6 +203,7 @@ public class ProjectArtifactScannerTests
         using var tree = new TempTree();
         tree.AddFile(@"projects\web\package.json", 20);
         tree.AddFile(@"projects\web\node_modules\lib\index.js", 600);
+        tree.AddFile(@"projects\ml\pyproject.toml", 10);
         tree.AddFile(@"projects\ml\.venv\pyvenv.cfg", 5);
 
         string[] ruleIds = ScanProjects(tree).Select(finding => finding.Rule.Id).Order().ToArray();
