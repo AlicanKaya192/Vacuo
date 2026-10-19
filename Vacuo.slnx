@@ -5,6 +5,7 @@
   <Folder Name="/src/">
     <Project Path="src/Vacuo.App/Vacuo.App.csproj" />
     <Project Path="src/Vacuo.Core/Vacuo.Core.csproj" />
+    <Project Path="src/Vacuo.Tray/Vacuo.Tray.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Vacuo.Core.Tests/Vacuo.Core.Tests.csproj" />

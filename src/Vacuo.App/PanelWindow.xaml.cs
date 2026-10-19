@@ -56,6 +56,8 @@ public sealed partial class PanelWindow : Window
 
     internal event EventHandler? QuitRequested;
 
+    internal event EventHandler? Hidden;
+
     internal nint Handle { get; }
 
     internal void Toggle()
@@ -144,6 +146,7 @@ public sealed partial class PanelWindow : Window
         _isOpen = false;
         _hiddenAt = DateTime.UtcNow;
         _measurement?.MarkPanelHidden();
+        Hidden?.Invoke(this, EventArgs.Empty);
     }
 
     private void PlaceAboveTray()

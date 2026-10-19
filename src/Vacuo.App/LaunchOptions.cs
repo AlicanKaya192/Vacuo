@@ -1,8 +1,10 @@
+using Vacuo.Core.Hosting;
+
 namespace Vacuo.App;
 
 /// <summary>
-/// Command-line switches used during Stage 0 measurement:
-/// <c>--lang en-US</c>, <c>--measure &lt;file.json&gt;</c>, <c>--open</c>,
+/// Command-line switches: <c>--panel-only</c> (started by the tray process), and for Stage 0
+/// measurement <c>--lang en-US</c>, <c>--measure &lt;file.json&gt;</c>, <c>--open</c>,
 /// <c>--script idle|coldstart|full</c>, <c>--reduced-motion</c>.
 /// </summary>
 internal sealed record LaunchOptions(
@@ -10,7 +12,8 @@ internal sealed record LaunchOptions(
     string? MeasurementPath,
     bool OpenPanelAtStart,
     string? Script,
-    bool ForceReducedMotion)
+    bool ForceReducedMotion,
+    bool PanelOnly)
 {
     public static LaunchOptions Parse(IReadOnlyList<string> args)
     {
@@ -19,6 +22,7 @@ internal sealed record LaunchOptions(
         bool openPanel = false;
         string? script = null;
         bool reducedMotion = false;
+        bool panelOnly = false;
 
         for (int i = 1; i < args.Count; i++)
         {
@@ -39,9 +43,12 @@ internal sealed record LaunchOptions(
                 case "--reduced-motion":
                     reducedMotion = true;
                     break;
+                case PanelProtocol.PanelOnlySwitch:
+                    panelOnly = true;
+                    break;
             }
         }
 
-        return new LaunchOptions(language, measurementPath, openPanel, script, reducedMotion);
+        return new LaunchOptions(language, measurementPath, openPanel, script, reducedMotion, panelOnly);
     }
 }
