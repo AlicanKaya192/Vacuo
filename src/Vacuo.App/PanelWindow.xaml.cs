@@ -17,6 +17,7 @@ using Vacuo.Core.Journal;
 using Vacuo.Core.Formatting;
 using Vacuo.Core.Scanning;
 using Vacuo.Windows;
+using Windows.Foundation;
 using Windows.Graphics;
 using Windows.UI;
 using Windows.UI.ViewManagement;
@@ -30,11 +31,14 @@ namespace Vacuo.App;
 /// </summary>
 public sealed partial class PanelWindow : Window
 {
-    private const int PanelWidth = 360;
-    private const int PanelHeight = 640;
-    // The panel grows into the Disk screen (development plan, user flow step 3).
-    private const int DiskScreenWidth = 720;
-    private const int DiskScreenHeight = 640;
+    private const int PanelWidth = 400;
+    // The panel is as tall as its cards (vacuo-kurallar 13), never shorter than this.
+    private const int MinPanelHeight = 640;
+    // The flyout's border sits outside the measured content.
+    private const int FrameAllowance = 4;
+    // The panel grows into the Disk or Windows screen (development plan, user flow step 3).
+    private const int ScreenWidth = 720;
+    private const int ScreenHeight = 640;
     private const int ScreenMargin = 12;
     private const int ParticleCount = 2000;
     private const double DefaultDpi = 96;
@@ -53,7 +57,10 @@ public sealed partial class PanelWindow : Window
     private readonly DiskScanCache _diskScans = new(TimeProvider.System);
     private readonly OverlappedPresenter _presenter = OverlappedPresenter.Create();
     private DiskOverview? _diskOverview;
-    private bool _showingDiskScreen;
+    // The Disk or Windows screen is open: an ordinary window, not the card panel.
+    private bool _showingWorkScreen;
+    private int _cardPanelHeight;
+    private UserControl _journalOpenedFrom = null!;
     private bool _restoredSinceJournalOpened;
     private DateTime _hiddenAt = DateTime.MinValue;
     private bool _isOpen;
@@ -80,7 +87,11 @@ public sealed partial class PanelWindow : Window
         DiskScreenView.Initialize(localizer, runner, recycleBin, _animationsEnabled);
         DiskScreenView.BackRequested += (_, _) => ShowCards();
         DiskScreenView.RescanRequested += (_, _) => RefreshDisk();
-        DiskScreenView.JournalRequested += (_, _) => ShowJournal();
+        DiskScreenView.JournalRequested += (_, _) => ShowJournal(DiskScreenView);
+        WindowsScreenView.Initialize(
+            localizer, runner, recycleBin, ElevatedLauncher.NextToThisApp(), WindowsLocations.ForThisMachine(), _animationsEnabled);
+        WindowsScreenView.BackRequested += (_, _) => ShowCards();
+        WindowsScreenView.JournalRequested += (_, _) => ShowJournal(WindowsScreenView);
         JournalScreenView.Initialize(localizer, new JournalScreen(journal, runner));
         JournalScreenView.BackRequested += (_, _) => BackFromJournal();
         JournalScreenView.Restored += (_, _) => _restoredSinceJournalOpened = true;
@@ -104,7 +115,7 @@ public sealed partial class PanelWindow : Window
 
     internal void Toggle()
     {
-        if (_isOpen && !_showingDiskScreen)
+        if (_isOpen && !_showingWorkScreen)
         {
             Hide();
             return;
@@ -118,7 +129,7 @@ public sealed partial class PanelWindow : Window
         Reveal();
     }
 
-    /// <summary>Opens the panel, or brings the Disk screen back when it is minimised or behind other windows.</summary>
+    /// <summary>Opens the panel, or brings the Disk or Windows screen back when it is minimised or behind other windows.</summary>
     internal void Reveal()
     {
         if (!_isOpen)
@@ -141,6 +152,7 @@ public sealed partial class PanelWindow : Window
         // Stops Win2D's game-loop thread before the window goes away.
         VoidCanvas.RemoveFromVisualTree();
         DiskScreenView.Shutdown();
+        WindowsScreenView.Shutdown();
         Close();
     }
 
@@ -153,7 +165,7 @@ public sealed partial class PanelWindow : Window
         AppWindow.IsShownInSwitchers = false;
     }
 
-    // The Disk screen is work the user comes back to: an ordinary window that can be minimised,
+    // The Disk and Windows screens are work the user comes back to: an ordinary window that can be minimised,
     // stays behind other windows and shows on the taskbar.
     private void UseWindowFrame()
     {
@@ -223,6 +235,9 @@ public sealed partial class PanelWindow : Window
         DiskBody.Text = DescribeSystemDrive();
         DiskFreeLabel.Text = _localizer.Get("DiskFreeLabel");
         DiskInspectButton.Content = _localizer.Get("DiskInspectButton");
+        WindowsTitle.Text = _localizer.Get("WindowsCardTitle");
+        WindowsBody.Text = _localizer.Get("WindowsCardBody");
+        WindowsInspectButton.Content = _localizer.Get("WindowsInspectButton");
         MemoryTitle.Text = _localizer.Get("MemoryTitle");
         MemoryBody.Text = _localizer.Get("MemoryPlaceholder");
         OrganizeTitle.Text = _localizer.Get("OrganizeTitle");
@@ -287,13 +302,14 @@ public sealed partial class PanelWindow : Window
     {
         Reshape(() =>
         {
-            _showingDiskScreen = false;
+            _showingWorkScreen = false;
             DiskScreenView.Visibility = Visibility.Collapsed;
+            WindowsScreenView.Visibility = Visibility.Collapsed;
             JournalScreenView.Visibility = Visibility.Collapsed;
             VoidCanvas.Visibility = Visibility.Visible;
-            Cards.Visibility = Visibility.Visible;
+            CardsScroller.Visibility = Visibility.Visible;
             UseFlyoutFrame();
-            PlaceAboveTray(PanelWidth, PanelHeight);
+            PlaceAboveTray(PanelWidth, CardPanelHeight());
         });
 
         VoidCanvas.Paused = !_isOpen || !_animationsEnabled;
@@ -303,20 +319,25 @@ public sealed partial class PanelWindow : Window
         }
     }
 
-    private void ShowDiskScreen()
+    private void ShowWorkScreen(UserControl screen)
     {
         Reshape(() =>
         {
-            _showingDiskScreen = true;
+            _showingWorkScreen = true;
             VoidCanvas.Paused = true;
             VoidCanvas.Visibility = Visibility.Collapsed;
-            Cards.Visibility = Visibility.Collapsed;
+            CardsScroller.Visibility = Visibility.Collapsed;
             JournalScreenView.Visibility = Visibility.Collapsed;
-            DiskScreenView.Visibility = Visibility.Visible;
+            DiskScreenView.Visibility = screen == DiskScreenView ? Visibility.Visible : Visibility.Collapsed;
+            WindowsScreenView.Visibility = screen == WindowsScreenView ? Visibility.Visible : Visibility.Collapsed;
             UseWindowFrame();
-            PlaceAboveTray(DiskScreenWidth, DiskScreenHeight);
+            PlaceAboveTray(ScreenWidth, ScreenHeight);
         });
+    }
 
+    private void ShowDiskScreen()
+    {
+        ShowWorkScreen(DiskScreenView);
         if (_diskScans.Latest is { } latest)
         {
             DiskScreenView.Show(latest);
@@ -327,21 +348,37 @@ public sealed partial class PanelWindow : Window
         }
     }
 
-    // The Journal opens in the same window as the Disk screen; its frame and size stay.
-    private void ShowJournal()
+    private void ShowWindowsScreen()
     {
+        ShowWorkScreen(WindowsScreenView);
+        WindowsScreenView.Refresh();
+    }
+
+    // The Journal opens in the same window as the screen that asked for it; its frame and size stay.
+    private void ShowJournal(UserControl from)
+    {
+        _journalOpenedFrom = from;
         _restoredSinceJournalOpened = false;
-        DiskScreenView.Visibility = Visibility.Collapsed;
+        from.Visibility = Visibility.Collapsed;
         JournalScreenView.Visibility = Visibility.Visible;
         JournalScreenView.Show();
     }
 
-    // Put-back items are on disk again, so the Disk screen scans before it lists anything.
+    // Put-back items are on disk again, so the screen scans before it lists anything.
     private void BackFromJournal()
     {
         JournalScreenView.Visibility = Visibility.Collapsed;
-        DiskScreenView.Visibility = Visibility.Visible;
-        if (_restoredSinceJournalOpened)
+        _journalOpenedFrom.Visibility = Visibility.Visible;
+        if (!_restoredSinceJournalOpened)
+        {
+            return;
+        }
+
+        if (_journalOpenedFrom == WindowsScreenView)
+        {
+            WindowsScreenView.Refresh();
+        }
+        else
         {
             RefreshDisk();
         }
@@ -351,7 +388,7 @@ public sealed partial class PanelWindow : Window
     private async void RefreshDisk()
     {
         DiskBody.Text = _localizer.Get("DiskScanning");
-        if (_showingDiskScreen)
+        if (_showingWorkScreen)
         {
             DiskScreenView.ShowScanning();
         }
@@ -371,7 +408,7 @@ public sealed partial class PanelWindow : Window
     private void ShowDiskResult(ScanSummary summary)
     {
         UpdateDiskCard(summary);
-        if (_showingDiskScreen)
+        if (_showingWorkScreen)
         {
             DiskScreenView.Show(summary);
         }
@@ -385,6 +422,7 @@ public sealed partial class PanelWindow : Window
         DiskBody.Text = DescribeSystemDrive();
         ShowLegend(_diskOverview);
         DiskRingCanvas.Invalidate();
+        FitCardPanel();
     }
 
     private void ShowLegend(DiskOverview overview)
@@ -421,13 +459,37 @@ public sealed partial class PanelWindow : Window
         }
     }
 
+    // Measured, so a new card never ends up below the bottom edge.
+    private int CardPanelHeight()
+    {
+        Root.Measure(new Size(PanelWidth, double.PositiveInfinity));
+        _cardPanelHeight = Math.Max(MinPanelHeight, (int)Math.Ceiling(Root.DesiredSize.Height) + FrameAllowance);
+        return _cardPanelHeight;
+    }
+
+    // A longer legend makes the Disk card taller; the open panel grows with it.
+    private void FitCardPanel()
+    {
+        if (!_isOpen || _showingWorkScreen)
+        {
+            return;
+        }
+
+        int previous = _cardPanelHeight;
+        if (CardPanelHeight() != previous)
+        {
+            Reshape(() => PlaceAboveTray(PanelWidth, _cardPanelHeight));
+        }
+    }
+
     private void PlaceAboveTray(int logicalWidth, int logicalHeight)
     {
         var workArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
         double scale = GetDpiForWindow(Handle) / DefaultDpi;
         int width = (int)(logicalWidth * scale);
-        int height = (int)(logicalHeight * scale);
         int margin = (int)(ScreenMargin * scale);
+        // On a short screen (or at a large scale) the panel never reaches above the work area.
+        int height = Math.Min((int)(logicalHeight * scale), workArea.Height - 2 * margin);
         AppWindow.MoveAndResize(new RectInt32(
             workArea.X + workArea.Width - width - margin,
             workArea.Y + workArea.Height - height - margin,
@@ -440,7 +502,7 @@ public sealed partial class PanelWindow : Window
     {
         Compositor compositor = ElementCompositionPreview.GetElementVisual(Root).Compositor;
         var easing = compositor.CreateCubicBezierEasingFunction(new Vector2(0.2f, 0.7f), new Vector2(0.2f, 1f));
-        UIElement[] cards = [DiskCard, MemoryCard, OrganizeCard];
+        UIElement[] cards = [DiskCard, WindowsCard, MemoryCard, OrganizeCard];
 
         for (int i = 0; i < cards.Length; i++)
         {
@@ -472,8 +534,8 @@ public sealed partial class PanelWindow : Window
 
     private void OnActivated(object sender, WindowActivatedEventArgs args)
     {
-        // Only the card panel closes on losing focus; the Disk screen stays like any other window.
-        if (args.WindowActivationState == WindowActivationState.Deactivated && _isOpen && !_showingDiskScreen)
+        // Only the card panel closes on losing focus; the Disk and Windows screens stay like any other window.
+        if (args.WindowActivationState == WindowActivationState.Deactivated && _isOpen && !_showingWorkScreen)
         {
             Hide();
         }
@@ -497,6 +559,8 @@ public sealed partial class PanelWindow : Window
     }
 
     private void OnDiskInspectClick(object sender, RoutedEventArgs e) => ShowDiskScreen();
+
+    private void OnWindowsInspectClick(object sender, RoutedEventArgs e) => ShowWindowsScreen();
 
     private void OnHideClick(object sender, RoutedEventArgs e) => Hide();
 

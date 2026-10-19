@@ -31,6 +31,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Vacuo.Core\Vacuo.Core.csproj" />
     <ProjectReference Include="..\Vacuo.Windows\Vacuo.Windows.csproj" />
+    <!-- The administrator helper (ADR-003) ships next to Vacuo.exe; the app only starts it, never calls into it. -->
+    <ProjectReference Include="..\Vacuo.Elevated\Vacuo.Elevated.csproj" />
   </ItemGroup>
 
 </Project>

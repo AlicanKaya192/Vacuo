@@ -1,11 +1,12 @@
 using System.Diagnostics;
+using Vacuo.Core.Leftovers;
 using Vacuo.Core.Scanning;
 
 namespace Vacuo.Elevated;
 
 /// <summary>
 /// Vacuo's administrator helper (ADR-003). Vacuo starts it with "run as administrator" for one
-/// cleanup: <c>Vacuo.Elevated &lt;operation&gt; &lt;request-id&gt;</c>. It never takes a path.
+/// run: <c>Vacuo.Elevated &lt;operation&gt;... &lt;request-id&gt;</c>. It never takes a path.
 /// </summary>
 internal static class Program
 {
@@ -13,7 +14,7 @@ internal static class Program
         args,
         WindowsLocations.ForThisMachine(),
         new SystemProcessRunner(),
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vacuo", "elevated"));
+        ElevatedResults.DefaultFolder);
 
     private sealed class SystemProcessRunner : IProcessRunner
     {

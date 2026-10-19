@@ -211,7 +211,7 @@
     <value>Journal</value>
   </data>
   <data name="JournalIntro" xml:space="preserve">
-    <value>Everything Vacuo moved to the Recycle Bin, newest first. Undo puts an item back where it was.</value>
+    <value>Everything Vacuo moved to the Recycle Bin or deleted for good with administrator permission, newest first. Undo puts a moved item back where it was.</value>
   </data>
   <data name="JournalEmpty" xml:space="preserve">
     <value>Nothing has been moved yet.</value>
@@ -248,5 +248,113 @@
   </data>
   <data name="UndoFailure_Refused" xml:space="preserve">
     <value>could not be put back</value>
+  </data>
+  <data name="WindowsCardTitle" xml:space="preserve">
+    <value>Windows</value>
+  </data>
+  <data name="WindowsCardBody" xml:space="preserve">
+    <value>Temp files, update leftovers and component cleanup.</value>
+  </data>
+  <data name="WindowsInspectButton" xml:space="preserve">
+    <value>Inspect Windows leftovers</value>
+  </data>
+  <data name="WindowsTitle" xml:space="preserve">
+    <value>Windows leftovers</value>
+  </data>
+  <data name="WindowsTempHeader" xml:space="preserve">
+    <value>Temp files (%TEMP%)</value>
+  </data>
+  <data name="WindowsTempHint" xml:space="preserve">
+    <value>Temporary files programs left behind. What you pick goes to the Recycle Bin; anything a program is using is skipped.</value>
+  </data>
+  <data name="WindowsSelectAll" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+  <data name="WindowsTempEmpty" xml:space="preserve">
+    <value>The temp folder is empty.</value>
+  </data>
+  <data name="WindowsAdminHeader" xml:space="preserve">
+    <value>With administrator permission</value>
+  </data>
+  <data name="WindowsAdminHint" xml:space="preserve">
+    <value>These are deleted for good: they do not go to the Recycle Bin and cannot be undone. Their size shows after the cleanup.</value>
+  </data>
+  <data name="Leftover_windows_temp" xml:space="preserve">
+    <value>Windows temp files</value>
+  </data>
+  <data name="Leftover_update_downloads" xml:space="preserve">
+    <value>Windows Update downloads</value>
+  </data>
+  <data name="Leftover_upgrade_files_bt" xml:space="preserve">
+    <value>Windows upgrade files</value>
+  </data>
+  <data name="Leftover_upgrade_files_ws" xml:space="preserve">
+    <value>Windows upgrade files (setup)</value>
+  </data>
+  <data name="Leftover_component_cleanup" xml:space="preserve">
+    <value>Windows component cleanup (DISM)</value>
+  </data>
+  <data name="LeftoverHint_component_cleanup" xml:space="preserve">
+    <value>Removes old components that updates left behind. It can take a few minutes.</value>
+  </data>
+  <data name="WindowsAdminSelectionEmpty" xml:space="preserve">
+    <value>Pick cleanups to run.</value>
+  </data>
+  <data name="WindowsAdminSelectionFormat" xml:space="preserve">
+    <value>Selected: {0} cleanups</value>
+  </data>
+  <data name="WindowsAdminButton" xml:space="preserve">
+    <value>Clean up as administrator</value>
+  </data>
+  <data name="WindowsAdminConfirmTitle" xml:space="preserve">
+    <value>Delete these for good?</value>
+  </data>
+  <data name="WindowsAdminConfirmFormat" xml:space="preserve">
+    <value>{0} cleanups will run under one administrator prompt:</value>
+  </data>
+  <data name="WindowsAdminWarning" xml:space="preserve">
+    <value>This cannot be undone: nothing goes to the Recycle Bin.</value>
+  </data>
+  <data name="WindowsAdminNote" xml:space="preserve">
+    <value>Windows opens an administrator prompt; permission is asked for this cleanup only. Files in use are skipped.</value>
+  </data>
+  <data name="WindowsAdminConfirm" xml:space="preserve">
+    <value>Delete for good</value>
+  </data>
+  <data name="WindowsAdminRunning" xml:space="preserve">
+    <value>Cleaning up… DISM can take a few minutes.</value>
+  </data>
+  <data name="WindowsAdminDeclined" xml:space="preserve">
+    <value>Administrator permission was not given; nothing was deleted.</value>
+  </data>
+  <data name="WindowsAdminErrorFormat" xml:space="preserve">
+    <value>The cleanup did not run: {0}</value>
+  </data>
+  <data name="WindowsResultFolderFormat" xml:space="preserve">
+    <value>{0}: {1} deleted ({2} files).</value>
+  </data>
+  <data name="WindowsResultSkippedFormat" xml:space="preserve">
+    <value>{0} files were skipped because they were in use or out of reach.</value>
+  </data>
+  <data name="WindowsResultDoneFormat" xml:space="preserve">
+    <value>{0}: done.</value>
+  </data>
+  <data name="WindowsResultFailedFormat" xml:space="preserve">
+    <value>{0}: failed ({1}).</value>
+  </data>
+  <data name="WindowsResultExitCodeFormat" xml:space="preserve">
+    <value>exit code {0}</value>
+  </data>
+  <data name="WindowsOldText" xml:space="preserve">
+    <value>A previous Windows installation (Windows.old) is still here. Windows' own Disk Cleanup removes it.</value>
+  </data>
+  <data name="WindowsOpenDiskCleanup" xml:space="preserve">
+    <value>Open Disk Cleanup</value>
+  </data>
+  <data name="JournalDeletedForGood" xml:space="preserve">
+    <value>Deleted for good · cannot be undone</value>
+  </data>
+  <data name="UndoFailure_CannotBeUndone" xml:space="preserve">
+    <value>it was deleted for good and cannot be put back</value>
   </data>
 </root>

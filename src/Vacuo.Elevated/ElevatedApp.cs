@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Vacuo.Core.Leftovers;
 using Vacuo.Core.Scanning;
 
 namespace Vacuo.Elevated;
@@ -9,11 +9,7 @@ public interface IProcessRunner
     int Run(string fileName, IReadOnlyList<string> arguments);
 }
 
-/// <summary>What the helper did, written to <c>%LocalAppData%\Vacuo\elevated\&lt;id&gt;.json</c> for Vacuo to read.</summary>
-public sealed record ElevatedResult(
-    string Operation, bool Succeeded, long DeletedBytes, int DeletedFiles, int Skipped, int? ExitCode, string? Error);
-
-/// <summary>The helper's one run: check the request, do that single cleanup, write the result, end.</summary>
+/// <summary>The helper's one run: check the request, do the cleanups under this one prompt, write the results, end.</summary>
 internal static class ElevatedApp
 {
     public const int Succeeded = 0;
@@ -34,21 +30,25 @@ internal static class ElevatedApp
             return Refused;
         }
 
-        ElevatedResult result;
+        // One failure does not stop the others; each is reported on its own.
+        List<ElevatedResult> results = request.Leftovers.Select(leftover => RunOne(leftover, locations, runner)).ToList();
+
+        ElevatedResults.Write(resultFolder, request.RequestId, results);
+        return results.All(result => result.Succeeded) ? Succeeded : Failed;
+    }
+
+    private static ElevatedResult RunOne(WindowsLeftover leftover, WindowsLocations locations, IProcessRunner runner)
+    {
         try
         {
-            result = request.Leftover.Kind == LeftoverKind.ComponentCleanup
-                ? CleanComponents(request.Leftover.Id, locations, runner)
-                : EmptyFolder(request.Leftover);
+            return leftover.Kind == LeftoverKind.ComponentCleanup
+                ? CleanComponents(leftover.Id, locations, runner)
+                : EmptyFolder(leftover);
         }
         catch (Exception exception)
         {
-            result = new ElevatedResult(request.Leftover.Id, false, 0, 0, 0, ExitCode: null, Error: exception.Message);
+            return new ElevatedResult(leftover.Id, false, 0, 0, 0, ExitCode: null, Error: exception.Message);
         }
-
-        Directory.CreateDirectory(resultFolder);
-        File.WriteAllText(Path.Combine(resultFolder, $"{request.RequestId:D}.json"), JsonSerializer.Serialize(result));
-        return result.Succeeded ? Succeeded : Failed;
     }
 
     private static ElevatedResult EmptyFolder(WindowsLeftover leftover)

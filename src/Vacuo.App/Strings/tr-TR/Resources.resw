@@ -211,7 +211,7 @@
     <value>Günlük</value>
   </data>
   <data name="JournalIntro" xml:space="preserve">
-    <value>Vacuo'nun Geri Dönüşüm Kutusu'na taşıdığı her şey, en yenisi üstte. Geri al, öğeyi eski yerine koyar.</value>
+    <value>Vacuo'nun Geri Dönüşüm Kutusu'na taşıdığı ve yönetici izniyle kalıcı sildiği her şey, en yenisi üstte. Geri al, taşınan öğeyi eski yerine koyar.</value>
   </data>
   <data name="JournalEmpty" xml:space="preserve">
     <value>Henüz hiçbir şey taşınmadı.</value>
@@ -248,5 +248,113 @@
   </data>
   <data name="UndoFailure_Refused" xml:space="preserve">
     <value>geri alınamadı</value>
+  </data>
+  <data name="WindowsCardTitle" xml:space="preserve">
+    <value>Windows</value>
+  </data>
+  <data name="WindowsCardBody" xml:space="preserve">
+    <value>Geçici dosyalar, güncelleme artıkları ve bileşen temizliği.</value>
+  </data>
+  <data name="WindowsInspectButton" xml:space="preserve">
+    <value>Windows kalıntılarını incele</value>
+  </data>
+  <data name="WindowsTitle" xml:space="preserve">
+    <value>Windows kalıntıları</value>
+  </data>
+  <data name="WindowsTempHeader" xml:space="preserve">
+    <value>Geçici dosyalar (%TEMP%)</value>
+  </data>
+  <data name="WindowsTempHint" xml:space="preserve">
+    <value>Programların bıraktığı geçici dosyalar. Seçtiklerin Geri Dönüşüm Kutusu'na gider; bir programın kullandıkları atlanır.</value>
+  </data>
+  <data name="WindowsSelectAll" xml:space="preserve">
+    <value>Tümünü seç</value>
+  </data>
+  <data name="WindowsTempEmpty" xml:space="preserve">
+    <value>Geçici klasör boş.</value>
+  </data>
+  <data name="WindowsAdminHeader" xml:space="preserve">
+    <value>Yönetici izniyle</value>
+  </data>
+  <data name="WindowsAdminHint" xml:space="preserve">
+    <value>Bunlar kalıcı silinir, Geri Dönüşüm Kutusu'na gitmez ve geri alınamaz. Boyutları temizlikten sonra görünür.</value>
+  </data>
+  <data name="Leftover_windows_temp" xml:space="preserve">
+    <value>Windows geçici dosyaları</value>
+  </data>
+  <data name="Leftover_update_downloads" xml:space="preserve">
+    <value>Windows Update indirmeleri</value>
+  </data>
+  <data name="Leftover_upgrade_files_bt" xml:space="preserve">
+    <value>Windows yükseltme dosyaları</value>
+  </data>
+  <data name="Leftover_upgrade_files_ws" xml:space="preserve">
+    <value>Windows yükseltme dosyaları (kurulum)</value>
+  </data>
+  <data name="Leftover_component_cleanup" xml:space="preserve">
+    <value>Windows bileşen temizliği (DISM)</value>
+  </data>
+  <data name="LeftoverHint_component_cleanup" xml:space="preserve">
+    <value>Güncellemelerin bıraktığı eski bileşenleri kaldırır. Birkaç dakika sürebilir.</value>
+  </data>
+  <data name="WindowsAdminSelectionEmpty" xml:space="preserve">
+    <value>Temizlemek için kalem seç.</value>
+  </data>
+  <data name="WindowsAdminSelectionFormat" xml:space="preserve">
+    <value>Seçilen: {0} temizlik</value>
+  </data>
+  <data name="WindowsAdminButton" xml:space="preserve">
+    <value>Yönetici izniyle temizle</value>
+  </data>
+  <data name="WindowsAdminConfirmTitle" xml:space="preserve">
+    <value>Bunlar kalıcı silinsin mi?</value>
+  </data>
+  <data name="WindowsAdminConfirmFormat" xml:space="preserve">
+    <value>{0} temizlik tek yönetici izniyle yapılacak:</value>
+  </data>
+  <data name="WindowsAdminWarning" xml:space="preserve">
+    <value>Geri alınamaz: silinenler Geri Dönüşüm Kutusu'na gitmez.</value>
+  </data>
+  <data name="WindowsAdminNote" xml:space="preserve">
+    <value>Windows bir yönetici izni penceresi açar; izin yalnızca bu temizlik için istenir. Kullanımdaki dosyalar atlanır.</value>
+  </data>
+  <data name="WindowsAdminConfirm" xml:space="preserve">
+    <value>Kalıcı sil</value>
+  </data>
+  <data name="WindowsAdminRunning" xml:space="preserve">
+    <value>Temizleniyor… DISM birkaç dakika sürebilir.</value>
+  </data>
+  <data name="WindowsAdminDeclined" xml:space="preserve">
+    <value>Yönetici izni verilmedi; hiçbir şey silinmedi.</value>
+  </data>
+  <data name="WindowsAdminErrorFormat" xml:space="preserve">
+    <value>Temizlik çalışmadı: {0}</value>
+  </data>
+  <data name="WindowsResultFolderFormat" xml:space="preserve">
+    <value>{0}: {1} silindi ({2} dosya).</value>
+  </data>
+  <data name="WindowsResultSkippedFormat" xml:space="preserve">
+    <value>{0} dosya kullanımda ya da erişilemez olduğu için atlandı.</value>
+  </data>
+  <data name="WindowsResultDoneFormat" xml:space="preserve">
+    <value>{0}: tamamlandı.</value>
+  </data>
+  <data name="WindowsResultFailedFormat" xml:space="preserve">
+    <value>{0}: olmadı ({1}).</value>
+  </data>
+  <data name="WindowsResultExitCodeFormat" xml:space="preserve">
+    <value>çıkış kodu {0}</value>
+  </data>
+  <data name="WindowsOldText" xml:space="preserve">
+    <value>Önceki Windows kurulumu (Windows.old) duruyor. Onu Windows'un kendi Disk Temizleme aracı kaldırır.</value>
+  </data>
+  <data name="WindowsOpenDiskCleanup" xml:space="preserve">
+    <value>Disk Temizleme'yi aç</value>
+  </data>
+  <data name="JournalDeletedForGood" xml:space="preserve">
+    <value>Kalıcı silindi · geri alınamaz</value>
+  </data>
+  <data name="UndoFailure_CannotBeUndone" xml:space="preserve">
+    <value>kalıcı silindi; geri alınamaz</value>
   </data>
 </root>

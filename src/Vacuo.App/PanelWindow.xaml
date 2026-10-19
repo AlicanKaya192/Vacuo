@@ -53,7 +53,9 @@
                                       Update="OnVoidUpdate"
                                       Draw="OnVoidDraw" />
 
-        <StackPanel x:Name="Cards" Grid.Row="2" Spacing="8">
+        <!-- Only scrolls on a screen too short for the measured panel; normally every card shows. -->
+        <ScrollViewer x:Name="CardsScroller" Grid.Row="2" VerticalScrollBarVisibility="Auto">
+        <StackPanel x:Name="Cards" Spacing="8">
             <StackPanel.Transform3D>
                 <PerspectiveTransform3D Depth="700" />
             </StackPanel.Transform3D>
@@ -92,24 +94,46 @@
                             Click="OnDiskInspectClick" />
                 </StackPanel>
             </Border>
-            <Border x:Name="MemoryCard" Style="{StaticResource CardStyle}">
-                <StackPanel>
-                    <TextBlock x:Name="MemoryTitle" Style="{StaticResource CardTitleStyle}" />
-                    <TextBlock x:Name="MemoryBody" Style="{StaticResource CardBodyStyle}" />
+            <Border x:Name="WindowsCard" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="10">
+                    <TextBlock x:Name="WindowsTitle" Style="{StaticResource CardTitleStyle}" />
+                    <TextBlock x:Name="WindowsBody" Style="{StaticResource CardBodyStyle}" />
+                    <Button x:Name="WindowsInspectButton"
+                            HorizontalAlignment="Stretch"
+                            Click="OnWindowsInspectClick" />
                 </StackPanel>
             </Border>
-            <Border x:Name="OrganizeCard" Style="{StaticResource CardStyle}">
-                <StackPanel>
-                    <TextBlock x:Name="OrganizeTitle" Style="{StaticResource CardTitleStyle}" />
-                    <TextBlock x:Name="OrganizeBody" Style="{StaticResource CardBodyStyle}" />
-                </StackPanel>
-            </Border>
+            <!-- The two cards still to come share a row, so the panel stays short enough for a laptop screen. -->
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border x:Name="MemoryCard" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock x:Name="MemoryTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="MemoryBody" Style="{StaticResource CardBodyStyle}" />
+                    </StackPanel>
+                </Border>
+                <Border x:Name="OrganizeCard" Grid.Column="1" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock x:Name="OrganizeTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="OrganizeBody" Style="{StaticResource CardBodyStyle}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
         </StackPanel>
+        </ScrollViewer>
 
         <screens:DiskView x:Name="DiskScreenView"
                           Grid.Row="1"
                           Grid.RowSpan="2"
                           Visibility="Collapsed" />
+
+        <screens:WindowsView x:Name="WindowsScreenView"
+                             Grid.Row="1"
+                             Grid.RowSpan="2"
+                             Visibility="Collapsed" />
 
         <screens:JournalView x:Name="JournalScreenView"
                              Grid.Row="1"

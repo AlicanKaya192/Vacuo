@@ -3,7 +3,8 @@
     x:Class="Vacuo.App.Screens.DiskView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml">
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    xmlns:local="using:Vacuo.App.Screens">
 
     <Grid RowSpacing="10">
         <Grid.RowDefinitions>
@@ -76,81 +77,7 @@
                     Click="OnMoveClick" />
         </Grid>
 
-        <!-- The confirm step: a card with the VOID black hole above what is about to go. -->
-        <Grid x:Name="ConfirmOverlay"
-              Grid.RowSpan="4"
-              Background="#D90A0811"
-              Visibility="Collapsed"
-              KeyDown="OnConfirmKeyDown">
-            <Border Width="540"
-                    MaxHeight="600"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    CornerRadius="22"
-                    BorderThickness="1.5">
-                <!-- The rim catches the black hole's light at the top and fades into the void below. -->
-                <Border.BorderBrush>
-                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                        <GradientStop Color="#CC9D7CFF" Offset="0" />
-                        <GradientStop Color="#409D7CFF" Offset="0.45" />
-                        <GradientStop Color="#142C2441" Offset="1" />
-                    </LinearGradientBrush>
-                </Border.BorderBrush>
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                        <GradientStop Color="#FF1B1430" Offset="0" />
-                        <GradientStop Color="#FF0E0B18" Offset="0.4" />
-                        <GradientStop Color="#FF0A0811" Offset="1" />
-                    </LinearGradientBrush>
-                </Border.Background>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="150" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <canvas:CanvasAnimatedControl x:Name="ConfirmHole"
-                                                  ClearColor="#00000000"
-                                                  Paused="True"
-                                                  IsFixedTimeStep="False"
-                                                  Update="OnConfirmHoleUpdate"
-                                                  Draw="OnConfirmHoleDraw" />
-
-                    <ScrollViewer Grid.Row="1" Padding="24,4,24,0" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="12">
-                            <TextBlock x:Name="ConfirmTitle"
-                                       HorizontalAlignment="Center"
-                                       TextAlignment="Center"
-                                       TextWrapping="Wrap"
-                                       FontSize="20"
-                                       FontWeight="SemiBold"
-                                       Foreground="{StaticResource InkBrush}" />
-                            <TextBlock x:Name="ConfirmSummary"
-                                       HorizontalAlignment="Center"
-                                       TextAlignment="Center"
-                                       TextWrapping="Wrap"
-                                       Foreground="{StaticResource InkSecondaryBrush}" />
-                            <StackPanel x:Name="ConfirmContent" Spacing="12" />
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <Grid Grid.Row="2" Padding="24,16,24,20" ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Button x:Name="ConfirmCancelButton"
-                                Style="{StaticResource VoidGhostButtonStyle}"
-                                Click="OnConfirmCancelClick" />
-                        <Button x:Name="ConfirmMoveButton"
-                                Grid.Column="1"
-                                Style="{StaticResource VoidPrimaryButtonStyle}"
-                                Click="OnConfirmMoveClick" />
-                    </Grid>
-                </Grid>
-            </Border>
-        </Grid>
+        <local:ConfirmCard x:Name="Confirm" Grid.RowSpan="4" />
 
         <canvas:CanvasAnimatedControl x:Name="BurstCanvas"
                                       Grid.RowSpan="4"

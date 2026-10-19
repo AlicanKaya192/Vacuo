@@ -2,13 +2,15 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Vacuo.App.Localization;
+using Vacuo.Core.Actions;
 using Vacuo.Core.Journal;
 using Windows.UI;
 
 namespace Vacuo.App.Screens;
 
 /// <summary>
-/// The Journal screen: everything Vacuo moved, newest first, each with "Undo". All decisions live
+/// The Journal screen: everything Vacuo moved, newest first, each with "Undo", and the administrator
+/// cleanups, which cannot be undone (ADR-003). All decisions live
 /// in <see cref="JournalScreen"/>; this view shows them and puts items back off the UI thread.
 /// </summary>
 public sealed partial class JournalView : UserControl
@@ -60,10 +62,12 @@ public sealed partial class JournalView : UserControl
         }
     }
 
-    // Same language as the confirm card: a rounded row with an edge that is lit while the item is in the bin.
+    // Same language as the confirm card: a rounded row with an edge that is lit while the item is in the
+    // bin and warns when it was deleted for good.
     private Grid Row(JournalEntry entry)
     {
-        bool inBin = entry.UndoneAt is null;
+        bool deletedForGood = entry.Undo is DeletedForGood;
+        bool inBin = entry.UndoneAt is null && !deletedForGood;
         var row = new Grid
         {
             ColumnSpacing = 12,
@@ -74,16 +78,18 @@ public sealed partial class JournalView : UserControl
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(4) });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        row.Children.Add(new Border { Background = Resource<Brush>(inBin ? "AccentBrush" : "LineBrush") });
+        row.Children.Add(new Border { Background = Resource<Brush>(deletedForGood ? "WarningBrush" : inBin ? "AccentBrush" : "LineBrush") });
 
         var details = new StackPanel { Padding = new Thickness(0, 10, 0, 10), Spacing = 2 };
         details.Children.Add(Text(DiskTexts.ShortName(entry.Undo.OriginalPath), "InkBrush"));
         details.Children.Add(Text(entry.Undo.OriginalPath, "InkSecondaryBrush", fontSize: 12));
         string when = entry.At.ToLocalTime().ToString("g", _localizer.Culture);
-        string status = inBin
-            ? _localizer.Get("JournalInBin")
+        string status = deletedForGood ? _localizer.Get("JournalDeletedForGood")
+            : inBin ? _localizer.Get("JournalInBin")
             : _localizer.Format("JournalUndoneFormat", entry.UndoneAt!.Value.ToLocalTime().ToString("g", _localizer.Culture));
-        details.Children.Add(Text($"{DiskTexts.Size(_localizer, entry.SizeBytes)} · {when} · {status}", "InkSecondaryBrush", fontSize: 12));
+        // DISM reports no size, so its entry shows none rather than "0 bytes".
+        string size = deletedForGood && entry.SizeBytes == 0 ? string.Empty : $"{DiskTexts.Size(_localizer, entry.SizeBytes)} · ";
+        details.Children.Add(Text($"{size}{when} · {status}", "InkSecondaryBrush", fontSize: 12));
         var message = Text(string.Empty, "WarningBrush", fontSize: 12);
         message.Visibility = Visibility.Collapsed;
         details.Children.Add(message);

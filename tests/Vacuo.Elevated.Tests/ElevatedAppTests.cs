@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Vacuo.Core.Leftovers;
 using Vacuo.Core.Scanning;
 using Vacuo.Core.Tests.Scanning;
 
@@ -25,8 +25,7 @@ public class ElevatedAppTests
 
         public string ResultFolder => Tree.PathOf("results");
 
-        public ElevatedResult ResultOf(Guid id) =>
-            JsonSerializer.Deserialize<ElevatedResult>(File.ReadAllText(Path.Combine(ResultFolder, $"{id:D}.json")))!;
+        public IReadOnlyList<ElevatedResult> ResultsOf(Guid id) => ElevatedResults.Read(ResultFolder, id);
 
         public void Dispose() => Tree.Dispose();
     }
@@ -47,7 +46,7 @@ public class ElevatedAppTests
         Assert.True(Directory.Exists(setup.Tree.PathOf(@"drive\Windows\Temp")));
         Assert.True(File.Exists(keep));
         Assert.True(File.Exists(userTemp));
-        Assert.Equal(new ElevatedResult("windows-temp", true, 100, 1, 0, ExitCode: null, Error: null), setup.ResultOf(id));
+        Assert.Equal([new ElevatedResult("windows-temp", true, 100, 1, 0, ExitCode: null, Error: null)], setup.ResultsOf(id));
     }
 
     [Fact]
@@ -76,7 +75,7 @@ public class ElevatedAppTests
         (string fileName, IReadOnlyList<string> arguments) = Assert.Single(runner.Calls);
         Assert.Equal(setup.Tree.PathOf(@"drive\Windows\System32\Dism.exe"), fileName);
         Assert.Equal(["/Online", "/Cleanup-Image", "/StartComponentCleanup"], arguments);
-        Assert.Equal(new ElevatedResult("component-cleanup", true, 0, 0, 0, ExitCode: 0, Error: null), setup.ResultOf(id));
+        Assert.Equal([new ElevatedResult("component-cleanup", true, 0, 0, 0, ExitCode: 0, Error: null)], setup.ResultsOf(id));
     }
 
     [Fact]
@@ -88,6 +87,27 @@ public class ElevatedAppTests
         int exitCode = ElevatedApp.Run(["component-cleanup", id.ToString("D")], setup.Machine, new FakeRunner(87), setup.ResultFolder);
 
         Assert.Equal(ElevatedApp.Failed, exitCode);
-        Assert.Equal(new ElevatedResult("component-cleanup", false, 0, 0, 0, ExitCode: 87, Error: null), setup.ResultOf(id));
+        Assert.Equal([new ElevatedResult("component-cleanup", false, 0, 0, 0, ExitCode: 87, Error: null)], setup.ResultsOf(id));
+    }
+
+    [Fact]
+    public void Run_SeveralOperations_DoesEachInOrderAndReportsEach()
+    {
+        using var setup = new Setup();
+        setup.Tree.AddFile(@"drive\Windows\Temp\a.tmp", 100);
+        setup.Tree.AddFile(@"drive\Windows\SoftwareDistribution\Download\b.cab", 30);
+        var id = Guid.NewGuid();
+
+        int exitCode = ElevatedApp.Run(
+            ["windows-temp", "update-downloads", "component-cleanup", id.ToString("D")], setup.Machine, new FakeRunner(87), setup.ResultFolder);
+
+        Assert.Equal(ElevatedApp.Failed, exitCode);
+        Assert.Equal(
+            [
+                new ElevatedResult("windows-temp", true, 100, 1, 0, ExitCode: null, Error: null),
+                new ElevatedResult("update-downloads", true, 30, 1, 0, ExitCode: null, Error: null),
+                new ElevatedResult("component-cleanup", false, 0, 0, 0, ExitCode: 87, Error: null),
+            ],
+            setup.ResultsOf(id));
     }
 }

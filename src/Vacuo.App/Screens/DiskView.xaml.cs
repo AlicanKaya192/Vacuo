@@ -10,8 +10,6 @@ using Vacuo.Core.Actions;
 using Vacuo.Core.Disk;
 using Vacuo.Core.Scanning;
 using Windows.Foundation;
-using Windows.System;
-using Windows.UI;
 
 namespace Vacuo.App.Screens;
 
@@ -22,7 +20,6 @@ namespace Vacuo.App.Screens;
 /// </summary>
 public sealed partial class DiskView : UserControl
 {
-    private const int ConfirmHoleParticles = 900;
     private static readonly TimeSpan CountUpDuration = TimeSpan.FromMilliseconds(700);
 
     private readonly Dictionary<string, FrameworkElement> _rows = new(StringComparer.OrdinalIgnoreCase);
@@ -35,8 +32,6 @@ public sealed partial class DiskView : UserControl
     private int _skippedEntries;
     private bool _moving;
     private volatile PullBurst? _burst;
-    private readonly VoidField _confirmHole = new(ConfirmHoleParticles);
-    private TaskCompletionSource<bool>? _confirmation;
 
     public DiskView()
     {
@@ -64,16 +59,14 @@ public sealed partial class DiskView : UserControl
         JournalButton.Content = localizer.Get("DiskJournalButton");
         MoveButton.Content = localizer.Get("DiskMoveButton");
         MovedNote.Text = localizer.Get("DiskMovedNote");
-        ConfirmTitle.Text = localizer.Get("DiskPreviewTitle");
-        ConfirmMoveButton.Content = localizer.Get("DiskConfirmMove");
-        ConfirmCancelButton.Content = localizer.Get("DiskPreviewClose");
+        Confirm.Initialize(animationsEnabled);
     }
 
     /// <summary>Stops Win2D's game-loop thread before the window goes away.</summary>
     internal void Shutdown()
     {
         BurstCanvas.RemoveFromVisualTree();
-        ConfirmHole.RemoveFromVisualTree();
+        Confirm.Shutdown();
     }
 
     internal void ShowScanning() => ShowMessage(_localizer.Get("DiskScanning"));
@@ -85,7 +78,7 @@ public sealed partial class DiskView : UserControl
             return;
         }
 
-        _confirmation?.TrySetResult(false);
+        Confirm.Cancel();
         _screen = null;
         ResultPanel.Visibility = Visibility.Collapsed;
         ClearList();
@@ -102,7 +95,7 @@ public sealed partial class DiskView : UserControl
         }
 
         // A confirm step left open (e.g. the panel was hidden) belongs to the old list.
-        _confirmation?.TrySetResult(false);
+        Confirm.Cancel();
         _screen = new DiskScreen(summary);
         _skippedEntries = summary.SkippedEntries;
         ResultPanel.Visibility = Visibility.Collapsed;
@@ -294,135 +287,27 @@ public sealed partial class DiskView : UserControl
         }
     }
 
-    private async Task<bool> ConfirmAsync(DiskScreen screen)
+    private Task<bool> ConfirmAsync(DiskScreen screen)
     {
-        ConfirmSummary.Text = _localizer.Format(
-            "DiskPreviewFormat", screen.SelectedCount, DiskTexts.Size(_localizer, screen.SelectedBytes));
-        ConfirmContent.Children.Clear();
+        var parts = new List<UIElement>();
         if (screen.SelectedYoursCount > 0)
         {
-            ConfirmContent.Children.Add(WarningBox(_localizer.Format("DiskPreviewYoursWarningFormat", screen.SelectedYoursCount)));
+            parts.Add(ConfirmCard.Warning(_localizer.Format("DiskPreviewYoursWarningFormat", screen.SelectedYoursCount)));
         }
 
-        ConfirmContent.Children.Add(PreviewList(screen.Preview()));
-        ConfirmContent.Children.Add(RecycleNote());
-
-        _confirmation = new TaskCompletionSource<bool>();
-        ConfirmOverlay.Visibility = Visibility.Visible;
-        ConfirmHole.Paused = !_animationsEnabled;
-        if (!_animationsEnabled)
-        {
-            ConfirmHole.Invalidate();
-        }
-
-        // Cancel has the focus, so Enter (like Esc) keeps everything where it is.
-        ConfirmCancelButton.Focus(FocusState.Programmatic);
-        bool confirmed = await _confirmation.Task;
-        ConfirmHole.Paused = true;
-        ConfirmOverlay.Visibility = Visibility.Collapsed;
-        return confirmed;
+        parts.Add(ConfirmCard.List(screen.Preview().Select(finding => new ConfirmItem(
+            DiskRing.ColorOf(finding.Rule.Bucket),
+            DiskTexts.RuleName(_localizer, finding.Rule),
+            finding.Path,
+            DiskTexts.Size(_localizer, finding.Size.Bytes)))));
+        parts.Add(ConfirmCard.Note(_localizer.Get("DiskPreviewRecycleNote")));
+        return Confirm.AskAsync(new ConfirmRequest(
+            _localizer.Get("DiskPreviewTitle"),
+            _localizer.Format("DiskPreviewFormat", screen.SelectedCount, DiskTexts.Size(_localizer, screen.SelectedBytes)),
+            _localizer.Get("DiskConfirmMove"),
+            _localizer.Get("DiskPreviewClose"),
+            parts));
     }
-
-    private void OnConfirmMoveClick(object sender, RoutedEventArgs e) => _confirmation?.TrySetResult(true);
-
-    private void OnConfirmCancelClick(object sender, RoutedEventArgs e) => _confirmation?.TrySetResult(false);
-
-    private void OnConfirmKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
-    {
-        if (e.Key == VirtualKey.Escape)
-        {
-            _confirmation?.TrySetResult(false);
-            e.Handled = true;
-        }
-    }
-
-    private void OnConfirmHoleUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) =>
-        _confirmHole.Advance(args.Timing.ElapsedTime);
-
-    private void OnConfirmHoleDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) =>
-        _confirmHole.Draw(args.DrawingSession, sender.Size.ToVector2());
-
-    private static Border WarningBox(string text)
-    {
-        var warning = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-        warning.Children.Add(new FontIcon { Glyph = "", FontSize = 16, Foreground = Resource<Brush>("WarningBrush") });
-        warning.Children.Add(new TextBlock
-        {
-            Text = text,
-            TextWrapping = TextWrapping.Wrap,
-            MaxWidth = 440,
-            Foreground = Resource<Brush>("WarningBrush"),
-        });
-        return new Border
-        {
-            Child = warning,
-            Padding = new Thickness(12, 10, 12, 10),
-            CornerRadius = new CornerRadius(12),
-            BorderThickness = new Thickness(1),
-            BorderBrush = Resource<Brush>("WarningBrush"),
-            Background = new SolidColorBrush(Resource<Color>("WarningTintColor")),
-        };
-    }
-
-    // Each item is its own rounded row with an accent edge, not a cell in a table.
-    private ScrollViewer PreviewList(IReadOnlyList<ScanFinding> preview)
-    {
-        var rows = new StackPanel { Spacing = 6 };
-        foreach (ScanFinding finding in preview)
-        {
-            var row = new Grid
-            {
-                ColumnSpacing = 12,
-                Padding = new Thickness(0, 0, 14, 0),
-                CornerRadius = new CornerRadius(12),
-                Background = new SolidColorBrush(Resource<Color>("SurfaceColor")),
-            };
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(4) });
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            row.Children.Add(new Border { Background = new SolidColorBrush(DiskRing.ColorOf(finding.Rule.Bucket)) });
-            var name = new StackPanel { Padding = new Thickness(0, 10, 0, 10) };
-            Grid.SetColumn(name, 1);
-            name.Children.Add(new TextBlock { Text = DiskTexts.RuleName(_localizer, finding.Rule), Foreground = Resource<Brush>("InkBrush") });
-            name.Children.Add(new TextBlock
-            {
-                Text = finding.Path,
-                FontSize = 12,
-                TextWrapping = TextWrapping.Wrap,
-                Foreground = Resource<Brush>("InkSecondaryBrush"),
-            });
-            row.Children.Add(name);
-            var size = new TextBlock
-            {
-                Text = DiskTexts.Size(_localizer, finding.Size.Bytes),
-                VerticalAlignment = VerticalAlignment.Center,
-                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                Foreground = Resource<Brush>("InkBrush"),
-            };
-            Grid.SetColumn(size, 2);
-            row.Children.Add(size);
-            rows.Children.Add(row);
-        }
-
-        return new ScrollViewer { Content = rows, MaxHeight = 240 };
-    }
-
-    private StackPanel RecycleNote()
-    {
-        var note = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        note.Children.Add(new FontIcon { Glyph = "", FontSize = 13, Foreground = Resource<Brush>("InkSecondaryBrush") });
-        note.Children.Add(new TextBlock
-        {
-            Text = _localizer.Get("DiskPreviewRecycleNote"),
-            FontSize = 12,
-            TextWrapping = TextWrapping.Wrap,
-            MaxWidth = 460,
-            Foreground = Resource<Brush>("InkSecondaryBrush"),
-        });
-        return note;
-    }
-
-    private static T Resource<T>(string key) => (T)Application.Current.Resources[key];
 
     private async Task PlayBurstAsync(IReadOnlyList<PulledItem> items)
     {
