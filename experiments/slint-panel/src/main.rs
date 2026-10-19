@@ -24,7 +24,6 @@ slint::include_modules!();
 
 const PARTICLE_COUNT: usize = 2000;
 const PANEL_WIDTH: f32 = 360.0;
-const PANEL_HEIGHT: f32 = 560.0;
 const PANEL_PADDING: f32 = 14.0;
 const VOID_HEIGHT: f32 = 200.0;
 const SCREEN_MARGIN: f32 = 12.0;
@@ -61,6 +60,7 @@ struct Panel {
     measurement: Option<MeasurementLog>,
     animate: bool,
     is_open: bool,
+    placed: bool,
     last_advance: Instant,
 }
 
@@ -87,6 +87,7 @@ impl Panel {
         }
         let _ = self.ui.show();
         self.place_above_tray();
+        self.placed = false;
         self.is_open = true;
         self.last_advance = Instant::now();
         self.ui.set_cards_shown(true);
@@ -102,12 +103,13 @@ impl Panel {
         }
     }
 
+    /// Uses the window's real size: until the first frame, Slint may still report scale 1,
+    /// which put the panel past the right edge and over the clock on a scaled screen.
     fn place_above_tray(&self) {
         let area = system::work_area();
-        let scale = self.ui.window().scale_factor();
-        let width = (PANEL_WIDTH * scale) as i32;
-        let height = (PANEL_HEIGHT * scale) as i32;
-        let margin = (SCREEN_MARGIN * scale) as i32;
+        let size = self.ui.window().size();
+        let margin = (SCREEN_MARGIN * self.ui.window().scale_factor()) as i32;
+        let (width, height) = (size.width as i32, size.height as i32);
         self.ui.window().set_position(PhysicalPosition::new(area.right - width - margin, area.bottom - height - margin));
     }
 
@@ -132,6 +134,10 @@ impl Panel {
         if let Some(measurement) = &mut self.measurement {
             measurement.record_frame(drawn_at, self.field.count());
         }
+        if !self.placed {
+            self.place_above_tray();
+            self.placed = true;
+        }
         if self.animate {
             // Drawing again right after a render paces the animation by the renderer.
             self.draw_frame();
@@ -143,7 +149,9 @@ fn main() -> Result<(), slint::PlatformError> {
     let options = Options::parse(std::env::args().skip(1));
     let language = options.language.clone().unwrap_or_else(system::windows_language);
     let turkish = language.to_ascii_lowercase().starts_with("tr");
-    let _ = slint::select_bundled_translation(if turkish { "tr" } else { "en" });
+    if let Err(error) = slint::select_bundled_translation(if turkish { "tr" } else { "en" }) {
+        eprintln!("could not select the translation: {error}");
+    }
 
     let ui = PanelWindow::new()?;
     if let Some(drive) = system::system_drive() {
@@ -171,6 +179,7 @@ fn main() -> Result<(), slint::PlatformError> {
         measurement: options.measurement_path.clone().map(MeasurementLog::new),
         animate: !options.reduced_motion,
         is_open: false,
+        placed: false,
         last_advance: Instant::now(),
     }));
 

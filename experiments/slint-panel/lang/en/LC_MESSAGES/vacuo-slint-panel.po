@@ -1,0 +1,40 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# English is the source language. This file only exists so that "en" can be selected
+# when Windows itself is set to another bundled language (Turkish).
+
+msgctxt "PanelWindow"
+msgid "Make room, honestly."
+msgstr "Make room, honestly."
+
+msgctxt "PanelWindow"
+msgid "Disk"
+msgstr "Disk"
+
+msgctxt "PanelWindow"
+msgid "{0} {1} free of {2}"
+msgstr "{0} {1} free of {2}"
+
+msgctxt "PanelWindow"
+msgid "Memory"
+msgstr "Memory"
+
+msgctxt "PanelWindow"
+msgid "Memory pressure arrives in v0.3."
+msgstr "Memory pressure arrives in v0.3."
+
+msgctxt "PanelWindow"
+msgid "Organize"
+msgstr "Organize"
+
+msgctxt "PanelWindow"
+msgid "Folder rules arrive in v0.2."
+msgstr "Folder rules arrive in v0.2."
+
+msgctxt "PanelWindow"
+msgid "Quit Vacuo"
+msgstr "Quit Vacuo"
