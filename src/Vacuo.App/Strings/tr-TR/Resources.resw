@@ -204,4 +204,49 @@
   <data name="BucketHint_Keep" xml:space="preserve">
     <value>Sistem dosyaları; yalnızca gösterilir, seçilemez.</value>
   </data>
+  <data name="DiskJournalButton" xml:space="preserve">
+    <value>Günlük</value>
+  </data>
+  <data name="JournalTitle" xml:space="preserve">
+    <value>Günlük</value>
+  </data>
+  <data name="JournalIntro" xml:space="preserve">
+    <value>Vacuo'nun Geri Dönüşüm Kutusu'na taşıdığı her şey, en yenisi üstte. Geri al, öğeyi eski yerine koyar.</value>
+  </data>
+  <data name="JournalEmpty" xml:space="preserve">
+    <value>Henüz hiçbir şey taşınmadı.</value>
+  </data>
+  <data name="JournalUndoButton" xml:space="preserve">
+    <value>Geri al</value>
+  </data>
+  <data name="JournalUndoing" xml:space="preserve">
+    <value>Geri alınıyor…</value>
+  </data>
+  <data name="JournalInBin" xml:space="preserve">
+    <value>Geri Dönüşüm Kutusu'nda</value>
+  </data>
+  <data name="JournalUndoneFormat" xml:space="preserve">
+    <value>Geri alındı · {0}</value>
+  </data>
+  <data name="JournalReadErrorFormat" xml:space="preserve">
+    <value>Günlük okunamadı: {0}</value>
+  </data>
+  <data name="UndoFailure_AlreadyUndone" xml:space="preserve">
+    <value>zaten geri alınmış</value>
+  </data>
+  <data name="UndoFailure_PathTaken" xml:space="preserve">
+    <value>eski yerinde artık aynı adla bir şey var; hiçbir şeyin üzerine yazılmadı</value>
+  </data>
+  <data name="UndoFailure_FolderGone" xml:space="preserve">
+    <value>eski klasörü artık yok</value>
+  </data>
+  <data name="UndoFailure_NotInBin" xml:space="preserve">
+    <value>artık Geri Dönüşüm Kutusu'nda değil</value>
+  </data>
+  <data name="UndoFailure_InUse" xml:space="preserve">
+    <value>bir program kullanıyor; programı kapatıp yeniden dene</value>
+  </data>
+  <data name="UndoFailure_Refused" xml:space="preserve">
+    <value>geri alınamadı</value>
+  </data>
 </root>

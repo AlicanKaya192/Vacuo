@@ -16,3 +16,6 @@ public sealed class FileInUseException(string fileInUse)
 /// would be deleted for good; nothing was deleted.
 /// </summary>
 public sealed class NotRecyclableException(string message) : ActionRefusedException(message);
+
+/// <summary>The item is no longer in the Recycle Bin (restored or emptied outside Vacuo), so it cannot be put back.</summary>
+public sealed class ItemNotInBinException(string message) : ActionRefusedException(message);

@@ -111,6 +111,11 @@
                           Grid.RowSpan="2"
                           Visibility="Collapsed" />
 
+        <screens:JournalView x:Name="JournalScreenView"
+                             Grid.Row="1"
+                             Grid.RowSpan="2"
+                             Visibility="Collapsed" />
+
         <Button x:Name="QuitButton"
                 Grid.Row="3"
                 HorizontalAlignment="Right"

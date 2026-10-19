@@ -23,6 +23,12 @@ internal sealed class FakeRecycleBin(string binFolder, TimeProvider time) : IRec
 
     public void Restore(RecycledItem item)
     {
+        // Same as the Shell bin: an item restored or emptied elsewhere is simply not there.
+        if (!Path.Exists(item.BinPath))
+        {
+            throw new ItemNotInBinException($"'{item.OriginalPath}' is no longer in the Recycle Bin.");
+        }
+
         MoveEntry(item.BinPath, item.OriginalPath);
         _stored.Remove(item.BinPath);
     }

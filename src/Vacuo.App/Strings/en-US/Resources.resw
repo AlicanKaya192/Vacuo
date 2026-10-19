@@ -204,4 +204,49 @@
   <data name="BucketHint_Keep" xml:space="preserve">
     <value>System files; shown only, never offered.</value>
   </data>
+  <data name="DiskJournalButton" xml:space="preserve">
+    <value>Journal</value>
+  </data>
+  <data name="JournalTitle" xml:space="preserve">
+    <value>Journal</value>
+  </data>
+  <data name="JournalIntro" xml:space="preserve">
+    <value>Everything Vacuo moved to the Recycle Bin, newest first. Undo puts an item back where it was.</value>
+  </data>
+  <data name="JournalEmpty" xml:space="preserve">
+    <value>Nothing has been moved yet.</value>
+  </data>
+  <data name="JournalUndoButton" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="JournalUndoing" xml:space="preserve">
+    <value>Putting back…</value>
+  </data>
+  <data name="JournalInBin" xml:space="preserve">
+    <value>In the Recycle Bin</value>
+  </data>
+  <data name="JournalUndoneFormat" xml:space="preserve">
+    <value>Undone · {0}</value>
+  </data>
+  <data name="JournalReadErrorFormat" xml:space="preserve">
+    <value>The journal could not be read: {0}</value>
+  </data>
+  <data name="UndoFailure_AlreadyUndone" xml:space="preserve">
+    <value>it was already put back</value>
+  </data>
+  <data name="UndoFailure_PathTaken" xml:space="preserve">
+    <value>something with the same name is there now; nothing was overwritten</value>
+  </data>
+  <data name="UndoFailure_FolderGone" xml:space="preserve">
+    <value>its folder no longer exists</value>
+  </data>
+  <data name="UndoFailure_NotInBin" xml:space="preserve">
+    <value>it is no longer in the Recycle Bin</value>
+  </data>
+  <data name="UndoFailure_InUse" xml:space="preserve">
+    <value>a program is using it; close the program and try again</value>
+  </data>
+  <data name="UndoFailure_Refused" xml:space="preserve">
+    <value>could not be put back</value>
+  </data>
 </root>

@@ -47,6 +47,8 @@ public sealed partial class DiskView : UserControl
 
     internal event EventHandler? RescanRequested;
 
+    internal event EventHandler? JournalRequested;
+
     /// <summary>Raised after a move with the paths that went to the Recycle Bin.</summary>
     internal event EventHandler<IReadOnlyList<string>>? Moved;
 
@@ -59,6 +61,7 @@ public sealed partial class DiskView : UserControl
         ScreenTitle.Text = localizer.Get("DiskTitle");
         BackButton.Content = localizer.Get("DiskBackButton");
         RescanButton.Content = localizer.Get("DiskRescanButton");
+        JournalButton.Content = localizer.Get("DiskJournalButton");
         MoveButton.Content = localizer.Get("DiskMoveButton");
         MovedNote.Text = localizer.Get("DiskMovedNote");
         ConfirmTitle.Text = localizer.Get("DiskPreviewTitle");
@@ -220,6 +223,7 @@ public sealed partial class DiskView : UserControl
         _moving = moving;
         BackButton.IsEnabled = !moving;
         RescanButton.IsEnabled = !moving;
+        JournalButton.IsEnabled = !moving;
         foreach (CheckBox check in _checks)
         {
             check.IsEnabled = !moving && _screen is not null && _screen.IsSelectable((string)check.Tag);
@@ -257,7 +261,7 @@ public sealed partial class DiskView : UserControl
 
         IReadOnlyList<string> selected = screen.Preview().Select(finding => finding.Path).ToList();
         Dictionary<string, PulledItem> pulled = selected.ToDictionary(
-            path => path, path => new PulledItem(RowCenter(_rows[path]), ShortName(path)), StringComparer.OrdinalIgnoreCase);
+            path => path, path => new PulledItem(RowCenter(_rows[path]), DiskTexts.ShortName(path)), StringComparer.OrdinalIgnoreCase);
         ResultPanel.Visibility = Visibility.Collapsed;
         SetMoving(true);
         try
@@ -497,10 +501,6 @@ public sealed partial class DiskView : UserControl
         CompositionTarget.Rendering += OnRendering;
     }
 
-    // "tools\__pycache__" says more than "__pycache__" alone, and still fits on a small label.
-    private static string ShortName(string path) =>
-        Path.Join(Path.GetFileName(Path.GetDirectoryName(path)), Path.GetFileName(path));
-
     private string MovedText(long bytes) => _localizer.Format("DiskMovedFormat", DiskTexts.Size(_localizer, bytes));
 
     private Rect ListBounds() =>
@@ -523,4 +523,6 @@ public sealed partial class DiskView : UserControl
     private void OnBackClick(object sender, RoutedEventArgs e) => BackRequested?.Invoke(this, EventArgs.Empty);
 
     private void OnRescanClick(object sender, RoutedEventArgs e) => RescanRequested?.Invoke(this, EventArgs.Empty);
+
+    private void OnJournalClick(object sender, RoutedEventArgs e) => JournalRequested?.Invoke(this, EventArgs.Empty);
 }

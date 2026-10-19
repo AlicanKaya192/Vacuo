@@ -56,7 +56,7 @@ public sealed class ShellRecycleBin(TimeProvider time) : IRecycleBin
         }
 
         IShellItem binItem = FindInBin(item.BinPath)
-            ?? throw new ActionRefusedException($"'{item.OriginalPath}' is no longer in the Recycle Bin.");
+            ?? throw new ItemNotInBinException($"'{item.OriginalPath}' is no longer in the Recycle Bin.");
 
         IFileOperation operation = ShellInterop.CreateFileOperation();
         operation.SetOperationFlags(RestoreFlags);

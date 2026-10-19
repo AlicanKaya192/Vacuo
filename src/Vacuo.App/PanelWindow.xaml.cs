@@ -54,6 +54,7 @@ public sealed partial class PanelWindow : Window
     private readonly OverlappedPresenter _presenter = OverlappedPresenter.Create();
     private DiskOverview? _diskOverview;
     private bool _showingDiskScreen;
+    private bool _restoredSinceJournalOpened;
     private DateTime _hiddenAt = DateTime.MinValue;
     private bool _isOpen;
     private bool _shuttingDown;
@@ -74,10 +75,15 @@ public sealed partial class PanelWindow : Window
         UseFlyoutFrame();
         ApplyTexts();
         var recycleBin = new ShellRecycleBin(TimeProvider.System);
-        var runner = new ActionRunner(new ActionJournal(ActionJournal.DefaultPath), recycleBin, TimeProvider.System);
+        var journal = new ActionJournal(ActionJournal.DefaultPath);
+        var runner = new ActionRunner(journal, recycleBin, TimeProvider.System);
         DiskScreenView.Initialize(localizer, runner, recycleBin, _animationsEnabled);
         DiskScreenView.BackRequested += (_, _) => ShowCards();
         DiskScreenView.RescanRequested += (_, _) => RefreshDisk();
+        DiskScreenView.JournalRequested += (_, _) => ShowJournal();
+        JournalScreenView.Initialize(localizer, new JournalScreen(journal, runner));
+        JournalScreenView.BackRequested += (_, _) => BackFromJournal();
+        JournalScreenView.Restored += (_, _) => _restoredSinceJournalOpened = true;
         DiskScreenView.Moved += (_, paths) =>
         {
             _diskScans.Forget(paths);
@@ -283,6 +289,7 @@ public sealed partial class PanelWindow : Window
         {
             _showingDiskScreen = false;
             DiskScreenView.Visibility = Visibility.Collapsed;
+            JournalScreenView.Visibility = Visibility.Collapsed;
             VoidCanvas.Visibility = Visibility.Visible;
             Cards.Visibility = Visibility.Visible;
             UseFlyoutFrame();
@@ -304,6 +311,7 @@ public sealed partial class PanelWindow : Window
             VoidCanvas.Paused = true;
             VoidCanvas.Visibility = Visibility.Collapsed;
             Cards.Visibility = Visibility.Collapsed;
+            JournalScreenView.Visibility = Visibility.Collapsed;
             DiskScreenView.Visibility = Visibility.Visible;
             UseWindowFrame();
             PlaceAboveTray(DiskScreenWidth, DiskScreenHeight);
@@ -316,6 +324,26 @@ public sealed partial class PanelWindow : Window
         else
         {
             DiskScreenView.ShowScanning();
+        }
+    }
+
+    // The Journal opens in the same window as the Disk screen; its frame and size stay.
+    private void ShowJournal()
+    {
+        _restoredSinceJournalOpened = false;
+        DiskScreenView.Visibility = Visibility.Collapsed;
+        JournalScreenView.Visibility = Visibility.Visible;
+        JournalScreenView.Show();
+    }
+
+    // Put-back items are on disk again, so the Disk screen scans before it lists anything.
+    private void BackFromJournal()
+    {
+        JournalScreenView.Visibility = Visibility.Collapsed;
+        DiskScreenView.Visibility = Visibility.Visible;
+        if (_restoredSinceJournalOpened)
+        {
+            RefreshDisk();
         }
     }
 

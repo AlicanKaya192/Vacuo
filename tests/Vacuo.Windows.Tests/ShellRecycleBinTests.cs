@@ -61,6 +61,6 @@ public class ShellRecycleBinTests
         using var tree = new TempTree();
         var missing = new RecycledItem(tree.PathOf("vacuo-test-gone.txt"), DateTimeOffset.UtcNow, @"C:\$Recycle.Bin\none\$RNOTHERE.txt");
 
-        Assert.Throws<ActionRefusedException>(() => new ShellRecycleBin(TimeProvider.System).Restore(missing));
+        Assert.Throws<ItemNotInBinException>(() => new ShellRecycleBin(TimeProvider.System).Restore(missing));
     }
 }
