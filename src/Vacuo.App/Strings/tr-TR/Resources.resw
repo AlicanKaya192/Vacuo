@@ -39,4 +39,127 @@
   <data name="QuitButton" xml:space="preserve">
     <value>Vacuo'dan çık</value>
   </data>
+  <data name="DiskScanning" xml:space="preserve">
+    <value>Taranıyor…</value>
+  </data>
+  <data name="DiskScanFailedFormat" xml:space="preserve">
+    <value>Tarama tamamlanamadı: {0}</value>
+  </data>
+  <data name="DiskFreeLabel" xml:space="preserve">
+    <value>boş</value>
+  </data>
+  <data name="DiskInspectButton" xml:space="preserve">
+    <value>Diski incele</value>
+  </data>
+  <data name="DiskBackButton" xml:space="preserve">
+    <value>Geri</value>
+  </data>
+  <data name="DiskRescanButton" xml:space="preserve">
+    <value>Yeniden tara</value>
+  </data>
+  <data name="DiskNothingFound" xml:space="preserve">
+    <value>Yeniden kurulabilir ya da önerilecek bir şey bulunmadı.</value>
+  </data>
+  <data name="DiskSkippedFormat" xml:space="preserve">
+    <value>Okunamayan klasör: {0}</value>
+  </data>
+  <data name="DiskSelectionEmpty" xml:space="preserve">
+    <value>Taşımak için listeden öğe seç.</value>
+  </data>
+  <data name="DiskSelectionFormat" xml:space="preserve">
+    <value>Seçilen: {0} öğe, {1}</value>
+  </data>
+  <data name="DiskMoveButton" xml:space="preserve">
+    <value>Geri Dönüşüm Kutusu'na taşı</value>
+  </data>
+  <data name="DiskPreviewTitle" xml:space="preserve">
+    <value>Önizleme</value>
+  </data>
+  <data name="DiskPreviewFormat" xml:space="preserve">
+    <value>Şunlar Geri Dönüşüm Kutusu'na gidecek ({0} öğe, {1}):</value>
+  </data>
+  <data name="DiskPreviewNotYet" xml:space="preserve">
+    <value>Bu sürümde yalnızca önizleme var; hiçbir şey taşınmadı.</value>
+  </data>
+  <data name="DiskPreviewClose" xml:space="preserve">
+    <value>Kapat</value>
+  </data>
+  <data name="Bucket_RebuildsItself" xml:space="preserve">
+    <value>Kendini yeniden kurar</value>
+  </data>
+  <data name="Bucket_Yours" xml:space="preserve">
+    <value>Senin</value>
+  </data>
+  <data name="Bucket_SameFiles" xml:space="preserve">
+    <value>Aynı dosyalar</value>
+  </data>
+  <data name="Bucket_Keep" xml:space="preserve">
+    <value>Kalsın</value>
+  </data>
+  <data name="Cost_RegeneratedAutomatically" xml:space="preserve">
+    <value>kendiliğinden oluşur</value>
+  </data>
+  <data name="Cost_ReinstalledByCommand" xml:space="preserve">
+    <value>komutla kurulur</value>
+  </data>
+  <data name="Cost_Redownloaded" xml:space="preserve">
+    <value>yeniden indirilir</value>
+  </data>
+  <data name="Cost_CannotBeRebuilt" xml:space="preserve">
+    <value>geri getirilemez</value>
+  </data>
+  <data name="Rule_pip_cache" xml:space="preserve">
+    <value>pip önbelleği</value>
+  </data>
+  <data name="Rule_npm_cache" xml:space="preserve">
+    <value>npm önbelleği</value>
+  </data>
+  <data name="Rule_torch_hub" xml:space="preserve">
+    <value>PyTorch hub modelleri</value>
+  </data>
+  <data name="Rule_conda_pkgs_anaconda" xml:space="preserve">
+    <value>Anaconda paket önbelleği</value>
+  </data>
+  <data name="Rule_uv_cache" xml:space="preserve">
+    <value>uv önbelleği</value>
+  </data>
+  <data name="Rule_pnpm_store" xml:space="preserve">
+    <value>pnpm deposu</value>
+  </data>
+  <data name="Rule_conda_pkgs_miniconda" xml:space="preserve">
+    <value>Miniconda paket önbelleği</value>
+  </data>
+  <data name="Rule_huggingface_hub" xml:space="preserve">
+    <value>Hugging Face modelleri</value>
+  </data>
+  <data name="Rule_node_modules" xml:space="preserve">
+    <value>node_modules</value>
+  </data>
+  <data name="Rule_python_venv" xml:space="preserve">
+    <value>Python sanal ortamı</value>
+  </data>
+  <data name="Rule_python_bytecode" xml:space="preserve">
+    <value>Python bayt kodu (__pycache__)</value>
+  </data>
+  <data name="Rule_jupyter_checkpoints" xml:space="preserve">
+    <value>Jupyter kayıt noktaları</value>
+  </data>
+  <data name="Rule_rust_target" xml:space="preserve">
+    <value>Rust derleme çıktısı (target)</value>
+  </data>
+  <data name="Rule_screenshots" xml:space="preserve">
+    <value>Ekran görüntüsü</value>
+  </data>
+  <data name="Rule_old_installers" xml:space="preserve">
+    <value>Eski kurulum dosyası</value>
+  </data>
+  <data name="DiskPreviewYoursWarningFormat" xml:space="preserve">
+    <value>Dikkat: seçtiklerinin {0} tanesi senin dosyan (ekran görüntüsü ya da kurulum dosyası). Vacuo bunlara hâlâ ihtiyacın olup olmadığını bilemez; taşımadan önce her birine bak.</value>
+  </data>
+  <data name="DiskPreviewRecycleNote" xml:space="preserve">
+    <value>Hiçbir şey kalıcı olarak silinmez: hepsi Geri Dönüşüm Kutusu'na gider ve oradan geri alınabilir.</value>
+  </data>
+  <data name="HideButton" xml:space="preserve">
+    <value>Tepsiye indir</value>
+  </data>
 </root>

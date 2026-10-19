@@ -49,6 +49,9 @@ public sealed class DiskScreen(ScanSummary summary)
 
     public long SelectedBytes => Preview().Sum(finding => finding.Size.Bytes);
 
+    /// <summary>Selected items from the "Yours" bucket: only the user knows whether they are still needed.</summary>
+    public int SelectedYoursCount => Preview().Count(finding => finding.Rule.Bucket == Bucket.Yours);
+
     public bool IsSelected(string path) => _selected.Contains(path);
 
     public bool IsSelectable(string path) => FindingAt(path).Rule.Bucket != Bucket.Keep;

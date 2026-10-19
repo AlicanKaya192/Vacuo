@@ -9,7 +9,7 @@ namespace Vacuo.App;
 
 public partial class App : Application
 {
-    private const string TrayIconFile = "Assets\\vacuo.ico";
+    internal const string IconFile = "Assets\\vacuo.ico";
 
     private PanelWindow? _panel;
     private TrayIcon? _tray;
@@ -36,7 +36,7 @@ public partial class App : Application
         }
 
         _panel.QuitRequested += (_, _) => Quit(PanelProtocol.PanelClosedExitCode);
-        string iconPath = Path.Combine(AppContext.BaseDirectory, TrayIconFile);
+        string iconPath = Path.Combine(AppContext.BaseDirectory, IconFile);
         _tray = new TrayIcon(_panel.Handle, iconPath, localizer.Get("TrayTooltip"));
         _tray.Clicked += (_, _) => _panel.Toggle();
 
@@ -70,10 +70,7 @@ public partial class App : Application
         _channel.ShowRequested += (_, _) =>
         {
             linger.Stop();
-            if (!panel.IsOpen)
-            {
-                panel.Toggle();
-            }
+            panel.Reveal();
         };
         _channel.QuitRequested += (_, _) => Quit(PanelProtocol.PanelClosedExitCode);
         panel.QuitRequested += (_, _) => Quit(PanelProtocol.QuitAllExitCode);

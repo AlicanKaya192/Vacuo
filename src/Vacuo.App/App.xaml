@@ -18,6 +18,7 @@
             <Color x:Key="InkColor">#FFECE7F5</Color>
             <Color x:Key="InkSecondaryColor">#FFABA1BF</Color>
             <Color x:Key="AccentColor">#FF9D7CFF</Color>
+            <Color x:Key="WarningColor">#FFE9B964</Color>
 
             <SolidColorBrush x:Key="VoidBrush" Color="{StaticResource VoidColor}" />
             <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="{StaticResource SurfaceRaisedColor}" />
@@ -25,6 +26,7 @@
             <SolidColorBrush x:Key="InkBrush" Color="{StaticResource InkColor}" />
             <SolidColorBrush x:Key="InkSecondaryBrush" Color="{StaticResource InkSecondaryColor}" />
             <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
 
             <Style x:Key="CardStyle" TargetType="Border">
                 <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />

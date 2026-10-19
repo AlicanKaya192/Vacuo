@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    xmlns:screens="using:Vacuo.App.Screens"
     Title="Vacuo">
 
     <Grid x:Name="Root"
@@ -17,17 +18,32 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" Spacing="12">
-            <TextBlock Text="VACUO"
-                       CharacterSpacing="300"
-                       FontSize="15"
-                       FontWeight="SemiBold"
-                       Foreground="{StaticResource InkBrush}" />
-            <TextBlock x:Name="Tagline"
-                       FontSize="12"
-                       VerticalAlignment="Center"
-                       Foreground="{StaticResource InkSecondaryBrush}" />
-        </StackPanel>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <TextBlock Text="VACUO"
+                           CharacterSpacing="300"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource InkBrush}" />
+                <TextBlock x:Name="Tagline"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource InkSecondaryBrush}" />
+            </StackPanel>
+            <Button x:Name="HideButton"
+                    Grid.Column="1"
+                    Padding="10,6"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Foreground="{StaticResource InkSecondaryBrush}"
+                    Click="OnHideClick">
+                <FontIcon Glyph="&#xE921;" FontSize="12" />
+            </Button>
+        </Grid>
 
         <canvas:CanvasAnimatedControl x:Name="VoidCanvas"
                                       Grid.Row="1"
@@ -42,9 +58,38 @@
                 <PerspectiveTransform3D Depth="700" />
             </StackPanel.Transform3D>
             <Border x:Name="DiskCard" Style="{StaticResource CardStyle}">
-                <StackPanel>
+                <StackPanel Spacing="10">
                     <TextBlock x:Name="DiskTitle" Style="{StaticResource CardTitleStyle}" />
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="112" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid Width="112" Height="112">
+                            <canvas:CanvasControl x:Name="DiskRingCanvas"
+                                                  ClearColor="#00000000"
+                                                  Draw="OnDiskRingDraw" />
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock x:Name="DiskFreeText"
+                                           HorizontalAlignment="Center"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource InkBrush}" />
+                                <TextBlock x:Name="DiskFreeLabel"
+                                           HorizontalAlignment="Center"
+                                           FontSize="10"
+                                           Foreground="{StaticResource InkSecondaryBrush}" />
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel x:Name="DiskLegend"
+                                    Grid.Column="1"
+                                    Spacing="4"
+                                    VerticalAlignment="Center" />
+                    </Grid>
                     <TextBlock x:Name="DiskBody" Style="{StaticResource CardBodyStyle}" />
+                    <Button x:Name="DiskInspectButton"
+                            HorizontalAlignment="Stretch"
+                            Click="OnDiskInspectClick" />
                 </StackPanel>
             </Border>
             <Border x:Name="MemoryCard" Style="{StaticResource CardStyle}">
@@ -60,6 +105,11 @@
                 </StackPanel>
             </Border>
         </StackPanel>
+
+        <screens:DiskView x:Name="DiskScreenView"
+                          Grid.Row="1"
+                          Grid.RowSpan="2"
+                          Visibility="Collapsed" />
 
         <Button x:Name="QuitButton"
                 Grid.Row="3"

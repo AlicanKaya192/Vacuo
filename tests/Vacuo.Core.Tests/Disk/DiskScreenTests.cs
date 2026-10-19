@@ -77,6 +77,26 @@ public class DiskScreenTests
     }
 
     [Fact]
+    public void SelectedYoursCount_CountsOnlyTheUsersOwnFiles()
+    {
+        using var setup = new Setup();
+        ScanFinding pip = setup.Finding(@"pip\entry", Pip, 300);
+        ScanFinding first = setup.Finding(@"Screenshots\a.png", Screenshots, 40);
+        ScanFinding second = setup.Finding(@"Screenshots\b.png", Screenshots, 50);
+        DiskScreen screen = ScreenOf(pip, first, second);
+
+        screen.Select(pip.Path);
+        Assert.Equal(0, screen.SelectedYoursCount);
+
+        screen.Select(first.Path);
+        screen.Select(second.Path);
+        Assert.Equal(2, screen.SelectedYoursCount);
+
+        screen.Deselect(first.Path);
+        Assert.Equal(1, screen.SelectedYoursCount);
+    }
+
+    [Fact]
     public void SelectAndDeselect_UpdateCountAndBytes()
     {
         using var setup = new Setup();

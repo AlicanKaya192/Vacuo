@@ -39,4 +39,127 @@
   <data name="QuitButton" xml:space="preserve">
     <value>Quit Vacuo</value>
   </data>
+  <data name="DiskScanning" xml:space="preserve">
+    <value>Scanning…</value>
+  </data>
+  <data name="DiskScanFailedFormat" xml:space="preserve">
+    <value>The scan could not finish: {0}</value>
+  </data>
+  <data name="DiskFreeLabel" xml:space="preserve">
+    <value>free</value>
+  </data>
+  <data name="DiskInspectButton" xml:space="preserve">
+    <value>Inspect disk</value>
+  </data>
+  <data name="DiskBackButton" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="DiskRescanButton" xml:space="preserve">
+    <value>Scan again</value>
+  </data>
+  <data name="DiskNothingFound" xml:space="preserve">
+    <value>Nothing to rebuild or suggest was found.</value>
+  </data>
+  <data name="DiskSkippedFormat" xml:space="preserve">
+    <value>Folders that could not be read: {0}</value>
+  </data>
+  <data name="DiskSelectionEmpty" xml:space="preserve">
+    <value>Pick items from the list to move.</value>
+  </data>
+  <data name="DiskSelectionFormat" xml:space="preserve">
+    <value>Selected: {0} items, {1}</value>
+  </data>
+  <data name="DiskMoveButton" xml:space="preserve">
+    <value>Move to Recycle Bin</value>
+  </data>
+  <data name="DiskPreviewTitle" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="DiskPreviewFormat" xml:space="preserve">
+    <value>These will go to the Recycle Bin ({0} items, {1}):</value>
+  </data>
+  <data name="DiskPreviewNotYet" xml:space="preserve">
+    <value>This version only previews; nothing was moved.</value>
+  </data>
+  <data name="DiskPreviewClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Bucket_RebuildsItself" xml:space="preserve">
+    <value>Rebuilds itself</value>
+  </data>
+  <data name="Bucket_Yours" xml:space="preserve">
+    <value>Yours</value>
+  </data>
+  <data name="Bucket_SameFiles" xml:space="preserve">
+    <value>Same files</value>
+  </data>
+  <data name="Bucket_Keep" xml:space="preserve">
+    <value>Keep</value>
+  </data>
+  <data name="Cost_RegeneratedAutomatically" xml:space="preserve">
+    <value>recreated automatically</value>
+  </data>
+  <data name="Cost_ReinstalledByCommand" xml:space="preserve">
+    <value>reinstalled with a command</value>
+  </data>
+  <data name="Cost_Redownloaded" xml:space="preserve">
+    <value>downloaded again</value>
+  </data>
+  <data name="Cost_CannotBeRebuilt" xml:space="preserve">
+    <value>cannot be rebuilt</value>
+  </data>
+  <data name="Rule_pip_cache" xml:space="preserve">
+    <value>pip cache</value>
+  </data>
+  <data name="Rule_npm_cache" xml:space="preserve">
+    <value>npm cache</value>
+  </data>
+  <data name="Rule_torch_hub" xml:space="preserve">
+    <value>PyTorch hub models</value>
+  </data>
+  <data name="Rule_conda_pkgs_anaconda" xml:space="preserve">
+    <value>Anaconda package cache</value>
+  </data>
+  <data name="Rule_uv_cache" xml:space="preserve">
+    <value>uv cache</value>
+  </data>
+  <data name="Rule_pnpm_store" xml:space="preserve">
+    <value>pnpm store</value>
+  </data>
+  <data name="Rule_conda_pkgs_miniconda" xml:space="preserve">
+    <value>Miniconda package cache</value>
+  </data>
+  <data name="Rule_huggingface_hub" xml:space="preserve">
+    <value>Hugging Face models</value>
+  </data>
+  <data name="Rule_node_modules" xml:space="preserve">
+    <value>node_modules</value>
+  </data>
+  <data name="Rule_python_venv" xml:space="preserve">
+    <value>Python virtual environment</value>
+  </data>
+  <data name="Rule_python_bytecode" xml:space="preserve">
+    <value>Python bytecode (__pycache__)</value>
+  </data>
+  <data name="Rule_jupyter_checkpoints" xml:space="preserve">
+    <value>Jupyter checkpoints</value>
+  </data>
+  <data name="Rule_rust_target" xml:space="preserve">
+    <value>Rust build output (target)</value>
+  </data>
+  <data name="Rule_screenshots" xml:space="preserve">
+    <value>Screenshot</value>
+  </data>
+  <data name="Rule_old_installers" xml:space="preserve">
+    <value>Old installer</value>
+  </data>
+  <data name="DiskPreviewYoursWarningFormat" xml:space="preserve">
+    <value>Careful: {0} of your picks are your own files (screenshots or installers). Vacuo cannot tell whether you still need them; look at each one before moving.</value>
+  </data>
+  <data name="DiskPreviewRecycleNote" xml:space="preserve">
+    <value>Nothing is deleted for good: everything goes to the Recycle Bin and can be restored from there.</value>
+  </data>
+  <data name="HideButton" xml:space="preserve">
+    <value>Hide to tray</value>
+  </data>
 </root>

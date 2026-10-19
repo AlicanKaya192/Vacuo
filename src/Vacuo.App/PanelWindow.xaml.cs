@@ -1,13 +1,19 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Media;
 using Vacuo.App.Localization;
 using Vacuo.App.Measurement;
+using Vacuo.App.Screens;
 using Vacuo.App.Visuals;
+using Vacuo.Core.Disk;
 using Vacuo.Core.Formatting;
+using Vacuo.Core.Scanning;
 using Windows.Graphics;
 using Windows.UI.ViewManagement;
 using WinRT.Interop;
@@ -21,7 +27,10 @@ namespace Vacuo.App;
 public sealed partial class PanelWindow : Window
 {
     private const int PanelWidth = 360;
-    private const int PanelHeight = 560;
+    private const int PanelHeight = 640;
+    // The panel grows into the Disk screen (development plan, user flow step 3).
+    private const int DiskScreenWidth = 720;
+    private const int DiskScreenHeight = 640;
     private const int ScreenMargin = 12;
     private const int ParticleCount = 2000;
     private const double DefaultDpi = 96;
@@ -30,11 +39,17 @@ public sealed partial class PanelWindow : Window
     private static readonly TimeSpan CardAnimationDuration = TimeSpan.FromMilliseconds(420);
     private static readonly TimeSpan CardAnimationStagger = TimeSpan.FromMilliseconds(60);
     private const float CardStartTiltDegrees = 24f;
+    // One frame lays the new screen out, the next one puts it on screen.
+    private const int FramesBeforeUncloak = 2;
 
     private readonly Localizer _localizer;
     private readonly MeasurementLog? _measurement;
     private readonly VoidField _voidField = new(ParticleCount);
     private readonly bool _animationsEnabled;
+    private readonly DiskScanCache _diskScans = new(TimeProvider.System);
+    private readonly OverlappedPresenter _presenter = OverlappedPresenter.Create();
+    private DiskOverview? _diskOverview;
+    private bool _showingDiskScreen;
     private DateTime _hiddenAt = DateTime.MinValue;
     private bool _isOpen;
     private bool _shuttingDown;
@@ -47,8 +62,16 @@ public sealed partial class PanelWindow : Window
         InitializeComponent();
 
         Handle = WindowNative.GetWindowHandle(this);
-        ConfigureAsFlyout();
+        _presenter.IsResizable = false;
+        _presenter.IsMaximizable = false;
+        AppWindow.SetPresenter(_presenter);
+        AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, App.IconFile));
+        ColorTitleBar();
+        UseFlyoutFrame();
         ApplyTexts();
+        DiskScreenView.Initialize(localizer);
+        DiskScreenView.BackRequested += (_, _) => ShowCards();
+        DiskScreenView.RescanRequested += (_, _) => RefreshDisk();
 
         Activated += OnActivated;
         AppWindow.Closing += OnClosing;
@@ -64,18 +87,35 @@ public sealed partial class PanelWindow : Window
 
     internal void Toggle()
     {
-        if (_isOpen)
+        if (_isOpen && !_showingDiskScreen)
         {
             Hide();
             return;
         }
 
-        if (DateTime.UtcNow - _hiddenAt < ReopenGuard)
+        if (!_isOpen && DateTime.UtcNow - _hiddenAt < ReopenGuard)
         {
             return;
         }
 
-        Open();
+        Reveal();
+    }
+
+    /// <summary>Opens the panel, or brings the Disk screen back when it is minimised or behind other windows.</summary>
+    internal void Reveal()
+    {
+        if (!_isOpen)
+        {
+            Open();
+            return;
+        }
+
+        if (_presenter.State == OverlappedPresenterState.Minimized)
+        {
+            _presenter.Restore();
+        }
+
+        Activate();
     }
 
     internal void Shutdown()
@@ -86,16 +126,76 @@ public sealed partial class PanelWindow : Window
         Close();
     }
 
-    private void ConfigureAsFlyout()
+    // The card panel: no title bar, above everything, hides when it loses focus.
+    private void UseFlyoutFrame()
     {
-        var presenter = OverlappedPresenter.Create();
-        presenter.IsResizable = false;
-        presenter.IsMaximizable = false;
-        presenter.IsMinimizable = false;
-        presenter.IsAlwaysOnTop = true;
-        presenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: false);
-        AppWindow.SetPresenter(presenter);
+        _presenter.IsMinimizable = false;
+        _presenter.IsAlwaysOnTop = true;
+        _presenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: false);
         AppWindow.IsShownInSwitchers = false;
+    }
+
+    // The Disk screen is work the user comes back to: an ordinary window that can be minimised,
+    // stays behind other windows and shows on the taskbar.
+    private void UseWindowFrame()
+    {
+        _presenter.IsMinimizable = true;
+        _presenter.IsAlwaysOnTop = false;
+        _presenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: true);
+        AppWindow.IsShownInSwitchers = true;
+    }
+
+    private void ColorTitleBar()
+    {
+        var resources = Application.Current.Resources;
+        var background = (Windows.UI.Color)resources["VoidColor"];
+        var ink = (Windows.UI.Color)resources["InkColor"];
+        var inkSecondary = (Windows.UI.Color)resources["InkSecondaryColor"];
+        AppWindowTitleBar titleBar = AppWindow.TitleBar;
+        titleBar.BackgroundColor = background;
+        titleBar.InactiveBackgroundColor = background;
+        titleBar.ButtonBackgroundColor = background;
+        titleBar.ButtonInactiveBackgroundColor = background;
+        titleBar.ButtonHoverBackgroundColor = (Windows.UI.Color)resources["SurfaceRaisedColor"];
+        titleBar.ForegroundColor = ink;
+        titleBar.ButtonForegroundColor = ink;
+        titleBar.ButtonHoverForegroundColor = ink;
+        titleBar.InactiveForegroundColor = inkSecondary;
+        titleBar.ButtonInactiveForegroundColor = inkSecondary;
+    }
+
+    // Hiding and showing again still flashed the last frame of the old screen. Cloaked, the
+    // window keeps rendering and stays active but is not on screen; it reappears only after
+    // the new screen has been drawn.
+    private void Reshape(Action reshape)
+    {
+        if (!AppWindow.IsVisible)
+        {
+            reshape();
+            return;
+        }
+
+        SetCloaked(true);
+        reshape();
+        int frames = 0;
+        void UncloakWhenDrawn(object? sender, object e)
+        {
+            if (++frames < FramesBeforeUncloak)
+            {
+                return;
+            }
+
+            CompositionTarget.Rendering -= UncloakWhenDrawn;
+            SetCloaked(false);
+        }
+
+        CompositionTarget.Rendering += UncloakWhenDrawn;
+    }
+
+    private void SetCloaked(bool cloaked)
+    {
+        int value = cloaked ? 1 : 0;
+        Marshal.ThrowExceptionForHR(DwmSetWindowAttribute(Handle, DwmWindowAttributeCloak, ref value, sizeof(int)));
     }
 
     private void ApplyTexts()
@@ -103,17 +203,23 @@ public sealed partial class PanelWindow : Window
         Tagline.Text = _localizer.Get("AppTagline");
         DiskTitle.Text = _localizer.Get("DiskTitle");
         DiskBody.Text = DescribeSystemDrive();
+        DiskFreeLabel.Text = _localizer.Get("DiskFreeLabel");
+        DiskInspectButton.Content = _localizer.Get("DiskInspectButton");
         MemoryTitle.Text = _localizer.Get("MemoryTitle");
         MemoryBody.Text = _localizer.Get("MemoryPlaceholder");
         OrganizeTitle.Text = _localizer.Get("OrganizeTitle");
         OrganizeBody.Text = _localizer.Get("OrganizePlaceholder");
         QuitButton.Content = _localizer.Get("QuitButton");
+        string hideLabel = _localizer.Get("HideButton");
+        ToolTipService.SetToolTip(HideButton, hideLabel);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(HideButton, hideLabel);
     }
+
+    private static DriveInfo SystemDrive() => new(Path.GetPathRoot(Environment.SystemDirectory) ?? "C:\\");
 
     private string DescribeSystemDrive()
     {
-        string root = Path.GetPathRoot(Environment.SystemDirectory) ?? "C:\\";
-        var drive = new DriveInfo(root);
+        DriveInfo drive = SystemDrive();
         return _localizer.Format(
             "DiskFreeFormat",
             drive.Name.TrimEnd('\\'),
@@ -124,11 +230,19 @@ public sealed partial class PanelWindow : Window
     private void Open()
     {
         _measurement?.MarkPanelRequested();
-        DiskBody.Text = DescribeSystemDrive();
-        PlaceAboveTray();
+        ShowCards();
         AppWindow.Show();
         Activate();
         _isOpen = true;
+        if (_diskScans.IsStale)
+        {
+            RefreshDisk();
+        }
+        else
+        {
+            ShowDiskResult(_diskScans.Latest!);
+        }
+
         VoidCanvas.Paused = !_animationsEnabled;
         if (_animationsEnabled)
         {
@@ -151,12 +265,123 @@ public sealed partial class PanelWindow : Window
         Hidden?.Invoke(this, EventArgs.Empty);
     }
 
-    private void PlaceAboveTray()
+    private void ShowCards()
+    {
+        Reshape(() =>
+        {
+            _showingDiskScreen = false;
+            DiskScreenView.Visibility = Visibility.Collapsed;
+            VoidCanvas.Visibility = Visibility.Visible;
+            Cards.Visibility = Visibility.Visible;
+            UseFlyoutFrame();
+            PlaceAboveTray(PanelWidth, PanelHeight);
+        });
+
+        VoidCanvas.Paused = !_isOpen || !_animationsEnabled;
+        if (_isOpen && !_animationsEnabled)
+        {
+            VoidCanvas.Invalidate();
+        }
+    }
+
+    private void ShowDiskScreen()
+    {
+        Reshape(() =>
+        {
+            _showingDiskScreen = true;
+            VoidCanvas.Paused = true;
+            VoidCanvas.Visibility = Visibility.Collapsed;
+            Cards.Visibility = Visibility.Collapsed;
+            DiskScreenView.Visibility = Visibility.Visible;
+            UseWindowFrame();
+            PlaceAboveTray(DiskScreenWidth, DiskScreenHeight);
+        });
+
+        if (_diskScans.Latest is { } latest)
+        {
+            DiskScreenView.Show(latest);
+        }
+        else
+        {
+            DiskScreenView.ShowScanning();
+        }
+    }
+
+    // The scan only reads; any failure is shown on the card instead of closing the panel.
+    private async void RefreshDisk()
+    {
+        DiskBody.Text = _localizer.Get("DiskScanning");
+        if (_showingDiskScreen)
+        {
+            DiskScreenView.ShowScanning();
+        }
+
+        try
+        {
+            ShowDiskResult(await _diskScans.ScanAsync());
+        }
+        catch (Exception exception)
+        {
+            string message = _localizer.Format("DiskScanFailedFormat", exception.Message);
+            DiskBody.Text = message;
+            DiskScreenView.ShowMessage(message);
+        }
+    }
+
+    private void ShowDiskResult(ScanSummary summary)
+    {
+        DriveInfo drive = SystemDrive();
+        _diskOverview = DiskOverview.From(summary, drive.RootDirectory.FullName, drive.AvailableFreeSpace, drive.TotalSize);
+        DiskFreeText.Text = DiskTexts.Size(_localizer, _diskOverview.FreeBytes);
+        DiskBody.Text = DescribeSystemDrive();
+        ShowLegend(_diskOverview);
+        DiskRingCanvas.Invalidate();
+        if (_showingDiskScreen)
+        {
+            DiskScreenView.Show(summary);
+        }
+    }
+
+    private void ShowLegend(DiskOverview overview)
+    {
+        DiskLegend.Children.Clear();
+        foreach (DiskSegment segment in overview.Segments)
+        {
+            // Name and size on separate lines: "Kendini yeniden kurar · 11,9 GB" does not fit the card.
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+            row.Children.Add(new Border
+            {
+                Width = 10,
+                Height = 10,
+                Margin = new Thickness(0, 4, 0, 0),
+                VerticalAlignment = VerticalAlignment.Top,
+                CornerRadius = new CornerRadius(2),
+                Background = new SolidColorBrush(DiskRing.ColorOf(segment.Bucket)),
+            });
+            var text = new StackPanel();
+            text.Children.Add(new TextBlock
+            {
+                Text = DiskTexts.BucketName(_localizer, segment.Bucket),
+                FontSize = 12,
+                Foreground = (Brush)Application.Current.Resources["InkSecondaryBrush"],
+            });
+            text.Children.Add(new TextBlock
+            {
+                Text = DiskTexts.Size(_localizer, segment.Bytes),
+                FontSize = 12,
+                Foreground = (Brush)Application.Current.Resources["InkBrush"],
+            });
+            row.Children.Add(text);
+            DiskLegend.Children.Add(row);
+        }
+    }
+
+    private void PlaceAboveTray(int logicalWidth, int logicalHeight)
     {
         var workArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
         double scale = GetDpiForWindow(Handle) / DefaultDpi;
-        int width = (int)(PanelWidth * scale);
-        int height = (int)(PanelHeight * scale);
+        int width = (int)(logicalWidth * scale);
+        int height = (int)(logicalHeight * scale);
         int margin = (int)(ScreenMargin * scale);
         AppWindow.MoveAndResize(new RectInt32(
             workArea.X + workArea.Width - width - margin,
@@ -202,7 +427,8 @@ public sealed partial class PanelWindow : Window
 
     private void OnActivated(object sender, WindowActivatedEventArgs args)
     {
-        if (args.WindowActivationState == WindowActivationState.Deactivated && _isOpen)
+        // Only the card panel closes on losing focus; the Disk screen stays like any other window.
+        if (args.WindowActivationState == WindowActivationState.Deactivated && _isOpen && !_showingDiskScreen)
         {
             Hide();
         }
@@ -219,6 +445,15 @@ public sealed partial class PanelWindow : Window
         args.Cancel = true;
         Hide();
     }
+
+    private void OnDiskRingDraw(CanvasControl sender, CanvasDrawEventArgs args)
+    {
+        DiskRing.Draw(args.DrawingSession, sender.Size.ToVector2(), _diskOverview);
+    }
+
+    private void OnDiskInspectClick(object sender, RoutedEventArgs e) => ShowDiskScreen();
+
+    private void OnHideClick(object sender, RoutedEventArgs e) => Hide();
 
     private void OnQuitClick(object sender, RoutedEventArgs e)
     {

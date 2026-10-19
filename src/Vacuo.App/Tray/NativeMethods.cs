@@ -85,4 +85,9 @@ internal static class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern int GetSystemMetricsForDpi(int index, uint dpi);
+
+    public const int DwmWindowAttributeCloak = 13;
+
+    [DllImport("dwmapi.dll")]
+    public static extern int DwmSetWindowAttribute(nint hWnd, int attribute, ref int value, int size);
 }
