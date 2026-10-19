@@ -6,12 +6,14 @@
     <Project Path="src/Vacuo.App/Vacuo.App.csproj" />
     <Project Path="src/Vacuo.Cli/Vacuo.Cli.csproj" />
     <Project Path="src/Vacuo.Core/Vacuo.Core.csproj" />
+    <Project Path="src/Vacuo.Elevated/Vacuo.Elevated.csproj" />
     <Project Path="src/Vacuo.Tray/Vacuo.Tray.csproj" />
     <Project Path="src/Vacuo.Windows/Vacuo.Windows.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Vacuo.Cli.Tests/Vacuo.Cli.Tests.csproj" />
     <Project Path="tests/Vacuo.Core.Tests/Vacuo.Core.Tests.csproj" />
+    <Project Path="tests/Vacuo.Elevated.Tests/Vacuo.Elevated.Tests.csproj" />
     <Project Path="tests/Vacuo.Windows.Tests/Vacuo.Windows.Tests.csproj" />
   </Folder>
 </Solution>
