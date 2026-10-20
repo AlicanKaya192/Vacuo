@@ -1,4 +1,5 @@
 using Vacuo.Core.Hosting;
+using Vacuo.Core.Settings;
 
 namespace Vacuo.Tray;
 
@@ -32,7 +33,7 @@ internal static class Program
             MeasurementPathForLaunch = launch => measurement?.PanelFile(launch),
         };
 
-        TrayTexts texts = TrayTexts.For(options.PanelArguments);
+        TrayTexts texts = TrayTexts.For(options.PanelArguments, new SettingsStore(SettingsStore.DefaultPath).Load().Language);
         panel.LaunchFailed += () => window.ShowWarning(texts.PanelFailedTitle, texts.PanelFailed);
         window.IconClicked += panel.Toggle;
         window.OpenPanelRequested += panel.Open;

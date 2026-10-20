@@ -621,4 +621,25 @@
   <data name="OrganizeMoreFoldersFormat" xml:space="preserve">
     <value>+{0} klasör daha · {1} dosya</value>
   </data>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>Ayarlar</value>
+  </data>
+  <data name="SettingsLanguage" xml:space="preserve">
+    <value>Dil</value>
+  </data>
+  <data name="SettingsLanguageHint" xml:space="preserve">
+    <value>Otomatik: Windows Türkçe ise Türkçe, başka her dilde İngilizce.</value>
+  </data>
+  <data name="SettingsLanguageNextOpen" xml:space="preserve">
+    <value>Yeni dil, panel bir sonraki açılışında görünür.</value>
+  </data>
+  <data name="Language_Automatic" xml:space="preserve">
+    <value>Otomatik</value>
+  </data>
+  <data name="Language_Turkish" xml:space="preserve">
+    <value>Türkçe</value>
+  </data>
+  <data name="Language_English" xml:space="preserve">
+    <value>English</value>
+  </data>
 </root>

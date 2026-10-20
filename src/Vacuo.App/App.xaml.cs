@@ -1,9 +1,11 @@
+using System.Globalization;
 using Microsoft.UI.Xaml;
 using Vacuo.App.Hosting;
 using Vacuo.App.Localization;
 using Vacuo.App.Measurement;
 using Vacuo.App.Tray;
 using Vacuo.Core.Hosting;
+using Vacuo.Core.Settings;
 
 namespace Vacuo.App;
 
@@ -25,7 +27,10 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         var options = LaunchOptions.Parse(Environment.GetCommandLineArgs());
-        var localizer = new Localizer(options.Language);
+        // --lang (measurement) wins; otherwise the choice in Settings, where Automatic follows Windows.
+        string language = options.Language ?? LanguageRule.Resolve(
+            new SettingsStore(SettingsStore.DefaultPath).Load().Language, CultureInfo.CurrentUICulture.Name);
+        var localizer = new Localizer(language);
         _measurement = options.MeasurementPath is null ? null : new MeasurementLog(options.MeasurementPath);
 
         // Probes only change the panel during a measurement run.

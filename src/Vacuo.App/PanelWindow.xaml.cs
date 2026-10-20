@@ -18,6 +18,7 @@ using Vacuo.Core.Journal;
 using Vacuo.Core.Formatting;
 using Vacuo.Core.Organize;
 using Vacuo.Core.Ram;
+using Vacuo.Core.Settings;
 using Vacuo.Core.Scanning;
 using Vacuo.Windows;
 using Windows.Foundation;
@@ -99,6 +100,7 @@ public sealed partial class PanelWindow : Window
     private WindowsView? _windowsScreen;
     private MemoryView? _memoryScreen;
     private OrganizeView? _organizeScreen;
+    private SettingsView? _settingsScreen;
     private JournalView? _journalScreen;
 
     internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion, IReadOnlySet<string> probes)
@@ -272,6 +274,9 @@ public sealed partial class PanelWindow : Window
         OrganizeBody.Text = _localizer.Get("OrganizeCardReading");
         OrganizeInspectButton.Content = _localizer.Get("OrganizeInspectButton");
         QuitButton.Content = _localizer.Get("QuitButton");
+        string settingsLabel = _localizer.Get("SettingsTitle");
+        ToolTipService.SetToolTip(SettingsButton, settingsLabel);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(SettingsButton, settingsLabel);
         string hideLabel = _localizer.Get("HideButton");
         ToolTipService.SetToolTip(HideButton, hideLabel);
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(HideButton, hideLabel);
@@ -386,6 +391,7 @@ public sealed partial class PanelWindow : Window
     {
         _showingWorkScreen = false;
         _presenter.IsAlwaysOnTop = true;
+        SettingsButton.Visibility = Visibility.Visible;
         foreach (UserControl screen in LoadedScreens())
         {
             screen.Visibility = Visibility.Collapsed;
@@ -415,6 +421,7 @@ public sealed partial class PanelWindow : Window
             {
                 _showingWorkScreen = true;
                 _presenter.IsAlwaysOnTop = false;
+                SettingsButton.Visibility = Visibility.Collapsed;
                 VoidCanvas.Paused = true;
                 VoidCanvas.Visibility = Visibility.Collapsed;
                 CardsScroller.Visibility = Visibility.Collapsed;
@@ -571,6 +578,19 @@ public sealed partial class PanelWindow : Window
         return _organizeScreen = organize;
     }
 
+    private SettingsView EnsureSettingsScreen()
+    {
+        if (_settingsScreen is not null)
+        {
+            return _settingsScreen;
+        }
+
+        var settings = AddScreen(new SettingsView());
+        settings.Initialize(_localizer, new SettingsStore(SettingsStore.DefaultPath));
+        settings.BackRequested += (_, _) => ReturnToCards();
+        return _settingsScreen = settings;
+    }
+
     private JournalView EnsureJournalScreen()
     {
         if (_journalScreen is not null)
@@ -598,7 +618,8 @@ public sealed partial class PanelWindow : Window
 
     // Screens not created yet are skipped.
     private UserControl[] LoadedScreens() =>
-        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _journalScreen }.OfType<UserControl>().ToArray();
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _journalScreen }
+            .OfType<UserControl>().ToArray();
 
     private void ShowDiskScreen()
     {
@@ -619,6 +640,13 @@ public sealed partial class PanelWindow : Window
         WindowsView windows = EnsureWindowsScreen();
         ShowWorkScreen(windows);
         windows.Refresh();
+    }
+
+    private void ShowSettingsScreen()
+    {
+        SettingsView settings = EnsureSettingsScreen();
+        settings.Refresh();
+        ShowWorkScreen(settings);
     }
 
     private void ShowOrganizeScreen()
@@ -998,6 +1026,8 @@ public sealed partial class PanelWindow : Window
     private void OnMemoryInspectClick(object sender, RoutedEventArgs e) => ShowMemoryScreen();
 
     private void OnOrganizeInspectClick(object sender, RoutedEventArgs e) => ShowOrganizeScreen();
+
+    private void OnSettingsClick(object sender, RoutedEventArgs e) => ShowSettingsScreen();
 
     // Only with --measure: when each step of a screen change happened, numbered per change.
     // Measurement only: each event gets its own number, so repeats are all kept.
