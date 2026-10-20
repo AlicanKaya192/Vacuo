@@ -9,14 +9,22 @@ namespace Vacuo.Core.Actions;
 /// </summary>
 public sealed class ActionRunner(ActionJournal journal, IRecycleBin recycleBin, TimeProvider time)
 {
-    public JournalEntry Run(IAction action)
+    public JournalEntry Run(IAction action, Guid? batchId = null)
     {
         OpenFileProbe.EnsureNothingInUse(action.TargetPath);
         long sizeBytes = MeasureBytes(action.TargetPath);
 
         UndoRecord undo = action.Execute();
 
-        var entry = new JournalEntry(Guid.NewGuid(), time.GetUtcNow(), sizeBytes, undo, UndoneAt: null);
+        var entry = new JournalEntry(Guid.NewGuid(), time.GetUtcNow(), sizeBytes, undo, UndoneAt: null, batchId);
+        journal.Append(entry);
+        return entry;
+    }
+
+    /// <summary>Logs a folder Düzen made, so undoing the batch can remove it again while it is empty.</summary>
+    public JournalEntry RecordCreatedFolder(string path, Guid batchId)
+    {
+        var entry = new JournalEntry(Guid.NewGuid(), time.GetUtcNow(), SizeBytes: 0, new CreatedFolder(path), UndoneAt: null, batchId);
         journal.Append(entry);
         return entry;
     }
@@ -38,7 +46,7 @@ public sealed class ActionRunner(ActionJournal journal, IRecycleBin recycleBin, 
             throw new ActionRefusedException($"Journal entry {entryId} was already undone.");
         }
 
-        if (Path.Exists(entry.Undo.OriginalPath))
+        if (entry.Undo is not CreatedFolder && Path.Exists(entry.Undo.OriginalPath))
         {
             throw new ActionRefusedException($"'{entry.Undo.OriginalPath}' is taken again, so nothing was put back.");
         }
@@ -60,9 +68,28 @@ public sealed class ActionRunner(ActionJournal journal, IRecycleBin recycleBin, 
                 break;
             case DeletedForGood deleted:
                 throw new ActionRefusedException($"'{deleted.OriginalPath}' was deleted for good and cannot be put back.");
+            case CreatedFolder created:
+                RemoveIfEmpty(created.OriginalPath);
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(undo), undo, "Unknown kind of undo record.");
         }
+    }
+
+    // Only the folder Vacuo made, and only while nothing is inside; anything put there since stays (B-161).
+    private static void RemoveIfEmpty(string folder)
+    {
+        if (!Directory.Exists(folder))
+        {
+            return;
+        }
+
+        if (Directory.EnumerateFileSystemEntries(folder).Any())
+        {
+            throw new FolderNotEmptyException(folder);
+        }
+
+        Directory.Delete(folder, recursive: false);
     }
 
     private static long MeasureBytes(string path) =>

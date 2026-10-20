@@ -17,5 +17,9 @@ public sealed class FileInUseException(string fileInUse)
 /// </summary>
 public sealed class NotRecyclableException(string message) : ActionRefusedException(message);
 
+/// <summary>A folder Düzen made has something in it now, so it was left where it is.</summary>
+public sealed class FolderNotEmptyException(string folder)
+    : ActionRefusedException($"'{folder}' is no longer empty, so it was left where it is.");
+
 /// <summary>The item is no longer in the Recycle Bin (restored or emptied outside Vacuo), so it cannot be put back.</summary>
 public sealed class ItemNotInBinException(string message) : ActionRefusedException(message);

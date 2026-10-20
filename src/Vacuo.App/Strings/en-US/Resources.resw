@@ -483,4 +483,7 @@
   <data name="MemorySwitchToButton" xml:space="preserve">
     <value>Switch to app</value>
   </data>
+  <data name="UndoFailure_FolderNotEmpty" xml:space="preserve">
+    <value>something else was put in the folder; left alone</value>
+  </data>
 </root>

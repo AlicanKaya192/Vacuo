@@ -483,4 +483,7 @@
   <data name="MemorySwitchToButton" xml:space="preserve">
     <value>Uygulamaya geç</value>
   </data>
+  <data name="UndoFailure_FolderNotEmpty" xml:space="preserve">
+    <value>klasöre başka bir şey kondu; dokunulmadı</value>
+  </data>
 </root>
