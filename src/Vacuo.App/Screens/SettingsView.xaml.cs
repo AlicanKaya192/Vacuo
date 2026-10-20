@@ -4,13 +4,15 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Vacuo.App.Localization;
 using Vacuo.App.Updates;
+using Vacuo.Core.Formatting;
+using Vacuo.Core.Maintenance;
 using Vacuo.Core.Settings;
 using Windows.System;
 
 namespace Vacuo.App.Screens;
 
 /// <summary>
-/// The Settings screen (Aşama 3c): the language, starting with Windows and updates, then the info pages (about,
+/// The Settings screen (Aşama 3c): the language, starting with Windows, updates and Otomatik Bakım, then the info pages (about,
 /// privacy, licenses, terms) read in place. Each change is saved at once, and a new language shows at once.
 /// </summary>
 public sealed partial class SettingsView : UserControl
@@ -20,6 +22,7 @@ public sealed partial class SettingsView : UserControl
     // Each page's texts are the resources Info_<page>_Title and Info_<page>_Body.
     private const string AboutPage = "About";
     private static readonly string[] InfoPages = [AboutPage, "Privacy", "License", "Terms"];
+    private const int InfoColumns = 2;
     private static readonly string[] ParagraphBreak = ["\r\n\r\n", "\n\n"];
     private const string HeadingMark = "# ";
     private const string ChevronGlyph = "";
@@ -66,6 +69,18 @@ public sealed partial class SettingsView : UserControl
         LanguageHint.Text = localizer.Get("SettingsLanguageHint");
         LanguagePicker.SetItems(Languages.Select(choice => (localizer.Get($"Language_{choice}"), (object)choice)));
         LanguagePicker.SelectionChanged += OnLanguageChanged;
+        MaintenanceTitle.Text = localizer.Get("SettingsMaintenanceTitle");
+        MaintenanceHint.Text = localizer.Get("SettingsMaintenanceHint");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(MaintenanceBox, MaintenanceTitle.Text);
+        TempFilesBox.Content = localizer.Get("SettingsMaintenanceTempFiles");
+        ToolTipService.SetToolTip(TempFilesBox, localizer.Get("SettingsMaintenanceTempFilesTip"));
+        DownloadCachesBox.Content = localizer.Get("SettingsMaintenanceDownloadCaches");
+        ToolTipService.SetToolTip(DownloadCachesBox, localizer.Get("SettingsMaintenanceDownloadCachesTip"));
+        ProjectLeftoversBox.Content = localizer.Get("SettingsMaintenanceProjectLeftovers");
+        ToolTipService.SetToolTip(ProjectLeftoversBox, localizer.Get("SettingsMaintenanceProjectLeftoversTip"));
+        OrganizeDesktopBox.Content = localizer.Get("SettingsMaintenanceOrganizeDesktop");
+        SoundBox.Content = localizer.Get("SettingsMaintenanceSound");
+        MaintenanceModelsNote.Text = localizer.Get("SettingsMaintenanceModelsNote");
         BuildInfoRows();
     }
 
@@ -81,6 +96,7 @@ public sealed partial class SettingsView : UserControl
         }
 
         ShowUpdates();
+        ShowMaintenance();
     }
 
     internal void Shutdown() => _updates.Changed -= OnUpdatesChanged;
@@ -101,6 +117,65 @@ public sealed partial class SettingsView : UserControl
     private async void OnCheckNowClick(object sender, RoutedEventArgs e) => await _updates.CheckAsync(byHand: true);
 
     private void OnUpdateNowClick(object sender, RoutedEventArgs e) => UpdateRequested?.Invoke(this, EventArgs.Empty);
+
+    // Off, the choices stay visible but greyed: they say what turning it on would do.
+    private void ShowMaintenance()
+    {
+        MaintenanceSettings settings = _store.Load().Maintenance;
+        MaintenanceBox.IsChecked = settings.Enabled;
+        TempFilesBox.IsChecked = settings.TempFiles;
+        DownloadCachesBox.IsChecked = settings.DownloadCaches;
+        ProjectLeftoversBox.IsChecked = settings.ProjectLeftovers;
+        OrganizeDesktopBox.IsChecked = settings.OrganizeDesktop;
+        SoundBox.IsChecked = settings.Sound;
+        foreach (CheckBox choice in new[] { TempFilesBox, DownloadCachesBox, ProjectLeftoversBox, OrganizeDesktopBox, SoundBox })
+        {
+            choice.IsEnabled = settings.Enabled;
+        }
+
+        MaintenanceLastRun.Text = LastRunText();
+    }
+
+    private string LastRunText()
+    {
+        var state = new MaintenanceStateStore(MaintenanceStateStore.DefaultPath);
+        if (state.LoadLastRun() is not { } lastRun)
+        {
+            return _localizer.Get("SettingsMaintenanceNeverRun");
+        }
+
+        MaintenanceSummary? summary = state.LoadLastSummary();
+        var parts = new List<string>();
+        if (summary is { Moved: > 0 })
+        {
+            parts.Add(_localizer.Format("SettingsMaintenanceMovedFormat", summary.Moved, ByteSizeFormatter.Format(summary.Bytes, _localizer.Culture)));
+        }
+
+        if (summary is { Organized: > 0 })
+        {
+            parts.Add(_localizer.Format("SettingsMaintenanceOrganizedFormat", summary.Organized));
+        }
+
+        string what = parts.Count > 0 ? string.Join(", ", parts) : _localizer.Get("SettingsMaintenanceNothing");
+        return _localizer.Format("SettingsMaintenanceLastRunFormat", lastRun.ToLocalTime().ToString("g", _localizer.Culture), what);
+    }
+
+    // Saved at once; the tray reads the file on its next check.
+    private void OnMaintenanceClick(object sender, RoutedEventArgs e)
+    {
+        VacuoSettings saved = _store.Load();
+        _store.Save(saved with
+        {
+            Maintenance = new MaintenanceSettings(
+                Enabled: MaintenanceBox.IsChecked == true,
+                TempFiles: TempFilesBox.IsChecked == true,
+                DownloadCaches: DownloadCachesBox.IsChecked == true,
+                ProjectLeftovers: ProjectLeftoversBox.IsChecked == true,
+                OrganizeDesktop: OrganizeDesktopBox.IsChecked == true,
+                Sound: SoundBox.IsChecked == true),
+        });
+        ShowMaintenance();
+    }
 
     // The Run key is the truth: after a change, or a refused one, the box shows what it now says.
     private void OnStartupClick(object sender, RoutedEventArgs e)
@@ -148,12 +223,13 @@ public sealed partial class SettingsView : UserControl
         LanguageChanged?.Invoke(this, choice);
     }
 
-    // One row per info page, drawn like the other VOID buttons (vacuo-kurallar 15) with a chevron at the end.
+    // One button per info page, two to a row, drawn like the other VOID buttons (vacuo-kurallar 15) with a chevron at the end.
     private void BuildInfoRows()
     {
         InfoTitle.Text = _localizer.Get("SettingsInfoTitle");
-        foreach (string page in InfoPages)
+        for (int index = 0; index < InfoPages.Length; index++)
         {
+            string page = InfoPages[index];
             var label = new Grid();
             label.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             label.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -169,6 +245,13 @@ public sealed partial class SettingsView : UserControl
                 HorizontalContentAlignment = HorizontalAlignment.Stretch,
             };
             row.Click += (_, _) => ShowInfo(page);
+            if (InfoRows.RowDefinitions.Count <= index / InfoColumns)
+            {
+                InfoRows.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            }
+
+            Grid.SetRow(row, index / InfoColumns);
+            Grid.SetColumn(row, index % InfoColumns);
             InfoRows.Children.Add(row);
         }
     }

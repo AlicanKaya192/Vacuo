@@ -13,7 +13,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AppTagline" xml:space="preserve">
-    <value>Yer aç, dürüstçe.</value>
+    <value>Fazlalığı çeker, gerekene dokunmaz.</value>
   </data>
   <data name="TrayTooltip" xml:space="preserve">
     <value>Vacuo</value>
@@ -1149,6 +1149,54 @@ Windows sekmesinde yönetici izniyle yapılan temizlik kalıcıdır. Kaldırıla
   </data>
   <data name="SettingsUpdatesHint" xml:space="preserve">
     <value>Panel açılınca en çok 6 saatte bir GitHub'daki sürüm listesine bakar; hiçbir bilgi gönderilmez. Kapalıyken Vacuo internete hiç çıkmaz.</value>
+  </data>
+  <data name="SettingsMaintenanceTitle" xml:space="preserve">
+    <value>Otomatik Bakım</value>
+  </data>
+  <data name="SettingsMaintenanceHint" xml:space="preserve">
+    <value>Bilgisayar prizdeyken ve 10 dakikadır kullanılmıyorken, günde en çok bir kez. Her şey Geri Dönüşüm Kutusu'na gider ve Günlük'ten geri alınır. Açıkken bellek sıkışınca da haber verir; hiçbir programı kapatmaz.</value>
+  </data>
+  <data name="SettingsMaintenanceTempFiles" xml:space="preserve">
+    <value>Geçici dosyalar (7+ gün)</value>
+  </data>
+  <data name="SettingsMaintenanceTempFilesTip" xml:space="preserve">
+    <value>Geçici klasörde 7 günden uzun süredir dokunulmamış öğeler</value>
+  </data>
+  <data name="SettingsMaintenanceDownloadCaches" xml:space="preserve">
+    <value>İndirme önbellekleri</value>
+  </data>
+  <data name="SettingsMaintenanceDownloadCachesTip" xml:space="preserve">
+    <value>pip, npm, uv, pnpm ve conda paket önbellekleri</value>
+  </data>
+  <data name="SettingsMaintenanceProjectLeftovers" xml:space="preserve">
+    <value>Python ve Jupyter artıkları</value>
+  </data>
+  <data name="SettingsMaintenanceProjectLeftoversTip" xml:space="preserve">
+    <value>__pycache__ ve .ipynb_checkpoints klasörleri</value>
+  </data>
+  <data name="SettingsMaintenanceOrganizeDesktop" xml:space="preserve">
+    <value>Masaüstünü türe göre düzenle</value>
+  </data>
+  <data name="SettingsMaintenanceSound" xml:space="preserve">
+    <value>Bildirim sesi</value>
+  </data>
+  <data name="SettingsMaintenanceModelsNote" xml:space="preserve">
+    <value>Hugging Face ve torch modelleri hiçbir zaman otomatik temizlenmez.</value>
+  </data>
+  <data name="SettingsMaintenanceNeverRun" xml:space="preserve">
+    <value>Henüz çalışmadı.</value>
+  </data>
+  <data name="SettingsMaintenanceLastRunFormat" xml:space="preserve">
+    <value>Son çalışma: {0} · {1}</value>
+  </data>
+  <data name="SettingsMaintenanceMovedFormat" xml:space="preserve">
+    <value>{0} öğe, {1}</value>
+  </data>
+  <data name="SettingsMaintenanceOrganizedFormat" xml:space="preserve">
+    <value>Masaüstünde {0} dosya</value>
+  </data>
+  <data name="SettingsMaintenanceNothing" xml:space="preserve">
+    <value>taşınacak bir şey yoktu</value>
   </data>
   <data name="SettingsUpdatesCheckButton" xml:space="preserve">
     <value>Şimdi denetle</value>

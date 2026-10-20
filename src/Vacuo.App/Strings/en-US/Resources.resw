@@ -13,7 +13,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AppTagline" xml:space="preserve">
-    <value>Make room, honestly.</value>
+    <value>Pulls in the clutter, leaves what matters.</value>
   </data>
   <data name="TrayTooltip" xml:space="preserve">
     <value>Vacuo</value>
@@ -1149,6 +1149,54 @@ Keeping backups of your important files is up to you.</value>
   </data>
   <data name="SettingsUpdatesHint" xml:space="preserve">
     <value>When the panel opens, at most every 6 hours, it reads the list of releases on GitHub; nothing is sent. Turned off, Vacuo never goes online.</value>
+  </data>
+  <data name="SettingsMaintenanceTitle" xml:space="preserve">
+    <value>Automatic maintenance</value>
+  </data>
+  <data name="SettingsMaintenanceHint" xml:space="preserve">
+    <value>While the computer is plugged in and unused for 10 minutes, at most once a day. Everything goes to the Recycle Bin and can be put back from the Journal. While on, it also tells you when memory is tight; it never closes a program.</value>
+  </data>
+  <data name="SettingsMaintenanceTempFiles" xml:space="preserve">
+    <value>Temporary files (7+ days)</value>
+  </data>
+  <data name="SettingsMaintenanceTempFilesTip" xml:space="preserve">
+    <value>Items in the temp folder untouched for more than 7 days</value>
+  </data>
+  <data name="SettingsMaintenanceDownloadCaches" xml:space="preserve">
+    <value>Download caches</value>
+  </data>
+  <data name="SettingsMaintenanceDownloadCachesTip" xml:space="preserve">
+    <value>The pip, npm, uv, pnpm and conda package caches</value>
+  </data>
+  <data name="SettingsMaintenanceProjectLeftovers" xml:space="preserve">
+    <value>Python and Jupyter leftovers</value>
+  </data>
+  <data name="SettingsMaintenanceProjectLeftoversTip" xml:space="preserve">
+    <value>__pycache__ and .ipynb_checkpoints folders</value>
+  </data>
+  <data name="SettingsMaintenanceOrganizeDesktop" xml:space="preserve">
+    <value>Sort the Desktop by type</value>
+  </data>
+  <data name="SettingsMaintenanceSound" xml:space="preserve">
+    <value>Notification sound</value>
+  </data>
+  <data name="SettingsMaintenanceModelsNote" xml:space="preserve">
+    <value>Hugging Face and torch models are never cleaned automatically.</value>
+  </data>
+  <data name="SettingsMaintenanceNeverRun" xml:space="preserve">
+    <value>It has not run yet.</value>
+  </data>
+  <data name="SettingsMaintenanceLastRunFormat" xml:space="preserve">
+    <value>Last run: {0} · {1}</value>
+  </data>
+  <data name="SettingsMaintenanceMovedFormat" xml:space="preserve">
+    <value>{0} items, {1}</value>
+  </data>
+  <data name="SettingsMaintenanceOrganizedFormat" xml:space="preserve">
+    <value>{0} Desktop files</value>
+  </data>
+  <data name="SettingsMaintenanceNothing" xml:space="preserve">
+    <value>there was nothing to move</value>
   </data>
   <data name="SettingsUpdatesCheckButton" xml:space="preserve">
     <value>Check now</value>

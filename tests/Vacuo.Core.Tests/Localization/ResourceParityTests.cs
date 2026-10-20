@@ -7,7 +7,7 @@ public class ResourceParityTests
 {
     private static readonly string[] InfoPages = ["About", "Privacy", "License", "Terms"];
 
-    private static Dictionary<string, string> Strings(string culture)
+    internal static Dictionary<string, string> Strings(string culture)
     {
         string root = AppContext.BaseDirectory;
         while (!File.Exists(Path.Combine(root, "Vacuo.slnx")))

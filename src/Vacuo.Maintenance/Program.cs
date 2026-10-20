@@ -1,6 +1,9 @@
+using System.Globalization;
 using Vacuo.Core.Actions;
 using Vacuo.Core.Journal;
 using Vacuo.Core.Maintenance;
+using Vacuo.Core.Notices;
+using Vacuo.Core.Organize;
 using Vacuo.Core.Scanning;
 using Vacuo.Core.Settings;
 using Vacuo.Windows;
@@ -10,20 +13,37 @@ namespace Vacuo.Maintenance;
 /// <summary>
 /// Otomatik Bakım's helper (ADR-004): the tray starts it, without a window, when maintenance is due. It
 /// checks again (the tray's view may be minutes old), scans the chosen categories, moves what qualifies
-/// to the Recycle Bin as one Journal batch, writes maintenance.json and ends. It stops as soon as the
-/// user is back; what was moved stays in the Journal. One at a time. Switches, for trying it out:
-/// <c>--now</c> runs whatever the schedule and the on/off setting say; <c>--root &lt;folder&gt;</c>
-/// scans only that folder (its <c>Temp</c> subfolder as the temp folder) instead of the user's own.
+/// to the Recycle Bin as one Journal batch, sorts the Desktop by type if chosen, writes maintenance.json,
+/// and when the user is back tells them in Vacuo's own notice (vacuo-kurallar 16). It stops as soon as the
+/// user is back; what was moved stays in the Journal. One at a time. With <c>--memory</c> it only shows
+/// the "memory is tight" notice the tray asked for. Switches, for trying it out: <c>--now</c> runs whatever
+/// the schedule and the on/off setting say and tells at once; <c>--root &lt;folder&gt;</c> scans only that
+/// folder (its <c>Temp</c> and <c>Desktop</c> subfolders as the temp folder and the Desktop).
 /// </summary>
 internal static class Program
 {
     private const string SingleHelperName = @"Local\Vacuo.Maintenance";
+    private const string MemorySwitch = "--memory";
+    private const string IconFile = @"Assets\vacuo.ico";
     private const int Done = 0;
     private const int NotDue = 1;
     private const int AlreadyRunning = 2;
 
+    // The run happens while the user is away; the notice waits for them, but not forever.
+    private static readonly TimeSpan UserCheckInterval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan LongestWaitForUser = TimeSpan.FromHours(12);
+
     private static int Main(string[] args)
     {
+        VacuoSettings saved = new SettingsStore(SettingsStore.DefaultPath).Load();
+        string language = LanguageRule.Resolve(saved.Language, CultureInfo.CurrentUICulture.Name);
+        MaintenanceSettings settings = saved.Maintenance;
+        if (args.Contains(MemorySwitch))
+        {
+            Tell(NoticeTexts.ForTightMemory(language), settings.Sound);
+            return Done;
+        }
+
         using var single = new Mutex(initiallyOwned: true, SingleHelperName, out bool first);
         if (!first)
         {
@@ -34,7 +54,6 @@ internal static class Program
         int rootAt = Array.IndexOf(args, "--root");
         string? root = rootAt >= 0 && rootAt + 1 < args.Length ? Path.GetFullPath(args[rootAt + 1]) : null;
 
-        MaintenanceSettings settings = new SettingsStore(SettingsStore.DefaultPath).Load().Maintenance;
         var state = new MaintenanceStateStore(MaintenanceStateStore.DefaultPath);
         DateTimeOffset started = DateTimeOffset.Now;
         if (!now && !MaintenancePolicy.IsDue(settings, state.LoadLastRun(), UserPresence.IdleFor(), UserPresence.OnMains(), started))
@@ -54,7 +73,77 @@ internal static class Program
         var runner = new ActionRunner(new ActionJournal(ActionJournal.DefaultPath), recycleBin, TimeProvider.System);
         MaintenanceOutcome outcome = new MaintenanceRun(runner, recycleBin).Run(
             items, shouldStop: () => !now && MaintenancePolicy.UserReturned(UserPresence.LastInputAt(), started));
-        state.SaveRun(started, outcome.Summary);
+        int organized = settings.OrganizeDesktop && !outcome.Stopped ? OrganizeDesktop(root, runner, language) : 0;
+        MaintenanceSummary summary = outcome.Summary with { Organized = organized };
+        state.SaveRun(started, summary);
+
+        if (NoticeTexts.ForMaintenance(summary, language) is { } notice)
+        {
+            // Stopped means the user is already back.
+            if (now || outcome.Stopped || WaitForUser(DateTimeOffset.Now))
+            {
+                Tell(notice, settings.Sound);
+            }
+        }
+
         return Done;
+    }
+
+    /// <summary>Düzen's "by type" on the Desktop, as its own Journal batch; the folder names are the panel's.</summary>
+    private static int OrganizeDesktop(string? root, ActionRunner runner, string language)
+    {
+        string desktop = root is null
+            ? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
+            : Path.Combine(root, "Desktop");
+        if (!Directory.Exists(desktop))
+        {
+            return 0;
+        }
+
+        try
+        {
+            OrganizePlan plan = OrganizePlanner.Plan(
+                desktop,
+                FolderItems.Read(desktop),
+                OrganizeRule.ByType,
+                target => NoticeTexts.DesktopFolderName(Enum.Parse<FileKind>(target.Key), language),
+                PathProbe.Disk);
+            return new FolderOrganizer(runner).Run(plan).Moved.Count;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // The Desktop could not be read; the rest of the run stands.
+            return 0;
+        }
+    }
+
+    // True once there is keyboard or mouse input after `since`.
+    private static bool WaitForUser(DateTimeOffset since)
+    {
+        // The scan's memory is not needed while waiting.
+        GC.Collect();
+        DateTimeOffset giveUpAt = since + LongestWaitForUser;
+        while (DateTimeOffset.Now < giveUpAt)
+        {
+            if (UserPresence.LastInputAt() > since)
+            {
+                return true;
+            }
+
+            Thread.Sleep(UserCheckInterval);
+        }
+
+        return false;
+    }
+
+    // Silent during full screen, presentations and quiet time (vacuo-kurallar 16); the Journal still has it all.
+    private static void Tell(NoticeText notice, bool sound)
+    {
+        if (!NoticeGate.MayShow(UserPresence.NotificationState()))
+        {
+            return;
+        }
+
+        NoticeWindow.Show(notice, sound ? NoticeTone.Wave() : null, Path.Combine(AppContext.BaseDirectory, IconFile));
     }
 }

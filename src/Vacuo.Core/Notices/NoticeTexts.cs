@@ -1,0 +1,109 @@
+using System.Globalization;
+using Vacuo.Core.Formatting;
+using Vacuo.Core.Maintenance;
+using Vacuo.Core.Organize;
+using Vacuo.Core.Settings;
+
+namespace Vacuo.Core.Notices;
+
+/// <summary>What a notification says: a short title and one or two sentences.</summary>
+public sealed record NoticeText(string Title, string Body);
+
+/// <summary>
+/// The helper's sentences (ADR-004, vacuo-kurallar 16). The helper has no window of the panel's and cannot
+/// read its .resw files, so, like the tray's, its few words live here in both languages. The Desktop folder
+/// names must be Düzen's own (Organize_Kind_*), so a folder the helper makes is the one the panel makes.
+/// </summary>
+public static class NoticeTexts
+{
+    private static readonly Words Turkish = new(
+        MaintenanceTitle: "Otomatik Bakım",
+        Moved: "{0} öğe ({1}) Geri Dönüşüm Kutusu'na taşındı; Günlük'ten geri alabilirsin. Yer, kutu boşaltılınca açılır.",
+        MovedOne: "1 öğe ({1}) Geri Dönüşüm Kutusu'na taşındı; Günlük'ten geri alabilirsin. Yer, kutu boşaltılınca açılır.",
+        Organized: "Masaüstünde {0} dosya klasörlere yerleşti.",
+        OrganizedOne: "Masaüstünde 1 dosya bir klasöre yerleşti.",
+        Stopped: "Sen dönünce durdu; kalanı bir sonraki bakımda.",
+        MemoryTitle: "Bellek sıkışık",
+        MemoryBody: "Programlar yavaşlayabilir. Kullanmadığın programları kapatmak bellek açar; Vacuo hiçbir şeyi kendiliğinden kapatmaz.",
+        Kinds: new Dictionary<FileKind, string>
+        {
+            [FileKind.Documents] = "Belgeler",
+            [FileKind.Images] = "Resimler",
+            [FileKind.Videos] = "Videolar",
+            [FileKind.Music] = "Müzik",
+            [FileKind.Archives] = "Arşivler",
+            [FileKind.Installers] = "Kurulum dosyaları",
+            [FileKind.Code] = "Kod",
+        });
+
+    private static readonly Words English = new(
+        MaintenanceTitle: "Automatic maintenance",
+        Moved: "{0} items ({1}) went to the Recycle Bin; you can put them back from the Journal. The space frees up when the bin is emptied.",
+        MovedOne: "1 item ({1}) went to the Recycle Bin; you can put it back from the Journal. The space frees up when the bin is emptied.",
+        Organized: "{0} files on the Desktop were sorted into folders.",
+        OrganizedOne: "1 file on the Desktop was sorted into a folder.",
+        Stopped: "It stopped when you came back; the rest waits for the next run.",
+        MemoryTitle: "Memory is tight",
+        MemoryBody: "Programs may slow down. Closing the ones you are not using frees memory; Vacuo never closes anything by itself.",
+        Kinds: new Dictionary<FileKind, string>
+        {
+            [FileKind.Documents] = "Documents",
+            [FileKind.Images] = "Pictures",
+            [FileKind.Videos] = "Videos",
+            [FileKind.Music] = "Music",
+            [FileKind.Archives] = "Archives",
+            [FileKind.Installers] = "Installers",
+            [FileKind.Code] = "Code",
+        });
+
+    /// <summary>Null when the run neither moved nor sorted anything: there is nothing to tell.</summary>
+    public static NoticeText? ForMaintenance(MaintenanceSummary summary, string language)
+    {
+        if (summary.Moved == 0 && summary.Organized == 0)
+        {
+            return null;
+        }
+
+        Words words = WordsFor(language);
+        CultureInfo culture = CultureInfo.GetCultureInfo(language);
+        var sentences = new List<string>();
+        if (summary.Moved > 0)
+        {
+            string format = summary.Moved == 1 ? words.MovedOne : words.Moved;
+            sentences.Add(string.Format(culture, format, summary.Moved, ByteSizeFormatter.Format(summary.Bytes, culture)));
+        }
+
+        if (summary.Organized > 0)
+        {
+            sentences.Add(string.Format(culture, summary.Organized == 1 ? words.OrganizedOne : words.Organized, summary.Organized));
+        }
+
+        if (summary.Stopped)
+        {
+            sentences.Add(words.Stopped);
+        }
+
+        return new NoticeText(words.MaintenanceTitle, string.Join(' ', sentences));
+    }
+
+    public static NoticeText ForTightMemory(string language)
+    {
+        Words words = WordsFor(language);
+        return new NoticeText(words.MemoryTitle, words.MemoryBody);
+    }
+
+    public static string DesktopFolderName(FileKind kind, string language) => WordsFor(language).Kinds[kind];
+
+    private static Words WordsFor(string language) => LanguageRule.IsTurkish(language) ? Turkish : English;
+
+    private sealed record Words(
+        string MaintenanceTitle,
+        string Moved,
+        string MovedOne,
+        string Organized,
+        string OrganizedOne,
+        string Stopped,
+        string MemoryTitle,
+        string MemoryBody,
+        IReadOnlyDictionary<FileKind, string> Kinds);
+}

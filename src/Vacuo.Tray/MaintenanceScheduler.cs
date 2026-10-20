@@ -17,8 +17,18 @@ internal sealed class MaintenanceScheduler(string helperPath)
     // The helper holds this while it runs.
     private const string HelperRunningName = @"Local\Vacuo.Maintenance";
 
+    private long _lastCheckMs = long.MinValue;
+
+    /// <summary>The tray's timer ticks more often (the memory check); this looks every <see cref="MaintenancePolicy.CheckInterval"/>.</summary>
     public void Check()
     {
+        long nowMs = Environment.TickCount64;
+        if (_lastCheckMs != long.MinValue && nowMs - _lastCheckMs < (long)MaintenancePolicy.CheckInterval.TotalMilliseconds)
+        {
+            return;
+        }
+
+        _lastCheckMs = nowMs;
         MaintenanceSettings settings = new SettingsStore(SettingsStore.DefaultPath).Load().Maintenance;
         if (!settings.Enabled || !File.Exists(helperPath) || IsHelperRunning())
         {

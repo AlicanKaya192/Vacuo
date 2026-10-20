@@ -40,6 +40,29 @@ internal static class NativeMethods
     [DllImport("user32.dll", SetLastError = true)]
     public static extern nuint SetTimer(nint hWnd, nuint id, uint elapseMs, nint timerProc);
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct PerformanceInformation
+    {
+        public uint Size;
+        public nuint CommitTotal;
+        public nuint CommitLimit;
+        public nuint CommitPeak;
+        public nuint PhysicalTotal;
+        public nuint PhysicalAvailable;
+        public nuint SystemCache;
+        public nuint KernelTotal;
+        public nuint KernelPaged;
+        public nuint KernelNonpaged;
+        public nuint PageSize;
+        public uint HandleCount;
+        public uint ProcessCount;
+        public uint ThreadCount;
+    }
+
+    [DllImport("psapi.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetPerformanceInfo(ref PerformanceInformation info, uint size);
+
     public const uint NimAdd = 0x0;
     public const uint NimModify = 0x1;
     public const uint NimDelete = 0x2;

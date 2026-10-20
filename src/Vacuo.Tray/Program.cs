@@ -1,5 +1,5 @@
 using Vacuo.Core.Hosting;
-using Vacuo.Core.Maintenance;
+using Vacuo.Core.Notices;
 using Vacuo.Core.Settings;
 
 namespace Vacuo.Tray;
@@ -75,10 +75,13 @@ internal static class Program
             window.Quit();
         };
 
-        // Otomatik Bakım: the tray only decides when; the helper does the work (ADR-004).
-        var maintenance = new MaintenanceScheduler(Path.Combine(AppContext.BaseDirectory, MaintenanceExecutable));
+        // Otomatik Bakım: the tray only decides when; the helper does the work and shows the notices (ADR-004).
+        string helperPath = Path.Combine(AppContext.BaseDirectory, MaintenanceExecutable);
+        var maintenance = new MaintenanceScheduler(helperPath);
+        var memory = new MemoryNoticeWatcher(helperPath);
+        window.TimerTicked += memory.Check;
         window.TimerTicked += maintenance.Check;
-        window.StartTimer(MaintenancePolicy.CheckInterval);
+        window.StartTimer(MemoryNoticePolicy.CheckInterval);
 
         // After setup or from the Start menu the panel shows too, so a new user sees where Vacuo went;
         // starting with Windows passes no switch and stays in the tray.

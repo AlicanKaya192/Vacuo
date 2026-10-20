@@ -21,7 +21,7 @@ public class MaintenanceStateStoreTests
         using var tree = new TempTree();
         var store = new MaintenanceStateStore(tree.PathOf(@"Vacuo\maintenance.json"));
         var at = new DateTimeOffset(2026, 10, 21, 3, 5, 0, TimeSpan.FromHours(3));
-        var summary = new MaintenanceSummary(Moved: 4, Bytes: 1_500_000, Failed: 1, Stopped: true);
+        var summary = new MaintenanceSummary(Moved: 4, Bytes: 1_500_000, Failed: 1, Stopped: true) { Organized = 2 };
 
         store.SaveRun(at, summary);
 

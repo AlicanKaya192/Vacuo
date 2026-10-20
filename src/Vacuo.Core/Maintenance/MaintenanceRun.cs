@@ -6,7 +6,11 @@ using Vacuo.Core.Scanning;
 namespace Vacuo.Core.Maintenance;
 
 /// <summary>What a run did, kept for Settings and the notification (dilim 2).</summary>
-public sealed record MaintenanceSummary(int Moved, long Bytes, int Failed, bool Stopped);
+public sealed record MaintenanceSummary(int Moved, long Bytes, int Failed, bool Stopped)
+{
+    /// <summary>Desktop files Düzen sorted into folders in the same run (its own Journal batch).</summary>
+    public int Organized { get; init; }
+}
 
 public sealed record MaintenanceOutcome(Guid BatchId, IReadOnlyList<JournalEntry> Moved, IReadOnlyList<MoveFailure> Failed, bool Stopped)
 {

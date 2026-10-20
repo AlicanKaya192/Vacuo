@@ -27,6 +27,49 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <!-- The logo, a small black hole (Alican, 21 October 2026): its light ring turns and its glow
+                     breathes on the compositor, so it costs the UI thread nothing; it stops while the panel is
+                     hidden and stays still when Windows animations are off (vacuo-kurallar 9). -->
+                <Grid Width="22" Height="22" VerticalAlignment="Center">
+                    <Grid.Resources>
+                        <Storyboard x:Name="LogoMotion" RepeatBehavior="Forever">
+                            <DoubleAnimation Storyboard.TargetName="LogoSpin"
+                                             Storyboard.TargetProperty="Angle"
+                                             From="0"
+                                             To="360"
+                                             Duration="0:0:6" />
+                        </Storyboard>
+                        <Storyboard x:Name="LogoGlowMotion" RepeatBehavior="Forever" AutoReverse="True">
+                            <DoubleAnimation Storyboard.TargetName="LogoGlow"
+                                             Storyboard.TargetProperty="Opacity"
+                                             From="0.45"
+                                             To="0.9"
+                                             Duration="0:0:2.4" />
+                        </Storyboard>
+                    </Grid.Resources>
+                    <Ellipse x:Name="LogoGlow" Opacity="0.7">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#009D7CFF" Offset="0.45" />
+                                <GradientStop Color="#999D7CFF" Offset="0.72" />
+                                <GradientStop Color="#009D7CFF" Offset="1" />
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
+                    <Ellipse Width="17" Height="17" StrokeThickness="2.5" RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.RenderTransform>
+                            <RotateTransform x:Name="LogoSpin" />
+                        </Ellipse.RenderTransform>
+                        <Ellipse.Stroke>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#FFD4C6FF" Offset="0" />
+                                <GradientStop Color="#FF9D7CFF" Offset="0.45" />
+                                <GradientStop Color="#339D7CFF" Offset="1" />
+                            </LinearGradientBrush>
+                        </Ellipse.Stroke>
+                    </Ellipse>
+                    <Ellipse Width="11" Height="11" Fill="{StaticResource VoidBrush}" />
+                </Grid>
                 <TextBlock Text="VACUO"
                            CharacterSpacing="300"
                            FontSize="15"

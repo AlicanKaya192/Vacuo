@@ -28,6 +28,12 @@ public static class UserPresence
     /// <summary>Plugged in; a computer without a battery reports itself on mains. Unknown counts as not.</summary>
     public static bool OnMains() => GetSystemPowerStatus(out SystemPowerStatus status) && status.ACLineStatus == AcOnline;
 
+    /// <summary>
+    /// What Windows says about showing a notification now (QUNS_*: full screen, presentation, quiet time and so on);
+    /// see <c>NoticeGate</c>. Zero when it cannot tell, which shows nothing.
+    /// </summary>
+    public static int NotificationState() => SHQueryUserNotificationState(out int state) == 0 ? state : 0;
+
     [StructLayout(LayoutKind.Sequential)]
     private struct LastInputInfo
     {
@@ -53,4 +59,7 @@ public static class UserPresence
     [DllImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetSystemPowerStatus(out SystemPowerStatus status);
+
+    [DllImport("shell32.dll")]
+    private static extern int SHQueryUserNotificationState(out int state);
 }

@@ -5,6 +5,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <AssemblyName>Vacuo.Maintenance</AssemblyName>
+    <ApplicationIcon>..\Vacuo.App\Assets\vacuo.ico</ApplicationIcon>
     <RootNamespace>Vacuo.Maintenance</RootNamespace>
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -12,6 +13,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Drawn on the notice. -->
+    <Content Include="..\Vacuo.App\Assets\vacuo.ico" Link="Assets\vacuo.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Vacuo.Core\Vacuo.Core.csproj" />

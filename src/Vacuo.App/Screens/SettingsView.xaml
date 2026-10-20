@@ -76,7 +76,6 @@
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock x:Name="UpdatesTitle" Style="{StaticResource CardTitleStyle}" />
                                 <TextBlock x:Name="UpdatesHint" Style="{StaticResource CardBodyStyle}" />
-                                <TextBlock x:Name="UpdatesState" Style="{StaticResource CardBodyStyle}" Foreground="{StaticResource InkBrush}" />
                             </StackPanel>
                             <CheckBox x:Name="UpdatesBox"
                                       Grid.Column="1"
@@ -84,13 +83,66 @@
                                       VerticalAlignment="Center"
                                       Click="OnUpdatesBoxClick" />
                         </Grid>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button x:Name="CheckNowButton" Click="OnCheckNowClick" />
-                            <Button x:Name="UpdateNowButton"
-                                    Style="{StaticResource VoidPrimaryButtonStyle}"
-                                    Visibility="Collapsed"
-                                    Click="OnUpdateNowClick" />
-                        </StackPanel>
+                        <!-- The state and its buttons share one line, so Settings fits without a scroll bar. -->
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="UpdatesState"
+                                       Style="{StaticResource CardBodyStyle}"
+                                       Margin="0"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource InkBrush}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="CheckNowButton" Click="OnCheckNowClick" />
+                                <Button x:Name="UpdateNowButton"
+                                        Style="{StaticResource VoidPrimaryButtonStyle}"
+                                        Visibility="Collapsed"
+                                        Click="OnUpdateNowClick" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Otomatik Bakım (ADR-004): off until turned on (vacuo-kurallar 2); the choices show what it would do. -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="10">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock x:Name="MaintenanceTitle" Style="{StaticResource CardTitleStyle}" />
+                                <TextBlock x:Name="MaintenanceHint" Style="{StaticResource CardBodyStyle}" />
+                                <TextBlock x:Name="MaintenanceLastRun" Style="{StaticResource CardBodyStyle}" Foreground="{StaticResource InkBrush}" />
+                            </StackPanel>
+                            <CheckBox x:Name="MaintenanceBox"
+                                      Grid.Column="1"
+                                      MinWidth="0"
+                                      VerticalAlignment="Center"
+                                      Click="OnMaintenanceClick" />
+                        </Grid>
+                        <!-- Two columns, short labels with the detail in a tooltip: Settings fits without a scroll bar (Alican). -->
+                        <Grid ColumnSpacing="16" RowSpacing="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <CheckBox x:Name="TempFilesBox" Click="OnMaintenanceClick" />
+                            <CheckBox x:Name="DownloadCachesBox" Grid.Column="1" Click="OnMaintenanceClick" />
+                            <CheckBox x:Name="ProjectLeftoversBox" Grid.Row="1" Click="OnMaintenanceClick" />
+                            <CheckBox x:Name="OrganizeDesktopBox" Grid.Row="1" Grid.Column="1" Click="OnMaintenanceClick" />
+                            <CheckBox x:Name="SoundBox" Grid.Row="2" Click="OnMaintenanceClick" />
+                            <TextBlock x:Name="MaintenanceModelsNote" Grid.Row="3" Grid.ColumnSpan="2" Style="{StaticResource CardBodyStyle}" />
+                        </Grid>
                     </StackPanel>
                 </Border>
 
@@ -98,7 +150,13 @@
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="6">
                         <TextBlock x:Name="InfoTitle" Style="{StaticResource CardTitleStyle}" />
-                        <StackPanel x:Name="InfoRows" Spacing="4" />
+                        <!-- Two by two (Alican, 21 October 2026): shorter, so the page needs no scroll bar. -->
+                        <Grid x:Name="InfoRows" ColumnSpacing="8" RowSpacing="4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                        </Grid>
                     </StackPanel>
                 </Border>
             </StackPanel>

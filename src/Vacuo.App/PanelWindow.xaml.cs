@@ -425,6 +425,12 @@ public sealed partial class PanelWindow : Window
         RefreshOrganizeCard();
         _ = LoadBatteryAsync();
         _updateScreen?.SetWindowOpen(true);
+        if (_animationsEnabled)
+        {
+            LogoMotion.Begin();
+            LogoGlowMotion.Begin();
+        }
+
         // A measurement run stays offline, so its numbers are the panel's own.
         if (_measurement is null)
         {
@@ -460,6 +466,8 @@ public sealed partial class PanelWindow : Window
         _isOpen = false;
         MarkEvent($"hidden-{reason}");
         VoidCanvas.Paused = true;
+        LogoMotion.Stop();
+        LogoGlowMotion.Stop();
         _diskScreen?.SetWindowOpen(false);
         _updateScreen?.SetWindowOpen(false);
         _memoryTimer.Stop();
