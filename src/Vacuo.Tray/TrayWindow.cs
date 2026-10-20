@@ -128,6 +128,17 @@ internal sealed class TrayWindow : IDisposable
         _iconAdded = true;
     }
 
+    /// <summary>A Windows notification from the tray icon; failing to show it changes nothing else.</summary>
+    public void ShowWarning(string title, string text)
+    {
+        var data = CreateIconData();
+        data.uFlags = NifInfo;
+        data.szInfoTitle = title;
+        data.szInfo = text;
+        data.dwInfoFlags = NiifWarning;
+        Shell_NotifyIcon(NimModify, ref data);
+    }
+
     private void RemoveIcon()
     {
         if (!_iconAdded)

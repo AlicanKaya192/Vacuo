@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -31,6 +32,9 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
     public IReadOnlyList<double> LaunchesMs => _launchesMs;
 
     public Func<int, string?> MeasurementPathForLaunch { get; init; } = _ => null;
+
+    /// <summary>The panel could not be started (B-165); the tray stays and tells the user.</summary>
+    public event Action? LaunchFailed;
 
     private bool IsRunning => _process is { HasExited: false };
 
@@ -66,7 +70,11 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
             return;
         }
 
-        Launch();
+        if (!TryLaunch())
+        {
+            _panelVisible = false;
+            LaunchFailed?.Invoke();
+        }
     }
 
     /// <summary>Asks the panel to close the way Alt+F4 would; it hides and starts waiting.</summary>
@@ -112,6 +120,21 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
         QuitAllRequested = _process.ExitCode == PanelProtocol.QuitAllExitCode;
         _process.Dispose();
         _process = null;
+    }
+
+    // A missing or blocked Vacuo.exe used to end the tray itself (B-165).
+    private bool TryLaunch()
+    {
+        try
+        {
+            Launch();
+            return true;
+        }
+        catch (Exception exception) when (exception is Win32Exception or InvalidOperationException)
+        {
+            _process = null;
+            return false;
+        }
     }
 
     private void Launch()

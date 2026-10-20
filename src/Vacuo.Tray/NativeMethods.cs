@@ -10,10 +10,14 @@ internal static class NativeMethods
     public const uint WmRButtonUp = 0x0205;
 
     public const uint NimAdd = 0x0;
+    public const uint NimModify = 0x1;
     public const uint NimDelete = 0x2;
     public const uint NifMessage = 0x1;
     public const uint NifIcon = 0x2;
     public const uint NifTip = 0x4;
+    public const uint NifInfo = 0x10;
+    public const uint NiifWarning = 0x2;
+    public const ushort TurkishPrimaryLanguage = 0x1F;
 
     public const uint ImageIcon = 1;
     public const uint LoadFromFile = 0x10;
@@ -122,6 +126,9 @@ internal static class NativeMethods
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
     public static extern nint GetModuleHandle(string? moduleName);
+
+    [DllImport("kernel32.dll")]
+    public static extern ushort GetUserDefaultUILanguage();
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     public static extern ushort RegisterClassEx(ref WindowClassEx windowClass);

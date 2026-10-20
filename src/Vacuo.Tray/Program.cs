@@ -32,6 +32,8 @@ internal static class Program
             MeasurementPathForLaunch = launch => measurement?.PanelFile(launch),
         };
 
+        TrayTexts texts = TrayTexts.For(options.PanelArguments);
+        panel.LaunchFailed += () => window.ShowWarning(texts.PanelFailedTitle, texts.PanelFailed);
         window.IconClicked += panel.Toggle;
         window.OpenPanelRequested += panel.Open;
         window.ClosePanelRequested += panel.Close;
