@@ -642,4 +642,13 @@
   <data name="Language_English" xml:space="preserve">
     <value>English</value>
   </data>
+  <data name="SettingsStartup" xml:space="preserve">
+    <value>Bilgisayar açılınca başlat</value>
+  </data>
+  <data name="SettingsStartupHint" xml:space="preserve">
+    <value>Vacuo oturum açınca tepside sessizce başlar. Yönetici izni gerekmez.</value>
+  </data>
+  <data name="SettingsStartupFailed" xml:space="preserve">
+    <value>Değiştirilemedi: Windows izin vermedi.</value>
+  </data>
 </root>

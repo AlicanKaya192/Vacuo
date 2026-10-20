@@ -45,6 +45,29 @@
                         <local:VoidPicker x:Name="LanguagePicker" Grid.Column="1" VerticalAlignment="Center" />
                     </Grid>
                 </Border>
+
+                <!-- Start with Windows: only Vacuo's own value in the user's Run key (vacuo-kurallar 5). -->
+                <Border x:Name="StartupCard" Style="{StaticResource CardStyle}">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                            <TextBlock x:Name="StartupTitle" Style="{StaticResource CardTitleStyle}" />
+                            <TextBlock x:Name="StartupHint" Style="{StaticResource CardBodyStyle}" />
+                            <TextBlock x:Name="StartupNote"
+                                       Style="{StaticResource CardBodyStyle}"
+                                       Foreground="{StaticResource AccentBrush}"
+                                       Visibility="Collapsed" />
+                        </StackPanel>
+                        <CheckBox x:Name="StartupBox"
+                                  Grid.Column="1"
+                                  MinWidth="0"
+                                  VerticalAlignment="Center"
+                                  Click="OnStartupClick" />
+                    </Grid>
+                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -642,4 +642,13 @@
   <data name="Language_English" xml:space="preserve">
     <value>English</value>
   </data>
+  <data name="SettingsStartup" xml:space="preserve">
+    <value>Start with Windows</value>
+  </data>
+  <data name="SettingsStartupHint" xml:space="preserve">
+    <value>Vacuo starts quietly in the notification area when you sign in. No administrator rights needed.</value>
+  </data>
+  <data name="SettingsStartupFailed" xml:space="preserve">
+    <value>Could not change it: Windows did not allow it.</value>
+  </data>
 </root>

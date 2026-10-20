@@ -14,7 +14,6 @@ public class SettingsStoreTests
 
         Assert.Equal(VacuoSettings.Default, settings);
         Assert.Equal(LanguageChoice.Automatic, settings.Language);
-        Assert.True(settings.StartWithWindows);
         Assert.True(settings.CheckForUpdates);
     }
 
@@ -23,7 +22,7 @@ public class SettingsStoreTests
     {
         using var tree = new TempTree();
         var store = new SettingsStore(tree.PathOf(@"Vacuo\settings.json"));
-        var chosen = new VacuoSettings(LanguageChoice.English, StartWithWindows: false, CheckForUpdates: false);
+        var chosen = new VacuoSettings(LanguageChoice.English, CheckForUpdates: false);
 
         store.Save(chosen);
 
@@ -53,5 +52,18 @@ public class SettingsStoreTests
         VacuoSettings settings = new SettingsStore(path).Load();
 
         Assert.Equal(VacuoSettings.Default with { Language = LanguageChoice.Turkish }, settings);
+    }
+
+    // Starting with Windows lives in the Run key now; files written before still load.
+    [Fact]
+    public void FileWithTheOldStartupField_StillLoads()
+    {
+        using var tree = new TempTree();
+        string path = tree.PathOf("settings.json");
+        File.WriteAllText(path, """{ "Language": "English", "StartWithWindows": false, "CheckForUpdates": false }""");
+
+        VacuoSettings settings = new SettingsStore(path).Load();
+
+        Assert.Equal(new VacuoSettings(LanguageChoice.English, CheckForUpdates: false), settings);
     }
 }

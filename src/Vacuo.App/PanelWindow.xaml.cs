@@ -140,6 +140,9 @@ public sealed partial class PanelWindow : Window
     /// <summary>The tray's foreground history; null when the panel runs without the tray.</summary>
     internal Func<Task<ForegroundSnapshot?>> ForegroundSource { get; set; } = () => Task.FromResult<ForegroundSnapshot?>(null);
 
+    /// <summary>The tray's window; its program is what starts with Windows. Zero when the panel runs without the tray.</summary>
+    internal nint TrayWindow { get; set; }
+
     internal void Toggle()
     {
         if (_isOpen && !_showingWorkScreen)
@@ -586,7 +589,11 @@ public sealed partial class PanelWindow : Window
         }
 
         var settings = AddScreen(new SettingsView());
-        settings.Initialize(_localizer, new SettingsStore(SettingsStore.DefaultPath));
+        string? trayProgram = StartupRunKey.ProgramOfWindow(TrayWindow);
+        settings.Initialize(
+            _localizer,
+            new SettingsStore(SettingsStore.DefaultPath),
+            trayProgram is null ? null : new StartupRegistration(new StartupRunKey(), trayProgram));
         settings.BackRequested += (_, _) => ReturnToCards();
         return _settingsScreen = settings;
     }

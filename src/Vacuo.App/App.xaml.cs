@@ -66,6 +66,7 @@ public partial class App : Application
     {
         _channel = new TrayChannel(panel.Handle, options.TrayWindow);
         panel.ForegroundSource = () => _channel.RequestForegroundAsync(ForegroundTimeout);
+        panel.TrayWindow = options.TrayWindow;
         var linger = panel.DispatcherQueue.CreateTimer();
         linger.Interval = options.Linger;
         linger.IsRepeating = false;

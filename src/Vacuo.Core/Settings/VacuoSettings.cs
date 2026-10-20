@@ -11,12 +11,13 @@ public enum LanguageChoice
 }
 
 /// <summary>
-/// What the user chose in Settings. Starting with Windows and checking for updates are on unless
-/// turned off (Alican, 20 October 2026; vacuo-kurallar 5 and 6).
+/// What the user chose in Settings. Checking for updates is on unless turned off (Alican, 20 October
+/// 2026; vacuo-kurallar 6). Starting with Windows is not here: the Run key itself says it
+/// (<see cref="StartupRegistration"/>).
 /// </summary>
-public sealed record VacuoSettings(LanguageChoice Language, bool StartWithWindows, bool CheckForUpdates)
+public sealed record VacuoSettings(LanguageChoice Language, bool CheckForUpdates)
 {
-    public static VacuoSettings Default { get; } = new(LanguageChoice.Automatic, StartWithWindows: true, CheckForUpdates: true);
+    public static VacuoSettings Default { get; } = new(LanguageChoice.Automatic, CheckForUpdates: true);
 }
 
 /// <summary>
@@ -43,7 +44,6 @@ public sealed class SettingsStore(string path)
                 ? VacuoSettings.Default
                 : new VacuoSettings(
                     file.Language ?? VacuoSettings.Default.Language,
-                    file.StartWithWindows ?? VacuoSettings.Default.StartWithWindows,
                     file.CheckForUpdates ?? VacuoSettings.Default.CheckForUpdates);
         }
         catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
@@ -56,13 +56,13 @@ public sealed class SettingsStore(string path)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
         string temporary = path + ".tmp";
-        var file = new SettingsFile(settings.Language, settings.StartWithWindows, settings.CheckForUpdates);
+        var file = new SettingsFile(settings.Language, settings.CheckForUpdates);
         File.WriteAllText(temporary, JsonSerializer.Serialize(file, JsonOptions));
         File.Move(temporary, path, overwrite: true);
     }
 
     // Every field may be missing in an older or hand-edited file.
-    private sealed record SettingsFile(LanguageChoice? Language, bool? StartWithWindows, bool? CheckForUpdates);
+    private sealed record SettingsFile(LanguageChoice? Language, bool? CheckForUpdates);
 }
 
 /// <summary>The language the interface uses: on Automatic, Turkish on a Turkish Windows and English on any other.</summary>

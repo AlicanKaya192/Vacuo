@@ -6,8 +6,8 @@ using Vacuo.Core.Settings;
 namespace Vacuo.App.Screens;
 
 /// <summary>
-/// The Settings screen (Aşama 3c): for now the language. Each change is saved at once; the panel reads
-/// its language when it starts, so a new one shows from the next opening.
+/// The Settings screen (Aşama 3c): the language and starting with Windows. Each change is saved at
+/// once; the panel reads its language when it starts, so a new one shows from the next opening.
 /// </summary>
 public sealed partial class SettingsView : UserControl
 {
@@ -15,6 +15,7 @@ public sealed partial class SettingsView : UserControl
 
     private Localizer _localizer = null!;
     private SettingsStore _store = null!;
+    private StartupRegistration? _startup;
 
     public SettingsView()
     {
@@ -23,10 +24,16 @@ public sealed partial class SettingsView : UserControl
 
     internal event EventHandler? BackRequested;
 
-    internal void Initialize(Localizer localizer, SettingsStore store)
+    /// <param name="startup">Null when the tray's program is unknown (the panel runs without the tray): the card is hidden.</param>
+    internal void Initialize(Localizer localizer, SettingsStore store, StartupRegistration? startup)
     {
         _localizer = localizer;
         _store = store;
+        _startup = startup;
+        StartupCard.Visibility = startup is null ? Visibility.Collapsed : Visibility.Visible;
+        StartupTitle.Text = localizer.Get("SettingsStartup");
+        StartupHint.Text = localizer.Get("SettingsStartupHint");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(StartupBox, StartupTitle.Text);
         BackButton.Content = localizer.Get("DiskBackButton");
         ScreenTitle.Text = localizer.Get("SettingsTitle");
         LanguageTitle.Text = localizer.Get("SettingsLanguage");
@@ -41,6 +48,41 @@ public sealed partial class SettingsView : UserControl
     {
         LanguagePicker.SelectedIndex = Array.IndexOf(Languages, _store.Load().Language);
         LanguageNote.Visibility = Visibility.Collapsed;
+        StartupNote.Visibility = Visibility.Collapsed;
+        if (_startup is not null)
+        {
+            StartupBox.IsChecked = _startup.IsOn;
+        }
+    }
+
+    // The Run key is the truth: after a change, or a refused one, the box shows what it now says.
+    private void OnStartupClick(object sender, RoutedEventArgs e)
+    {
+        if (_startup is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (StartupBox.IsChecked == true)
+            {
+                _startup.TurnOn();
+            }
+            else
+            {
+                _startup.TurnOff();
+            }
+
+            StartupNote.Visibility = Visibility.Collapsed;
+        }
+        catch (Exception exception) when (exception is UnauthorizedAccessException or IOException or System.Security.SecurityException)
+        {
+            StartupNote.Text = _localizer.Get("SettingsStartupFailed");
+            StartupNote.Visibility = Visibility.Visible;
+        }
+
+        StartupBox.IsChecked = _startup.IsOn;
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e)
