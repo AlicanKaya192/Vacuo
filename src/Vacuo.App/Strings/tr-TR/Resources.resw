@@ -27,9 +27,6 @@
   <data name="MemoryTitle" xml:space="preserve">
     <value>Bellek</value>
   </data>
-  <data name="MemoryPlaceholder" xml:space="preserve">
-    <value>Bellek baskısı v0.3'te gelecek.</value>
-  </data>
   <data name="OrganizeTitle" xml:space="preserve">
     <value>Düzen</value>
   </data>
@@ -356,5 +353,92 @@
   </data>
   <data name="UndoFailure_CannotBeUndone" xml:space="preserve">
     <value>kalıcı silindi; geri alınamaz</value>
+  </data>
+  <data name="MemoryInspectButton" xml:space="preserve">
+    <value>Belleği incele</value>
+  </data>
+  <data name="MemoryRefreshButton" xml:space="preserve">
+    <value>Yenile</value>
+  </data>
+  <data name="MemoryReading" xml:space="preserve">
+    <value>Okunuyor…</value>
+  </data>
+  <data name="MemoryReadFailedFormat" xml:space="preserve">
+    <value>Bellek okunamadı: {0}</value>
+  </data>
+  <data name="Pressure_Comfortable" xml:space="preserve">
+    <value>Rahat</value>
+  </data>
+  <data name="Pressure_Filling" xml:space="preserve">
+    <value>Dolmaya başladı</value>
+  </data>
+  <data name="Pressure_Tight" xml:space="preserve">
+    <value>Sıkışık</value>
+  </data>
+  <data name="PressureHint_Comfortable" xml:space="preserve">
+    <value>Bir şey kapatmana gerek yok.</value>
+  </data>
+  <data name="PressureHint_Filling" xml:space="preserve">
+    <value>Şimdilik sorun yok; ağır uygulamalara göz atabilirsin.</value>
+  </data>
+  <data name="PressureHint_Tight" xml:space="preserve">
+    <value>Programlar belleği bekliyor; boştaki ağır uygulamaları kapatmak yardım eder.</value>
+  </data>
+  <data name="MemoryAvailableFormat" xml:space="preserve">
+    <value>Kullanılabilir {0} / {1}</value>
+  </data>
+  <data name="MemoryCommitFormat" xml:space="preserve">
+    <value>Ayrılan (taahhüt) {0} / {1}</value>
+  </data>
+  <data name="MemoryWhyNoCleaning" xml:space="preserve">
+    <value>Vacuo "RAM temizlemez": Windows boş belleği önbellek olarak kullanır, zorla boşaltmak programları yavaşlatır. Gerçek fark yalnızca bir uygulama kapanınca olur.</value>
+  </data>
+  <data name="MemoryWatchingSinceFormat" xml:space="preserve">
+    <value>Ön plan izlemesi başladı: {0}. Vacuo daha öncesini bilemez.</value>
+  </data>
+  <data name="MemoryNoHistory" xml:space="preserve">
+    <value>Ön plan geçmişi yok (Vacuo tepsiden başlatılmadı); uygulamaların ne zamandır kullanılmadığı bilinmiyor.</value>
+  </data>
+  <data name="MemoryGroup_Idle" xml:space="preserve">
+    <value>Boşta</value>
+  </data>
+  <data name="MemoryGroup_InUse" xml:space="preserve">
+    <value>Kullanımda</value>
+  </data>
+  <data name="MemoryGroup_Protected" xml:space="preserve">
+    <value>Sistem ve korunan</value>
+  </data>
+  <data name="MemoryGroupHint_Idle" xml:space="preserve">
+    <value>En az 200 MB ve en az 1 saattir önde değil.</value>
+  </data>
+  <data name="MemoryGroupHint_InUse" xml:space="preserve">
+    <value>Yakın zamanda önde oldu ya da hafif.</value>
+  </data>
+  <data name="MemoryGroupHint_Protected" xml:space="preserve">
+    <value>Windows'un parçaları, Vacuo ve penceresi olmayan arka plan süreçleri; Vacuo bunları kapatmayı önermez.</value>
+  </data>
+  <data name="MemoryEmptyGroup" xml:space="preserve">
+    <value>Yok.</value>
+  </data>
+  <data name="MemoryOthersFormat" xml:space="preserve">
+    <value>Diğer {0} küçük uygulama · {1}</value>
+  </data>
+  <data name="MemoryInFrontNow" xml:space="preserve">
+    <value>Şu an önde</value>
+  </data>
+  <data name="MemoryLastInFrontFormat" xml:space="preserve">
+    <value>Son önde: {0} önce</value>
+  </data>
+  <data name="MemoryNeverInFront" xml:space="preserve">
+    <value>İzleme başladığından beri önde değil</value>
+  </data>
+  <data name="DurationMinutesFormat" xml:space="preserve">
+    <value>{0} dk</value>
+  </data>
+  <data name="DurationHoursFormat" xml:space="preserve">
+    <value>{0} sa {1} dk</value>
+  </data>
+  <data name="DurationDaysFormat" xml:space="preserve">
+    <value>{0} gün {1} sa</value>
   </data>
 </root>

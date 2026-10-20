@@ -10,6 +10,7 @@ namespace Vacuo.App;
 public partial class App : Application
 {
     internal const string IconFile = "Assets\\vacuo.ico";
+    private static readonly TimeSpan ForegroundTimeout = TimeSpan.FromSeconds(1);
 
     private PanelWindow? _panel;
     private TrayIcon? _tray;
@@ -57,6 +58,7 @@ public partial class App : Application
     private void RunAsPanelProcess(PanelWindow panel, LaunchOptions options)
     {
         _channel = new TrayChannel(panel.Handle, options.TrayWindow);
+        panel.ForegroundSource = () => _channel.RequestForegroundAsync(ForegroundTimeout);
         var linger = panel.DispatcherQueue.CreateTimer();
         linger.Interval = options.Linger;
         linger.IsRepeating = false;

@@ -20,6 +20,13 @@ public static class PanelProtocol
     public const string QuitPanelMessage = "Vacuo.QuitPanel";
     /// <summary>Panel to tray: the panel was hidden.</summary>
     public const string PanelHiddenMessage = "Vacuo.PanelHidden";
+    /// <summary>
+    /// Panel to tray, with the panel window in wParam: send the foreground history. The tray answers
+    /// only a window of the panel process it started, with WM_COPYDATA tagged <see cref="ForegroundDataTag"/>.
+    /// </summary>
+    public const string ForegroundRequestMessage = "Vacuo.ForegroundRequest";
+    /// <summary>"VACF": marks the WM_COPYDATA that carries a <see cref="Ram.ForegroundSnapshot"/>.</summary>
+    public const int ForegroundDataTag = 0x5641_4346;
 
     public const int PanelClosedExitCode = 0;
     public const int QuitAllExitCode = 2;

@@ -13,12 +13,13 @@
           RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="200" />
+            <RowDefinition x:Name="VoidRow" Height="200" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid>
+        <!-- Vacuo's own header in place of a Windows title bar; on a screen it also moves the window. -->
+        <Grid x:Name="Header" Background="Transparent" PointerPressed="OnHeaderPointerPressed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -55,74 +56,80 @@
 
         <!-- Only scrolls on a screen too short for the measured panel; normally every card shows. -->
         <ScrollViewer x:Name="CardsScroller" Grid.Row="2" VerticalScrollBarVisibility="Auto">
-        <StackPanel x:Name="Cards" Spacing="8">
-            <StackPanel.Transform3D>
+        <!-- Two columns (B-137): Disk and Windows on the left, Memory and Organize on the right. -->
+        <Grid x:Name="Cards" ColumnSpacing="8">
+            <Grid.Transform3D>
                 <PerspectiveTransform3D Depth="700" />
-            </StackPanel.Transform3D>
-            <Border x:Name="DiskCard" Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="10">
-                    <TextBlock x:Name="DiskTitle" Style="{StaticResource CardTitleStyle}" />
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="112" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid Width="112" Height="112">
-                            <canvas:CanvasControl x:Name="DiskRingCanvas"
-                                                  ClearColor="#00000000"
-                                                  Draw="OnDiskRingDraw" />
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock x:Name="DiskFreeText"
-                                           HorizontalAlignment="Center"
-                                           FontSize="15"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource InkBrush}" />
-                                <TextBlock x:Name="DiskFreeLabel"
-                                           HorizontalAlignment="Center"
-                                           FontSize="10"
-                                           Foreground="{StaticResource InkSecondaryBrush}" />
-                            </StackPanel>
+            </Grid.Transform3D>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="8">
+                <Border x:Name="DiskCard" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock x:Name="DiskTitle" Style="{StaticResource CardTitleStyle}" />
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="112" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid Width="112" Height="112">
+                                <canvas:CanvasControl x:Name="DiskRingCanvas"
+                                                      ClearColor="#00000000"
+                                                      Draw="OnDiskRingDraw" />
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock x:Name="DiskFreeText"
+                                               HorizontalAlignment="Center"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource InkBrush}" />
+                                    <TextBlock x:Name="DiskFreeLabel"
+                                               HorizontalAlignment="Center"
+                                               FontSize="10"
+                                               Foreground="{StaticResource InkSecondaryBrush}" />
+                                </StackPanel>
+                            </Grid>
+                            <StackPanel x:Name="DiskLegend"
+                                        Grid.Column="1"
+                                        Spacing="4"
+                                        VerticalAlignment="Center" />
                         </Grid>
-                        <StackPanel x:Name="DiskLegend"
-                                    Grid.Column="1"
-                                    Spacing="4"
-                                    VerticalAlignment="Center" />
-                    </Grid>
-                    <TextBlock x:Name="DiskBody" Style="{StaticResource CardBodyStyle}" />
-                    <Button x:Name="DiskInspectButton"
-                            HorizontalAlignment="Stretch"
-                            Click="OnDiskInspectClick" />
-                </StackPanel>
-            </Border>
-            <Border x:Name="WindowsCard" Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="10">
-                    <TextBlock x:Name="WindowsTitle" Style="{StaticResource CardTitleStyle}" />
-                    <TextBlock x:Name="WindowsBody" Style="{StaticResource CardBodyStyle}" />
-                    <Button x:Name="WindowsInspectButton"
-                            HorizontalAlignment="Stretch"
-                            Click="OnWindowsInspectClick" />
-                </StackPanel>
-            </Border>
-            <!-- The two cards still to come share a row, so the panel stays short enough for a laptop screen. -->
-            <Grid ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Border x:Name="MemoryCard" Style="{StaticResource CardStyle}">
-                    <StackPanel>
-                        <TextBlock x:Name="MemoryTitle" Style="{StaticResource CardTitleStyle}" />
-                        <TextBlock x:Name="MemoryBody" Style="{StaticResource CardBodyStyle}" />
+                        <TextBlock x:Name="DiskBody" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="DiskInspectButton"
+                                HorizontalAlignment="Stretch"
+                                Click="OnDiskInspectClick" />
                     </StackPanel>
                 </Border>
-                <Border x:Name="OrganizeCard" Grid.Column="1" Style="{StaticResource CardStyle}">
+                <Border x:Name="WindowsCard" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock x:Name="WindowsTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="WindowsBody" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="WindowsInspectButton"
+                                HorizontalAlignment="Stretch"
+                                Click="OnWindowsInspectClick" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="8">
+                <Border x:Name="MemoryCard" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock x:Name="MemoryTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="MemoryPressureText" FontSize="22" FontWeight="SemiBold" />
+                        <TextBlock x:Name="MemoryBody" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="MemoryInspectButton"
+                                HorizontalAlignment="Stretch"
+                                Click="OnMemoryInspectClick" />
+                    </StackPanel>
+                </Border>
+                <Border x:Name="OrganizeCard" Style="{StaticResource CardStyle}">
                     <StackPanel>
                         <TextBlock x:Name="OrganizeTitle" Style="{StaticResource CardTitleStyle}" />
                         <TextBlock x:Name="OrganizeBody" Style="{StaticResource CardBodyStyle}" />
                     </StackPanel>
                 </Border>
-            </Grid>
-        </StackPanel>
+            </StackPanel>
+        </Grid>
         </ScrollViewer>
 
         <screens:DiskView x:Name="DiskScreenView"
@@ -134,6 +141,11 @@
                              Grid.Row="1"
                              Grid.RowSpan="2"
                              Visibility="Collapsed" />
+
+        <screens:MemoryView x:Name="MemoryScreenView"
+                            Grid.Row="1"
+                            Grid.RowSpan="2"
+                            Visibility="Collapsed" />
 
         <screens:JournalView x:Name="JournalScreenView"
                              Grid.Row="1"

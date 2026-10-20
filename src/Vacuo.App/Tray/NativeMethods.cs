@@ -25,6 +25,25 @@ internal static class NativeMethods
     public const int SmallIconWidthMetric = 49;
     public const int SmallIconHeightMetric = 50;
 
+    public const uint WmCopyData = 0x004A;
+    public const uint WmNcLeftButtonDown = 0x00A1;
+    public const nint HtCaption = 2;
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool ReleaseCapture();
+
+    [DllImport("user32.dll")]
+    public static extern nint SendMessage(nint hWnd, uint message, nint wParam, nint lParam);
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CopyDataStruct
+    {
+        public nint dwData;
+        public int cbData;
+        public nint lpData;
+    }
+
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     public delegate nint SubclassProc(nint hWnd, uint message, nint wParam, nint lParam, nuint subclassId, nuint refData);
 

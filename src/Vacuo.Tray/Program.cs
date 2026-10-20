@@ -22,6 +22,7 @@ internal static class Program
         var measurement = options.MeasurementDirectory is null ? null : new TrayMeasurement(options.MeasurementDirectory);
 
         using var window = new TrayWindow(Path.Combine(AppContext.BaseDirectory, TrayIconFile), Tooltip);
+        using var foreground = new ForegroundWatcher();
         var panel = new PanelProcess(
             options.PanelPath ?? Path.Combine(AppContext.BaseDirectory, PanelExecutable),
             window.Handle,
@@ -35,6 +36,8 @@ internal static class Program
         window.OpenPanelRequested += panel.Open;
         window.ClosePanelRequested += panel.Close;
         window.PanelHidden += panel.HandleHidden;
+        window.ForegroundRequested += asker =>
+            panel.SendData(asker, PanelProtocol.ForegroundDataTag, foreground.Snapshot().Encode());
         window.PanelExited += () =>
         {
             panel.HandleExited();

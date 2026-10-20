@@ -23,6 +23,7 @@ internal sealed class TrayWindow : IDisposable
     private readonly WindowProc _windowProc;
     private readonly uint _taskbarCreatedMessage;
     private readonly uint _panelHiddenMessage = RegisterWindowMessage(PanelProtocol.PanelHiddenMessage);
+    private readonly uint _foregroundRequestMessage = RegisterWindowMessage(PanelProtocol.ForegroundRequestMessage);
     private readonly nint _icon;
     private readonly string _tooltip;
     private bool _iconAdded;
@@ -53,6 +54,9 @@ internal sealed class TrayWindow : IDisposable
     public event Action? PanelHidden;
 
     public event Action? QuitRequested;
+
+    /// <summary>A window asked for the foreground history; the argument is the window to answer.</summary>
+    public event Action<nint>? ForegroundRequested;
 
     public nint Handle { get; }
 
@@ -177,6 +181,12 @@ internal sealed class TrayWindow : IDisposable
         if (message == _panelHiddenMessage)
         {
             PanelHidden?.Invoke();
+            return 0;
+        }
+
+        if (message == _foregroundRequestMessage)
+        {
+            ForegroundRequested?.Invoke(wParam);
             return 0;
         }
 

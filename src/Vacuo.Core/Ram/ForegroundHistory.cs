@@ -20,6 +20,12 @@ public sealed class ForegroundHistory(DateTimeOffset startedAt)
         _inFront = appName;
     }
 
+    public DateTimeOffset StartedAt => startedAt;
+
+    /// <summary>Whether the app was in front at any time since <see cref="StartedAt"/>.</summary>
+    public bool HasSeen(string appName) =>
+        string.Equals(_inFront, appName, StringComparison.OrdinalIgnoreCase) || _leftFront.ContainsKey(appName);
+
     /// <summary>Since when the app has not been in front; null while it is in front now.</summary>
     public DateTimeOffset? UnusedSince(string appName)
     {
@@ -29,5 +35,18 @@ public sealed class ForegroundHistory(DateTimeOffset startedAt)
         }
 
         return _leftFront.TryGetValue(appName, out DateTimeOffset left) ? left : startedAt;
+    }
+
+    public ForegroundSnapshot Snapshot() => new(startedAt, _inFront, new Dictionary<string, DateTimeOffset>(_leftFront, _leftFront.Comparer));
+
+    public static ForegroundHistory From(ForegroundSnapshot snapshot)
+    {
+        var history = new ForegroundHistory(snapshot.StartedAt) { _inFront = snapshot.InFront };
+        foreach ((string name, DateTimeOffset left) in snapshot.LeftFront)
+        {
+            history._leftFront[name] = left;
+        }
+
+        return history;
     }
 }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using Vacuo.Core.Hosting;
 using static Vacuo.Tray.NativeMethods;
 
@@ -15,6 +16,7 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
     // A tray click first takes focus from the open panel, which then hides itself;
     // the click that follows must not show it again at once.
     private static readonly TimeSpan ReopenGuard = TimeSpan.FromMilliseconds(250);
+    private const uint CopyDataTimeoutMs = 2000;
 
     private readonly uint _showMessage = RegisterWindowMessage(PanelProtocol.ShowPanelMessage);
     private readonly uint _quitMessage = RegisterWindowMessage(PanelProtocol.QuitPanelMessage);
@@ -133,6 +135,36 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
         _process = Process.Start(start) ?? throw new InvalidOperationException($"Could not start '{panelPath}'.");
         _process.EnableRaisingEvents = true;
         _process.Exited += (_, _) => onExited();
+    }
+
+    /// <summary>
+    /// Hands <paramref name="data"/> to <paramref name="panelWindow"/> with WM_COPYDATA, but only when that
+    /// window belongs to the panel process this tray started; any other asker gets nothing.
+    /// </summary>
+    public void SendData(nint panelWindow, int tag, byte[] data)
+    {
+        if (_process is not { HasExited: false } process)
+        {
+            return;
+        }
+
+        GetWindowThreadProcessId(panelWindow, out uint owner);
+        if (owner != process.Id)
+        {
+            return;
+        }
+
+        GCHandle pinned = GCHandle.Alloc(data, GCHandleType.Pinned);
+        try
+        {
+            var copy = new CopyDataStruct { dwData = tag, cbData = data.Length, lpData = pinned.AddrOfPinnedObject() };
+            // A hung panel must not freeze the tray.
+            _ = SendMessageTimeout(panelWindow, WmCopyData, trayWindow, ref copy, SendAbortIfHung, CopyDataTimeoutMs, out _);
+        }
+        finally
+        {
+            pinned.Free();
+        }
     }
 
     // For the registered Vacuo messages only. The panel listens on its main window; WinUI's

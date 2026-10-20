@@ -12,7 +12,8 @@ public enum AppGroup
     Protected,
 }
 
-public sealed record AppUse(RunningApp App, AppGroup Group, TimeSpan? UnusedFor);
+/// <summary><paramref name="SeenInFront"/> is false for an app never in front since Vacuo started watching (or with no history).</summary>
+public sealed record AppUse(RunningApp App, AppGroup Group, TimeSpan? UnusedFor, bool SeenInFront);
 
 /// <summary>Splits running apps into idle, in use and protected, largest first.</summary>
 public static class AppSorter
@@ -20,20 +21,22 @@ public static class AppSorter
     public static readonly TimeSpan IdleAfter = TimeSpan.FromHours(1);
     public const long HeavyBytes = 200L << 20;
 
-    public static IReadOnlyList<AppUse> Sort(IEnumerable<RunningApp> apps, ForegroundHistory history, DateTimeOffset now) => apps
+    /// <summary>Without a <paramref name="history"/>, how long an app was unused is unknown and no app is idle.</summary>
+    public static IReadOnlyList<AppUse> Sort(IEnumerable<RunningApp> apps, ForegroundHistory? history, DateTimeOffset now) => apps
         .OrderByDescending(app => app.PrivateBytes)
         .Select(app => Use(app, history, now))
         .ToList();
 
-    private static AppUse Use(RunningApp app, ForegroundHistory history, DateTimeOffset now)
+    private static AppUse Use(RunningApp app, ForegroundHistory? history, DateTimeOffset now)
     {
-        TimeSpan? unusedFor = now - history.UnusedSince(app.Name);
+        TimeSpan? unusedFor = now - history?.UnusedSince(app.Name);
+        bool seen = history?.HasSeen(app.Name) ?? false;
         if (app.IsProtected || !app.HasWindow)
         {
-            return new AppUse(app, AppGroup.Protected, unusedFor);
+            return new AppUse(app, AppGroup.Protected, unusedFor, seen);
         }
 
         bool idle = app.PrivateBytes >= HeavyBytes && unusedFor >= IdleAfter;
-        return new AppUse(app, idle ? AppGroup.Idle : AppGroup.InUse, unusedFor);
+        return new AppUse(app, idle ? AppGroup.Idle : AppGroup.InUse, unusedFor, seen);
     }
 }

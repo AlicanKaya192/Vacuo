@@ -25,6 +25,48 @@ internal static class NativeMethods
 
     public delegate bool EnumWindowsProc(nint hWnd, nint lParam);
 
+    public delegate void WinEventProc(nint hook, uint eventType, nint window, int objectId, int childId, uint thread, uint time);
+
+    public const uint EventSystemForeground = 0x0003;
+    public const uint WinEventOutOfContext = 0x0000;
+    public const uint ProcessQueryLimitedInformation = 0x1000;
+    public const uint WmCopyData = 0x004A;
+    public const uint SendAbortIfHung = 0x0002;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CopyDataStruct
+    {
+        public nint dwData;
+        public int cbData;
+        public nint lpData;
+    }
+
+    [DllImport("user32.dll")]
+    public static extern nint SetWinEventHook(
+        uint eventMin, uint eventMax, nint module, WinEventProc callback, uint processId, uint threadId, uint flags);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool UnhookWinEvent(nint hook);
+
+    [DllImport("user32.dll")]
+    public static extern nint GetForegroundWindow();
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern nint OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool QueryFullProcessImageName(nint process, uint flags, System.Text.StringBuilder path, ref int size);
+
+    [DllImport("kernel32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool CloseHandle(nint handle);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern nint SendMessageTimeout(
+        nint hWnd, uint message, nint wParam, ref CopyDataStruct lParam, uint flags, uint timeoutMs, out nint result);
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct WindowClassEx
     {

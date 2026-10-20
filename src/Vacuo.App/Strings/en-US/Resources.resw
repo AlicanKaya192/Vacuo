@@ -27,9 +27,6 @@
   <data name="MemoryTitle" xml:space="preserve">
     <value>Memory</value>
   </data>
-  <data name="MemoryPlaceholder" xml:space="preserve">
-    <value>Memory pressure arrives in v0.3.</value>
-  </data>
   <data name="OrganizeTitle" xml:space="preserve">
     <value>Organize</value>
   </data>
@@ -356,5 +353,92 @@
   </data>
   <data name="UndoFailure_CannotBeUndone" xml:space="preserve">
     <value>it was deleted for good and cannot be put back</value>
+  </data>
+  <data name="MemoryInspectButton" xml:space="preserve">
+    <value>Inspect memory</value>
+  </data>
+  <data name="MemoryRefreshButton" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="MemoryReading" xml:space="preserve">
+    <value>Reading…</value>
+  </data>
+  <data name="MemoryReadFailedFormat" xml:space="preserve">
+    <value>Memory could not be read: {0}</value>
+  </data>
+  <data name="Pressure_Comfortable" xml:space="preserve">
+    <value>Comfortable</value>
+  </data>
+  <data name="Pressure_Filling" xml:space="preserve">
+    <value>Filling up</value>
+  </data>
+  <data name="Pressure_Tight" xml:space="preserve">
+    <value>Tight</value>
+  </data>
+  <data name="PressureHint_Comfortable" xml:space="preserve">
+    <value>There is no need to close anything.</value>
+  </data>
+  <data name="PressureHint_Filling" xml:space="preserve">
+    <value>Fine for now; you may want to look at the heavy apps.</value>
+  </data>
+  <data name="PressureHint_Tight" xml:space="preserve">
+    <value>Programs are waiting for memory; closing idle heavy apps helps.</value>
+  </data>
+  <data name="MemoryAvailableFormat" xml:space="preserve">
+    <value>Available {0} of {1}</value>
+  </data>
+  <data name="MemoryCommitFormat" xml:space="preserve">
+    <value>Committed {0} of {1}</value>
+  </data>
+  <data name="MemoryWhyNoCleaning" xml:space="preserve">
+    <value>Vacuo does not "clean RAM": Windows uses free memory as a cache, and emptying it by force slows programs down. Only closing an app makes a real difference.</value>
+  </data>
+  <data name="MemoryWatchingSinceFormat" xml:space="preserve">
+    <value>Watching the foreground since {0}. Vacuo cannot know what came before.</value>
+  </data>
+  <data name="MemoryNoHistory" xml:space="preserve">
+    <value>No foreground history (Vacuo was not started from the tray); how long apps have been unused is unknown.</value>
+  </data>
+  <data name="MemoryGroup_Idle" xml:space="preserve">
+    <value>Idle</value>
+  </data>
+  <data name="MemoryGroup_InUse" xml:space="preserve">
+    <value>In use</value>
+  </data>
+  <data name="MemoryGroup_Protected" xml:space="preserve">
+    <value>System and protected</value>
+  </data>
+  <data name="MemoryGroupHint_Idle" xml:space="preserve">
+    <value>At least 200 MB and not in front for at least an hour.</value>
+  </data>
+  <data name="MemoryGroupHint_InUse" xml:space="preserve">
+    <value>In front recently, or light.</value>
+  </data>
+  <data name="MemoryGroupHint_Protected" xml:space="preserve">
+    <value>Parts of Windows, Vacuo and background processes without a window; Vacuo never offers to close them.</value>
+  </data>
+  <data name="MemoryEmptyGroup" xml:space="preserve">
+    <value>None.</value>
+  </data>
+  <data name="MemoryOthersFormat" xml:space="preserve">
+    <value>{0} other small apps · {1}</value>
+  </data>
+  <data name="MemoryInFrontNow" xml:space="preserve">
+    <value>In front now</value>
+  </data>
+  <data name="MemoryLastInFrontFormat" xml:space="preserve">
+    <value>Last in front: {0} ago</value>
+  </data>
+  <data name="MemoryNeverInFront" xml:space="preserve">
+    <value>Not in front since watching began</value>
+  </data>
+  <data name="DurationMinutesFormat" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="DurationHoursFormat" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="DurationDaysFormat" xml:space="preserve">
+    <value>{0} d {1} h</value>
   </data>
 </root>

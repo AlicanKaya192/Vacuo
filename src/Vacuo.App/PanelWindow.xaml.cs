@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Composition;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -15,6 +16,7 @@ using Vacuo.Core.Actions;
 using Vacuo.Core.Disk;
 using Vacuo.Core.Journal;
 using Vacuo.Core.Formatting;
+using Vacuo.Core.Ram;
 using Vacuo.Core.Scanning;
 using Vacuo.Windows;
 using Windows.Foundation;
@@ -27,18 +29,26 @@ using static Vacuo.App.Tray.NativeMethods;
 namespace Vacuo.App;
 
 /// <summary>
-/// The tray panel: opens just above the logo at the bottom right, hides when it loses focus.
+/// The tray panel: opens just above the logo at the bottom right. The cards and the Disk, Windows
+/// and Memory screens share one window that never changes its frame or size (B-140); only the
+/// content moves, so a screen change stays inside the same app. On the cards it hides when it
+/// loses focus; a screen stays like any other window until hidden to the tray.
 /// </summary>
 public sealed partial class PanelWindow : Window
 {
-    private const int PanelWidth = 400;
+    // Two card columns side by side (B-137); the screens use the same window.
+    private const int PanelWidth = 720;
     // The panel is as tall as its cards (vacuo-kurallar 13), never shorter than this.
     private const int MinPanelHeight = 640;
+    private const double VoidHeight = 200;
+    private const double MinVoidHeight = 96;
+    // A screen change: what leaves is drawn into the void, then what comes grows out of it.
+    private static readonly TimeSpan LeaveDuration = TimeSpan.FromMilliseconds(170);
+    private const float LeaveScale = 0.92f;
+    private static readonly TimeSpan ScreenFadeDuration = TimeSpan.FromMilliseconds(240);
+    private const float ScreenStartScale = 0.96f;
     // The flyout's border sits outside the measured content.
     private const int FrameAllowance = 4;
-    // The panel grows into the Disk or Windows screen (development plan, user flow step 3).
-    private const int ScreenWidth = 720;
-    private const int ScreenHeight = 640;
     private const int ScreenMargin = 12;
     private const int ParticleCount = 2000;
     private const double DefaultDpi = 96;
@@ -49,6 +59,10 @@ public sealed partial class PanelWindow : Window
     private const float CardStartTiltDegrees = 24f;
     // One frame lays the new screen out, the next one puts it on screen.
     private const int FramesBeforeUncloak = 2;
+    // Memory counters are read only while the panel is on screen (B-137).
+    private static readonly TimeSpan MemoryRefreshInterval = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan PagingWindow = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan MemorySnapshotFreshFor = MemoryRefreshInterval * 2;
 
     private readonly Localizer _localizer;
     private readonly MeasurementLog? _measurement;
@@ -56,7 +70,14 @@ public sealed partial class PanelWindow : Window
     private readonly bool _animationsEnabled;
     private readonly DiskScanCache _diskScans = new(TimeProvider.System);
     private readonly OverlappedPresenter _presenter = OverlappedPresenter.Create();
+    private readonly DispatcherQueueTimer _memoryTimer;
     private DiskOverview? _diskOverview;
+    private bool _readingMemory;
+    private MemorySnapshot? _memorySnapshot;
+    private DateTime _memorySnapshotAt;
+    private int _transition;
+    // Set on the UI thread, cleared on Win2D's drawing thread.
+    private volatile bool _markNextVoidFrame;
     // The Disk or Windows screen is open: an ordinary window, not the card panel.
     private bool _showingWorkScreen;
     private int _cardPanelHeight;
@@ -65,6 +86,8 @@ public sealed partial class PanelWindow : Window
     private DateTime _hiddenAt = DateTime.MinValue;
     private bool _isOpen;
     private bool _shuttingDown;
+    // A screen change is animating; further clicks wait for it.
+    private bool _switching;
 
     internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion)
     {
@@ -78,19 +101,18 @@ public sealed partial class PanelWindow : Window
         _presenter.IsMaximizable = false;
         AppWindow.SetPresenter(_presenter);
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, App.IconFile));
-        ColorTitleBar();
-        UseFlyoutFrame();
+        UseFrame();
         ApplyTexts();
         var recycleBin = new ShellRecycleBin(TimeProvider.System);
         var journal = new ActionJournal(ActionJournal.DefaultPath);
         var runner = new ActionRunner(journal, recycleBin, TimeProvider.System);
         DiskScreenView.Initialize(localizer, runner, recycleBin, _animationsEnabled);
-        DiskScreenView.BackRequested += (_, _) => ShowCards();
+        DiskScreenView.BackRequested += (_, _) => ReturnToCards();
         DiskScreenView.RescanRequested += (_, _) => RefreshDisk();
         DiskScreenView.JournalRequested += (_, _) => ShowJournal(DiskScreenView);
         WindowsScreenView.Initialize(
             localizer, runner, recycleBin, ElevatedLauncher.NextToThisApp(), WindowsLocations.ForThisMachine(), _animationsEnabled);
-        WindowsScreenView.BackRequested += (_, _) => ShowCards();
+        WindowsScreenView.BackRequested += (_, _) => ReturnToCards();
         WindowsScreenView.JournalRequested += (_, _) => ShowJournal(WindowsScreenView);
         JournalScreenView.Initialize(localizer, new JournalScreen(journal, runner));
         JournalScreenView.BackRequested += (_, _) => BackFromJournal();
@@ -100,6 +122,12 @@ public sealed partial class PanelWindow : Window
             _diskScans.Forget(paths);
             UpdateDiskCard(_diskScans.Latest!);
         };
+        MemoryScreenView.Initialize(localizer);
+        MemoryScreenView.BackRequested += (_, _) => ReturnToCards();
+        MemoryScreenView.RefreshRequested += async (_, _) => await LoadMemoryScreenAsync();
+        _memoryTimer = DispatcherQueue.CreateTimer();
+        _memoryTimer.Interval = MemoryRefreshInterval;
+        _memoryTimer.Tick += (_, _) => RefreshMemoryCounters();
 
         Activated += OnActivated;
         AppWindow.Closing += OnClosing;
@@ -112,6 +140,9 @@ public sealed partial class PanelWindow : Window
     internal nint Handle { get; }
 
     internal bool IsOpen => _isOpen;
+
+    /// <summary>The tray's foreground history; null when the panel runs without the tray.</summary>
+    internal Func<Task<ForegroundSnapshot?>> ForegroundSource { get; set; } = () => Task.FromResult<ForegroundSnapshot?>(null);
 
     internal void Toggle()
     {
@@ -129,7 +160,7 @@ public sealed partial class PanelWindow : Window
         Reveal();
     }
 
-    /// <summary>Opens the panel, or brings the Disk or Windows screen back when it is minimised or behind other windows.</summary>
+    /// <summary>Opens the panel, or brings an open screen back in front of other windows.</summary>
     internal void Reveal()
     {
         if (!_isOpen)
@@ -138,17 +169,13 @@ public sealed partial class PanelWindow : Window
             return;
         }
 
-        if (_presenter.State == OverlappedPresenterState.Minimized)
-        {
-            _presenter.Restore();
-        }
-
         Activate();
     }
 
     internal void Shutdown()
     {
         _shuttingDown = true;
+        _memoryTimer.Stop();
         // Stops Win2D's game-loop thread before the window goes away.
         VoidCanvas.RemoveFromVisualTree();
         DiskScreenView.Shutdown();
@@ -156,47 +183,19 @@ public sealed partial class PanelWindow : Window
         Close();
     }
 
-    // The card panel: no title bar, above everything, hides when it loses focus.
-    private void UseFlyoutFrame()
+    // One frame for the cards and every screen: no Windows title bar, and a taskbar button that
+    // stays while the window is open (B-139). Vacuo's own header hides it to the tray.
+    private void UseFrame()
     {
         _presenter.IsMinimizable = false;
         _presenter.IsAlwaysOnTop = true;
         _presenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: false);
-        AppWindow.IsShownInSwitchers = false;
-    }
-
-    // The Disk and Windows screens are work the user comes back to: an ordinary window that can be minimised,
-    // stays behind other windows and shows on the taskbar.
-    private void UseWindowFrame()
-    {
-        _presenter.IsMinimizable = true;
-        _presenter.IsAlwaysOnTop = false;
-        _presenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: true);
         AppWindow.IsShownInSwitchers = true;
     }
 
-    private void ColorTitleBar()
-    {
-        var resources = Application.Current.Resources;
-        var background = (Color)resources["VoidColor"];
-        var ink = (Color)resources["InkColor"];
-        var inkSecondary = (Color)resources["InkSecondaryColor"];
-        AppWindowTitleBar titleBar = AppWindow.TitleBar;
-        titleBar.BackgroundColor = background;
-        titleBar.InactiveBackgroundColor = background;
-        titleBar.ButtonBackgroundColor = background;
-        titleBar.ButtonInactiveBackgroundColor = background;
-        titleBar.ButtonHoverBackgroundColor = (Color)resources["SurfaceRaisedColor"];
-        titleBar.ForegroundColor = ink;
-        titleBar.ButtonForegroundColor = ink;
-        titleBar.ButtonHoverForegroundColor = ink;
-        titleBar.InactiveForegroundColor = inkSecondary;
-        titleBar.ButtonInactiveForegroundColor = inkSecondary;
-    }
-
-    // Hiding and showing again still flashed the last frame of the old screen. Cloaked, the
-    // window keeps rendering and stays active but is not on screen; it reappears only after
-    // the new screen has been drawn.
+    // Only for a taller Disk legend while the cards show: the window grows, and must not flash the
+    // old frame while doing so (sorunlar: winui-pencere-bicim-degisince-eski-ekran-gorunuyor).
+    // Cloaked, it keeps rendering and reappears once the new size has been drawn.
     private void Reshape(Action reshape)
     {
         if (!AppWindow.IsVisible)
@@ -239,7 +238,8 @@ public sealed partial class PanelWindow : Window
         WindowsBody.Text = _localizer.Get("WindowsCardBody");
         WindowsInspectButton.Content = _localizer.Get("WindowsInspectButton");
         MemoryTitle.Text = _localizer.Get("MemoryTitle");
-        MemoryBody.Text = _localizer.Get("MemoryPlaceholder");
+        MemoryBody.Text = _localizer.Get("MemoryReading");
+        MemoryInspectButton.Content = _localizer.Get("MemoryInspectButton");
         OrganizeTitle.Text = _localizer.Get("OrganizeTitle");
         OrganizeBody.Text = _localizer.Get("OrganizePlaceholder");
         QuitButton.Content = _localizer.Get("QuitButton");
@@ -260,10 +260,18 @@ public sealed partial class PanelWindow : Window
             ByteSizeFormatter.Format(drive.TotalSize, _localizer.Culture));
     }
 
+    // A screen hidden to the tray comes back as it was; otherwise the cards show. Hidden, the window
+    // can move and resize unseen, so it is placed above the tray again.
     private void Open()
     {
         _measurement?.MarkPanelRequested();
-        ShowCards();
+        if (!_showingWorkScreen)
+        {
+            ShowCardsNow();
+        }
+
+        // A screen's lists would measure taller than the cards; the window keeps the cards' height.
+        PlaceAboveTray(PanelWidth, _showingWorkScreen ? _cardPanelHeight : CardPanelHeight());
         AppWindow.Show();
         Activate();
         _isOpen = true;
@@ -274,6 +282,13 @@ public sealed partial class PanelWindow : Window
         else
         {
             ShowDiskResult(_diskScans.Latest!);
+        }
+
+        RefreshMemoryCounters();
+        _memoryTimer.Start();
+        if (_showingWorkScreen)
+        {
+            return;
         }
 
         VoidCanvas.Paused = !_animationsEnabled;
@@ -291,6 +306,7 @@ public sealed partial class PanelWindow : Window
     private void Hide()
     {
         VoidCanvas.Paused = true;
+        _memoryTimer.Stop();
         AppWindow.Hide();
         _isOpen = false;
         _hiddenAt = DateTime.UtcNow;
@@ -298,20 +314,46 @@ public sealed partial class PanelWindow : Window
         Hidden?.Invoke(this, EventArgs.Empty);
     }
 
-    private void ShowCards()
+    // Back from a screen: it is drawn into the void, then the cards tip in out of it, as when the panel opens.
+    private void ReturnToCards()
     {
-        Reshape(() =>
+        if (_switching)
         {
-            _showingWorkScreen = false;
-            DiskScreenView.Visibility = Visibility.Collapsed;
-            WindowsScreenView.Visibility = Visibility.Collapsed;
-            JournalScreenView.Visibility = Visibility.Collapsed;
-            VoidCanvas.Visibility = Visibility.Visible;
-            CardsScroller.Visibility = Visibility.Visible;
-            UseFlyoutFrame();
-            PlaceAboveTray(PanelWidth, CardPanelHeight());
-        });
+            return;
+        }
 
+        _transition++;
+        MarkTransition("back-click");
+        _markNextVoidFrame = _measurement is not null;
+        UIElement[] leaving = [DiskScreenView, WindowsScreenView, MemoryScreenView, JournalScreenView];
+        SwitchContent(
+            leaving.Where(screen => screen.Visibility == Visibility.Visible).ToArray(),
+            () =>
+            {
+                ShowCardsNow();
+                FitCardPanel();
+                if (_animationsEnabled)
+                {
+                    // The cards were collapsed; their size is needed for the tilt's pivot.
+                    Cards.UpdateLayout();
+                    AnimateCardsIn();
+                    EmergeFromVoid(VoidCanvas);
+                }
+            },
+            "cards-shown");
+    }
+
+    // The cards in place at once: on opening, and as the second half of a screen change.
+    private void ShowCardsNow()
+    {
+        _showingWorkScreen = false;
+        _presenter.IsAlwaysOnTop = true;
+        DiskScreenView.Visibility = Visibility.Collapsed;
+        WindowsScreenView.Visibility = Visibility.Collapsed;
+        MemoryScreenView.Visibility = Visibility.Collapsed;
+        JournalScreenView.Visibility = Visibility.Collapsed;
+        VoidCanvas.Visibility = Visibility.Visible;
+        CardsScroller.Visibility = Visibility.Visible;
         VoidCanvas.Paused = !_isOpen || !_animationsEnabled;
         if (_isOpen && !_animationsEnabled)
         {
@@ -319,20 +361,108 @@ public sealed partial class PanelWindow : Window
         }
     }
 
-    private void ShowWorkScreen(UserControl screen)
+    // The window stays as it is; the cards and the void are drawn in, then the screen grows out.
+    // A screen is ordinary work: it may go behind other windows and does not hide on losing focus.
+    private void ShowWorkScreen(UserControl screen, string? shownPhase = null)
     {
-        Reshape(() =>
+        if (_switching)
         {
-            _showingWorkScreen = true;
-            VoidCanvas.Paused = true;
-            VoidCanvas.Visibility = Visibility.Collapsed;
-            CardsScroller.Visibility = Visibility.Collapsed;
-            JournalScreenView.Visibility = Visibility.Collapsed;
-            DiskScreenView.Visibility = screen == DiskScreenView ? Visibility.Visible : Visibility.Collapsed;
-            WindowsScreenView.Visibility = screen == WindowsScreenView ? Visibility.Visible : Visibility.Collapsed;
-            UseWindowFrame();
-            PlaceAboveTray(ScreenWidth, ScreenHeight);
+            return;
+        }
+
+        SwitchContent(
+            [CardsScroller, VoidCanvas],
+            () =>
+            {
+                _showingWorkScreen = true;
+                _presenter.IsAlwaysOnTop = false;
+                VoidCanvas.Paused = true;
+                VoidCanvas.Visibility = Visibility.Collapsed;
+                CardsScroller.Visibility = Visibility.Collapsed;
+                JournalScreenView.Visibility = Visibility.Collapsed;
+                DiskScreenView.Visibility = screen == DiskScreenView ? Visibility.Visible : Visibility.Collapsed;
+                WindowsScreenView.Visibility = screen == WindowsScreenView ? Visibility.Visible : Visibility.Collapsed;
+                MemoryScreenView.Visibility = screen == MemoryScreenView ? Visibility.Visible : Visibility.Collapsed;
+                EmergeFromVoid(screen);
+            },
+            shownPhase);
+    }
+
+    // What leaves shrinks and fades into the dark; once it is gone, <paramref name="swap"/> puts
+    // the new content in. All on the composition thread; the window itself never changes.
+    private void SwitchContent(UIElement[] leaving, Action swap, string? shownPhase)
+    {
+        if (!_animationsEnabled || leaving.Length == 0)
+        {
+            swap();
+            MarkTransition(shownPhase);
+            return;
+        }
+
+        _switching = true;
+        Compositor compositor = ElementCompositionPreview.GetElementVisual(Root).Compositor;
+        var easing = compositor.CreateCubicBezierEasingFunction(new Vector2(0.4f, 0f), new Vector2(1f, 1f));
+        CompositionScopedBatch batch = compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+        batch.Completed += (_, _) => DispatcherQueue.TryEnqueue(() =>
+        {
+            // The left content is collapsed now; it is set back so it shows whole next time.
+            foreach (UIElement element in leaving)
+            {
+                Visual visual = ElementCompositionPreview.GetElementVisual(element);
+                visual.StopAnimation(nameof(Visual.Opacity));
+                visual.StopAnimation(nameof(Visual.Scale));
+                visual.Opacity = 1f;
+                visual.Scale = Vector3.One;
+            }
+
+            swap();
+            _switching = false;
+            MarkTransition(shownPhase);
         });
+        foreach (UIElement element in leaving)
+        {
+            Visual visual = ElementCompositionPreview.GetElementVisual(element);
+            visual.CenterPoint = new Vector3(element.ActualSize.X / 2, 0, 0);
+
+            var fade = compositor.CreateScalarKeyFrameAnimation();
+            fade.InsertKeyFrame(1f, 0f, easing);
+            fade.Duration = LeaveDuration;
+            visual.StartAnimation(nameof(Visual.Opacity), fade);
+
+            var shrink = compositor.CreateVector3KeyFrameAnimation();
+            shrink.InsertKeyFrame(1f, new Vector3(LeaveScale, LeaveScale, 1f), easing);
+            shrink.Duration = LeaveDuration;
+            visual.StartAnimation(nameof(Visual.Scale), shrink);
+        }
+
+        batch.End();
+    }
+
+    // The new content grows out of the dark instead of appearing at once.
+    private void EmergeFromVoid(UIElement element)
+    {
+        if (!_animationsEnabled)
+        {
+            return;
+        }
+
+        element.UpdateLayout();
+        Visual visual = ElementCompositionPreview.GetElementVisual(element);
+        Compositor compositor = visual.Compositor;
+        var easing = compositor.CreateCubicBezierEasingFunction(new Vector2(0.2f, 0.7f), new Vector2(0.2f, 1f));
+        visual.CenterPoint = new Vector3(element.ActualSize.X / 2, 0, 0);
+
+        var fade = compositor.CreateScalarKeyFrameAnimation();
+        fade.InsertKeyFrame(0f, 0f);
+        fade.InsertKeyFrame(1f, 1f, easing);
+        fade.Duration = ScreenFadeDuration;
+        visual.StartAnimation(nameof(Visual.Opacity), fade);
+
+        var grow = compositor.CreateVector3KeyFrameAnimation();
+        grow.InsertKeyFrame(0f, new Vector3(ScreenStartScale, ScreenStartScale, 1f));
+        grow.InsertKeyFrame(1f, Vector3.One, easing);
+        grow.Duration = ScreenFadeDuration;
+        visual.StartAnimation(nameof(Visual.Scale), grow);
     }
 
     private void ShowDiskScreen()
@@ -352,6 +482,80 @@ public sealed partial class PanelWindow : Window
     {
         ShowWorkScreen(WindowsScreenView);
         WindowsScreenView.Refresh();
+    }
+
+    // The screen is filled before it appears, so it never opens on "Reading…".
+    private async void ShowMemoryScreen()
+    {
+        _transition++;
+        MarkTransition("memory-click");
+        MemoryInspectButton.IsEnabled = false;
+        await LoadMemoryScreenAsync();
+        MemoryInspectButton.IsEnabled = true;
+        ShowWorkScreen(MemoryScreenView, "memory-shown");
+    }
+
+    // The app list and the tray's history are read off the UI thread; only reads. The card's own
+    // reading is reused while fresh: a new one waits a whole second for the paging rate.
+    private async Task LoadMemoryScreenAsync()
+    {
+        try
+        {
+            Task<IReadOnlyList<RunningApp>> apps = Task.Run(RunningApps.List);
+            MemorySnapshot snapshot = _memorySnapshot is { } recent && DateTime.UtcNow - _memorySnapshotAt < MemorySnapshotFreshFor
+                ? recent
+                : await Task.Run(() => MemoryCounters.Read(PagingWindow));
+            ForegroundSnapshot? foreground = await ForegroundSource();
+            ForegroundHistory? history = foreground is null ? null : ForegroundHistory.From(foreground);
+            var screen = MemoryScreen.From(snapshot, await apps, history, DateTimeOffset.UtcNow);
+            UpdateMemoryCard(screen.Snapshot);
+            MemoryScreenView.Show(screen);
+        }
+        catch (Exception exception)
+        {
+            MemoryScreenView.ShowMessage(_localizer.Format("MemoryReadFailedFormat", exception.Message));
+        }
+    }
+
+    // Only while the cards or the Memory screen are on screen; the Disk and Windows screens do not show memory.
+    private async void RefreshMemoryCounters()
+    {
+        bool memoryOnScreen = !_showingWorkScreen || MemoryScreenView.Visibility == Visibility.Visible;
+        if (_readingMemory || !_isOpen || !memoryOnScreen)
+        {
+            return;
+        }
+
+        _readingMemory = true;
+        try
+        {
+            MemorySnapshot snapshot = await Task.Run(() => MemoryCounters.Read(PagingWindow));
+            UpdateMemoryCard(snapshot);
+            if (MemoryScreenView.Visibility == Visibility.Visible)
+            {
+                MemoryScreenView.ShowSnapshot(snapshot);
+            }
+        }
+        catch (Exception exception)
+        {
+            MemoryPressureText.Text = string.Empty;
+            MemoryBody.Text = _localizer.Format("MemoryReadFailedFormat", exception.Message);
+        }
+        finally
+        {
+            _readingMemory = false;
+        }
+    }
+
+    private void UpdateMemoryCard(MemorySnapshot snapshot)
+    {
+        _memorySnapshot = snapshot;
+        _memorySnapshotAt = DateTime.UtcNow;
+        MemoryPressure pressure = MemoryPressureRule.Of(snapshot);
+        MemoryPressureText.Text = MemoryTexts.PressureName(_localizer, pressure);
+        MemoryPressureText.Foreground = MemoryTexts.PressureBrush(pressure);
+        MemoryBody.Text = MemoryTexts.Available(_localizer, snapshot);
+        FitCardPanel();
     }
 
     // The Journal opens in the same window as the screen that asked for it; its frame and size stay.
@@ -460,11 +664,33 @@ public sealed partial class PanelWindow : Window
     }
 
     // Measured, so a new card never ends up below the bottom edge.
+    // On a screen too short for every card, the void above them gives up height first (vacuo-kurallar 13).
     private int CardPanelHeight()
     {
-        Root.Measure(new Size(PanelWidth, double.PositiveInfinity));
-        _cardPanelHeight = Math.Max(MinPanelHeight, (int)Math.Ceiling(Root.DesiredSize.Height) + FrameAllowance);
+        VoidRow.Height = new GridLength(VoidHeight);
+        int needed = MeasuredPanelHeight();
+        int overflow = needed - AvailableLogicalHeight();
+        if (overflow > 0)
+        {
+            VoidRow.Height = new GridLength(VoidHeight - Math.Min(overflow, VoidHeight - MinVoidHeight));
+            needed = MeasuredPanelHeight();
+        }
+
+        _cardPanelHeight = Math.Max(MinPanelHeight, needed);
         return _cardPanelHeight;
+    }
+
+    private int MeasuredPanelHeight()
+    {
+        Root.Measure(new Size(PanelWidth, double.PositiveInfinity));
+        return (int)Math.Ceiling(Root.DesiredSize.Height) + FrameAllowance;
+    }
+
+    private int AvailableLogicalHeight()
+    {
+        var workArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+        double scale = GetDpiForWindow(Handle) / DefaultDpi;
+        return (int)(workArea.Height / scale) - 2 * ScreenMargin;
     }
 
     // A longer legend makes the Disk card taller; the open panel grows with it.
@@ -529,6 +755,12 @@ public sealed partial class PanelWindow : Window
     private void OnVoidDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
     {
         _voidField.Draw(args.DrawingSession, sender.Size.ToVector2());
+        if (_markNextVoidFrame)
+        {
+            _markNextVoidFrame = false;
+            MarkTransition("void-frame");
+        }
+
         _measurement?.RecordFrame(_voidField.Count);
     }
 
@@ -562,7 +794,31 @@ public sealed partial class PanelWindow : Window
 
     private void OnWindowsInspectClick(object sender, RoutedEventArgs e) => ShowWindowsScreen();
 
+    private void OnMemoryInspectClick(object sender, RoutedEventArgs e) => ShowMemoryScreen();
+
+    // Only with --measure: when each step of a screen change happened, numbered per change.
+    private void MarkTransition(string? phase)
+    {
+        if (phase is not null)
+        {
+            _measurement?.MarkPhase($"{_transition:00} {phase}");
+        }
+    }
+
     private void OnHideClick(object sender, RoutedEventArgs e) => Hide();
+
+    // Without a Windows title bar the header is the handle: Windows moves the window as if its caption was dragged.
+    // The cards stay where they open, above the tray.
+    private void OnHeaderPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_showingWorkScreen || !e.GetCurrentPoint(Header).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        ReleaseCapture();
+        SendMessage(Handle, WmNcLeftButtonDown, HtCaption, 0);
+    }
 
     private void OnQuitClick(object sender, RoutedEventArgs e)
     {

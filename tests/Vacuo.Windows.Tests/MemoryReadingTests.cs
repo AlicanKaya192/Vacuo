@@ -32,6 +32,13 @@ public class MemoryReadingTests
         TestContext.Current.TestOutputHelper!.WriteLine(
             $"pressure {MemoryPressureRule.Of(snapshot)}; commit {snapshot.CommittedBytes >> 20} / {snapshot.CommitLimitBytes >> 20} MB; " +
             $"available {snapshot.AvailablePhysicalBytes >> 20} / {snapshot.TotalPhysicalBytes >> 20} MB; page reads {snapshot.PageReadsPerSecond:0.0}/s");
+        for (int run = 0; run < 3; run++)
+        {
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            int count = RunningApps.List().Count;
+            TestContext.Current.TestOutputHelper!.WriteLine($"RunningApps.List: {count} apps in {clock.ElapsedMilliseconds} ms");
+        }
+
         foreach (RunningApp app in RunningApps.List().OrderByDescending(app => app.PrivateBytes).Take(15))
         {
             TestContext.Current.TestOutputHelper!.WriteLine(
