@@ -27,25 +27,31 @@ public sealed class DuplicateSelection
     /// <summary>False when the path is in no group, or picking it would leave its group without a copy.</summary>
     public bool TryPick(string path)
     {
+        if (!CanPick(path))
+        {
+            return false;
+        }
+
+        if (!IsPicked(path))
+        {
+            _picked.Add(path);
+        }
+
+        return true;
+    }
+
+    /// <summary>True when the copy is picked already, or picking it still leaves one in its group.</summary>
+    public bool CanPick(string path)
+    {
         if (!_groupOf.TryGetValue(path, out DuplicateGroup? group))
         {
             return false;
         }
 
-        if (_picked.Contains(path, StringComparer.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        int pickedInGroup = group.Files.Count(file => _picked.Contains(file.Path, StringComparer.OrdinalIgnoreCase));
-        if (pickedInGroup + 1 >= group.Files.Count)
-        {
-            return false;
-        }
-
-        _picked.Add(path);
-        return true;
+        return IsPicked(path) || group.Files.Count(file => IsPicked(file.Path)) + 1 < group.Files.Count;
     }
+
+    public bool IsPicked(string path) => _picked.Contains(path, StringComparer.OrdinalIgnoreCase);
 
     public void Unpick(string path) => _picked.RemoveAll(picked => picked.Equals(path, StringComparison.OrdinalIgnoreCase));
 }

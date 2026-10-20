@@ -25,6 +25,15 @@ public sealed record JournalRow(IReadOnlyList<JournalEntry> Entries)
         ? First.UndoneAt
         : Files.All(entry => entry.UndoneAt is not null) ? Files.Max(entry => entry.UndoneAt) : null;
 
+    /// <summary>Copies the duplicate files screen sent to the Recycle Bin together; Düzen runs only move files.</summary>
+    public bool IsDuplicatesRun => BatchId is not null && Entries.All(entry => entry.Undo is RecycledItem);
+
+    /// <summary>Every folder the row's items came from, in journal order.</summary>
+    public IReadOnlyList<string> Folders => Files
+        .Select(entry => Path.GetDirectoryName(entry.Undo.OriginalPath) ?? entry.Undo.OriginalPath)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToList();
+
     private IEnumerable<JournalEntry> Files => Entries.Where(entry => entry.Undo is not CreatedFolder);
 
     public static IReadOnlyList<JournalRow> From(IEnumerable<JournalEntry> entries) => entries

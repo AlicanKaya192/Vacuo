@@ -50,6 +50,19 @@ public class DuplicateSelectionTests
     }
 
     [Fact]
+    public void CanPick_TellsWhetherACopyMayBePicked()
+    {
+        var selection = new DuplicateSelection([Group]);
+        Assert.True(selection.CanPick(@"C:\b\x.pdf"));
+
+        selection.TryPick(@"C:\a\x.pdf");
+
+        Assert.True(selection.CanPick(@"C:\a\x.pdf"));
+        Assert.False(selection.CanPick(@"C:\b\x.pdf"));
+        Assert.False(selection.CanPick(@"C:\elsewhere.pdf"));
+    }
+
+    [Fact]
     public void APathOutsideTheGroups_CannotBePicked()
     {
         Assert.False(new DuplicateSelection([Group]).TryPick(@"C:\elsewhere.pdf"));

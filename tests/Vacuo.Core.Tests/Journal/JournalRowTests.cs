@@ -32,6 +32,27 @@ public class JournalRowTests
     }
 
     [Fact]
+    public void ARunOfRecycledCopies_IsADuplicatesRunAcrossItsFolders()
+    {
+        var copies = Guid.NewGuid();
+        JournalEntry Copy(string path) => new(Guid.NewGuid(), Later, 100, new RecycledItem(path, Later, @"C:\$Recycle.Bin\x"), null, copies);
+
+        IReadOnlyList<JournalRow> rows = JournalRow.From(
+            [Copy(@"C:\Users\test\Downloads\a.pdf"), Copy(@"C:\Users\test\Desktop\b.jpg"), Copy(@"C:\Users\test\Downloads\c.pdf"), Folder(), Moved("d.pdf")]);
+
+        JournalRow duplicates = Assert.Single(rows, row => row.BatchId == copies);
+        Assert.True(duplicates.IsDuplicatesRun);
+        Assert.Equal([@"C:\Users\test\Downloads", @"C:\Users\test\Desktop"], duplicates.Folders);
+        Assert.False(Assert.Single(rows, row => row.BatchId == Batch).IsDuplicatesRun);
+    }
+
+    [Fact]
+    public void ASingleRecycledEntry_IsNotADuplicatesRun()
+    {
+        Assert.False(Assert.Single(JournalRow.From([Recycled()])).IsDuplicatesRun);
+    }
+
+    [Fact]
     public void Batch_IsUndoneOnlyWhenEveryFileIsBack()
     {
         JournalRow partly = Assert.Single(JournalRow.From([Folder(), Moved("a.pdf", Later), Moved("b.pdf")]));

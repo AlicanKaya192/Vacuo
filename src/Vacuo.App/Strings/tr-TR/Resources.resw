@@ -804,4 +804,76 @@
   <data name="Category_SystemAndOther" xml:space="preserve">
     <value>Sistem ve diğer</value>
   </data>
+  <data name="DuplicatesCardBody" xml:space="preserve">
+    <value>Aynı içerikli dosyaları bulur, fazla kopyaları kaldırırsın.</value>
+  </data>
+  <data name="DuplicatesTitle" xml:space="preserve">
+    <value>Kopya dosyalar</value>
+  </data>
+  <data name="DuplicatesFoldersTitle" xml:space="preserve">
+    <value>Aranan klasörler</value>
+  </data>
+  <data name="DuplicatesAddFolderButton" xml:space="preserve">
+    <value>Klasör ekle</value>
+  </data>
+  <data name="DuplicatesRemoveFolderFormat" xml:space="preserve">
+    <value>{0} klasörünü aramadan çıkar</value>
+  </data>
+  <data name="DuplicatesFolderAlreadyIncluded" xml:space="preserve">
+    <value>Bu klasör zaten aranıyor.</value>
+  </data>
+  <data name="DuplicatesFolderSystem" xml:space="preserve">
+    <value>Sistem klasörleri aranmaz.</value>
+  </data>
+  <data name="DuplicatesDevDriveNote" xml:space="preserve">
+    <value>Dev Drive (ReFS) üzerindeki kopyalar diskte aynı alanı paylaşıyor olabilir; taşımak yer açmayabilir.</value>
+  </data>
+  <data name="DuplicatesHint" xml:space="preserve">
+    <value>İçeriği birebir aynı, 1 MB'tan büyük dosyalar. Kod projeleri, program klasörleri ve yalnızca çevrimiçi OneDrive dosyaları aranmaz.</value>
+  </data>
+  <data name="DuplicatesSearching" xml:space="preserve">
+    <value>Kopya dosyalar aranıyor…</value>
+  </data>
+  <data name="DuplicatesSearchFailedFormat" xml:space="preserve">
+    <value>Arama tamamlanamadı: {0}</value>
+  </data>
+  <data name="DuplicatesNothingFound" xml:space="preserve">
+    <value>İçeriği aynı olan dosya bulunmadı.</value>
+  </data>
+  <data name="DuplicatesSummaryFormat" xml:space="preserve">
+    <value>{0} grup · fazladan kopyalar {1} yer kaplıyor</value>
+  </data>
+  <data name="DuplicatesSkippedFormat" xml:space="preserve">
+    <value>Okunamayan klasör ya da dosya: {0}</value>
+  </data>
+  <data name="DuplicatesGroupFormat" xml:space="preserve">
+    <value>{0} · {1} · {2} kopya</value>
+  </data>
+  <data name="DuplicatesMoreFormat" xml:space="preserve">
+    <value>{0} grup daha göster</value>
+  </data>
+  <data name="DuplicatesSelectionEmpty" xml:space="preserve">
+    <value>Kaldırmak istediğin kopyaları seç; her dosyanın en az bir kopyası yerinde kalır.</value>
+  </data>
+  <data name="DuplicatesSelectionFormat" xml:space="preserve">
+    <value>{0} kopya seçildi · {1}</value>
+  </data>
+  <data name="DuplicatesPreviewTitle" xml:space="preserve">
+    <value>Bu kopyalar taşınacak</value>
+  </data>
+  <data name="DuplicatesPreviewFormat" xml:space="preserve">
+    <value>{0} kopya · {1}</value>
+  </data>
+  <data name="DuplicatesPreviewWarningFormat" xml:space="preserve">
+    <value>Dikkat: seçtiğin {0} kopyanın hepsi senin dosyan. Her birinin bir kopyası yerinde kalıyor, ama hangi klasördekine ihtiyacın olduğunu Vacuo bilemez; taşımadan önce yollarına bak.</value>
+  </data>
+  <data name="DuplicatesPreviewKeepNote" xml:space="preserve">
+    <value>Seçmediğin kopyalar yerinde kalır; her dosyadan en az biri durur.</value>
+  </data>
+  <data name="Failure_NoLongerDuplicate" xml:space="preserve">
+    <value>aramadan sonra değişti: artık aynı değil ya da yerinde kopyası kalmadı</value>
+  </data>
+  <data name="DuplicatesFindButton" xml:space="preserve">
+    <value>Kopyaları bul</value>
+  </data>
 </root>

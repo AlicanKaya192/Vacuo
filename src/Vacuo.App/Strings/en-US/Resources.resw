@@ -804,4 +804,76 @@
   <data name="Category_SystemAndOther" xml:space="preserve">
     <value>System and other</value>
   </data>
+  <data name="DuplicatesCardBody" xml:space="preserve">
+    <value>Finds files with the same content, so you can remove the extra copies.</value>
+  </data>
+  <data name="DuplicatesTitle" xml:space="preserve">
+    <value>Duplicate files</value>
+  </data>
+  <data name="DuplicatesFoldersTitle" xml:space="preserve">
+    <value>Folders searched</value>
+  </data>
+  <data name="DuplicatesAddFolderButton" xml:space="preserve">
+    <value>Add folder</value>
+  </data>
+  <data name="DuplicatesRemoveFolderFormat" xml:space="preserve">
+    <value>Stop searching {0}</value>
+  </data>
+  <data name="DuplicatesFolderAlreadyIncluded" xml:space="preserve">
+    <value>This folder is already searched.</value>
+  </data>
+  <data name="DuplicatesFolderSystem" xml:space="preserve">
+    <value>System folders are not searched.</value>
+  </data>
+  <data name="DuplicatesDevDriveNote" xml:space="preserve">
+    <value>Copies on a Dev Drive (ReFS) may share the same space on disk; moving them may not free any.</value>
+  </data>
+  <data name="DuplicatesHint" xml:space="preserve">
+    <value>Files over 1 MB with exactly the same content. Code projects, tool folders and online-only OneDrive files are not searched.</value>
+  </data>
+  <data name="DuplicatesSearching" xml:space="preserve">
+    <value>Looking for duplicate files…</value>
+  </data>
+  <data name="DuplicatesSearchFailedFormat" xml:space="preserve">
+    <value>The search could not finish: {0}</value>
+  </data>
+  <data name="DuplicatesNothingFound" xml:space="preserve">
+    <value>No files with the same content were found.</value>
+  </data>
+  <data name="DuplicatesSummaryFormat" xml:space="preserve">
+    <value>{0} groups · extra copies take up {1}</value>
+  </data>
+  <data name="DuplicatesSkippedFormat" xml:space="preserve">
+    <value>Folders or files that could not be read: {0}</value>
+  </data>
+  <data name="DuplicatesGroupFormat" xml:space="preserve">
+    <value>{0} · {1} · {2} copies</value>
+  </data>
+  <data name="DuplicatesMoreFormat" xml:space="preserve">
+    <value>Show {0} more groups</value>
+  </data>
+  <data name="DuplicatesSelectionEmpty" xml:space="preserve">
+    <value>Pick the copies you want to remove; at least one copy of every file stays.</value>
+  </data>
+  <data name="DuplicatesSelectionFormat" xml:space="preserve">
+    <value>{0} copies picked · {1}</value>
+  </data>
+  <data name="DuplicatesPreviewTitle" xml:space="preserve">
+    <value>These copies will be moved</value>
+  </data>
+  <data name="DuplicatesPreviewFormat" xml:space="preserve">
+    <value>{0} copies · {1}</value>
+  </data>
+  <data name="DuplicatesPreviewWarningFormat" xml:space="preserve">
+    <value>Note: all {0} copies you picked are your own files. One copy of each stays where it is, but Vacuo cannot know which folder you need it in; look at their paths before moving.</value>
+  </data>
+  <data name="DuplicatesPreviewKeepNote" xml:space="preserve">
+    <value>Copies you did not pick stay where they are; at least one of every file remains.</value>
+  </data>
+  <data name="Failure_NoLongerDuplicate" xml:space="preserve">
+    <value>changed since the search: no longer identical, or no copy of it is left</value>
+  </data>
+  <data name="DuplicatesFindButton" xml:space="preserve">
+    <value>Find copies</value>
+  </data>
 </root>

@@ -12,6 +12,7 @@ public enum MoveFailureReason
     NotRecyclable,
     Missing,
     Refused,
+    NoLongerDuplicate,
 }
 
 public sealed record MoveFailure(string Path, MoveFailureReason Reason);
@@ -30,9 +31,6 @@ public sealed record DiskBucket(Bucket Bucket, IReadOnlyList<ScanFinding> Items,
 /// </summary>
 public sealed class DiskScreen(ScanSummary summary)
 {
-    // Same code as UnauthorizedAccessException and the Shell's E_ACCESSDENIED.
-    private const int AccessDenied = unchecked((int)0x8007_0005);
-
     private readonly List<ScanFinding> _findings = [.. summary.Findings];
     private readonly HashSet<string> _selected = new(StringComparer.OrdinalIgnoreCase);
 
@@ -95,7 +93,7 @@ public sealed class DiskScreen(ScanSummary summary)
             }
             catch (ActionRefusedException refusal)
             {
-                failed.Add(new MoveFailure(finding.Path, ReasonFor(refusal)));
+                failed.Add(new MoveFailure(finding.Path, MoveFailures.ReasonFor(refusal)));
             }
         }
 
@@ -105,12 +103,4 @@ public sealed class DiskScreen(ScanSummary summary)
     private ScanFinding FindingAt(string path) =>
         _findings.FirstOrDefault(finding => string.Equals(finding.Path, path, StringComparison.OrdinalIgnoreCase))
         ?? throw new ArgumentException($"'{path}' is not on the Disk screen.", nameof(path));
-
-    private static MoveFailureReason ReasonFor(ActionRefusedException refusal) => refusal switch
-    {
-        FileInUseException => MoveFailureReason.InUse,
-        NotRecyclableException => MoveFailureReason.NotRecyclable,
-        { InnerException.HResult: AccessDenied } => MoveFailureReason.NoAccess,
-        _ => MoveFailureReason.Refused,
-    };
 }

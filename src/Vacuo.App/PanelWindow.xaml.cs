@@ -106,6 +106,7 @@ public sealed partial class PanelWindow : Window
     private OrganizeView? _organizeScreen;
     private SettingsView? _settingsScreen;
     private BatteryView? _batteryScreen;
+    private DuplicatesView? _duplicatesScreen;
     private JournalView? _journalScreen;
 
     internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion, IReadOnlySet<string> probes)
@@ -218,6 +219,7 @@ public sealed partial class PanelWindow : Window
         _windowsScreen?.Shutdown();
         _memoryScreen?.Shutdown();
         _organizeScreen?.Shutdown();
+        _duplicatesScreen?.Shutdown();
         Close();
     }
 
@@ -285,6 +287,9 @@ public sealed partial class PanelWindow : Window
         OrganizeInspectButton.Content = _localizer.Get("OrganizeInspectButton");
         BatteryTitle.Text = _localizer.Get("BatteryTitle");
         BatteryInspectButton.Content = _localizer.Get("BatteryInspectButton");
+        ToolsTitle.Text = _localizer.Get("DuplicatesTitle");
+        ToolsBody.Text = _localizer.Get("DuplicatesCardBody");
+        DuplicatesButton.Content = _localizer.Get("DuplicatesFindButton");
         QuitButton.Content = _localizer.Get("QuitButton");
         string settingsLabel = _localizer.Get("SettingsTitle");
         ToolTipService.SetToolTip(SettingsButton, settingsLabel);
@@ -626,6 +631,20 @@ public sealed partial class PanelWindow : Window
         return _batteryScreen = battery;
     }
 
+    private DuplicatesView EnsureDuplicatesScreen()
+    {
+        if (_duplicatesScreen is not null)
+        {
+            return _duplicatesScreen;
+        }
+
+        var duplicates = AddScreen(new DuplicatesView());
+        duplicates.Initialize(_localizer, _runner, _recycleBin, Handle, _animationsEnabled);
+        duplicates.BackRequested += (_, _) => ReturnToCards();
+        duplicates.JournalRequested += (_, _) => ShowJournal(duplicates);
+        return _duplicatesScreen = duplicates;
+    }
+
     private JournalView EnsureJournalScreen()
     {
         if (_journalScreen is not null)
@@ -653,7 +672,7 @@ public sealed partial class PanelWindow : Window
 
     // Screens not created yet are skipped.
     private UserControl[] LoadedScreens() =>
-        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _journalScreen }
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _duplicatesScreen, _journalScreen }
             .OfType<UserControl>().ToArray();
 
     private void ShowDiskScreen()
@@ -684,6 +703,13 @@ public sealed partial class PanelWindow : Window
         SettingsView settings = EnsureSettingsScreen();
         settings.Refresh();
         ShowWorkScreen(settings);
+    }
+
+    private void ShowDuplicatesScreen()
+    {
+        DuplicatesView duplicates = EnsureDuplicatesScreen();
+        ShowWorkScreen(duplicates);
+        duplicates.Refresh();
     }
 
     private void ShowOrganizeScreen()
@@ -889,6 +915,10 @@ public sealed partial class PanelWindow : Window
             organize.Refresh();
             RefreshOrganizeCard();
         }
+        else if (_journalOpenedFrom is DuplicatesView duplicates)
+        {
+            duplicates.Rescan();
+        }
         else
         {
             RefreshDisk();
@@ -1091,7 +1121,7 @@ public sealed partial class PanelWindow : Window
     {
         Compositor compositor = ElementCompositionPreview.GetElementVisual(Root).Compositor;
         var easing = compositor.CreateCubicBezierEasingFunction(new Vector2(0.2f, 0.7f), new Vector2(0.2f, 1f));
-        UIElement[] cards = [DiskCard, WindowsCard, MemoryCard, OrganizeCard, BatteryCard];
+        UIElement[] cards = [DiskCard, WindowsCard, MemoryCard, OrganizeCard, BatteryCard, ToolsCard];
 
         for (int i = 0; i < cards.Length; i++)
         {
@@ -1165,6 +1195,8 @@ public sealed partial class PanelWindow : Window
     private void OnSettingsClick(object sender, RoutedEventArgs e) => ShowSettingsScreen();
 
     private void OnBatteryInspectClick(object sender, RoutedEventArgs e) => ShowBatteryScreen();
+
+    private void OnDuplicatesClick(object sender, RoutedEventArgs e) => ShowDuplicatesScreen();
 
     // Only with --measure: when each step of a screen change happened, numbered per change.
     // Measurement only: each event gets its own number, so repeats are all kept.

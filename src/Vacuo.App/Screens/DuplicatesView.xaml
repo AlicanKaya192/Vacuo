@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Vacuo.App.Screens.DuplicatesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    xmlns:local="using:Vacuo.App.Screens">
+
+    <Grid RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button x:Name="BackButton" Click="OnBackClick" />
+            <TextBlock x:Name="ScreenTitle"
+                       Grid.Column="1"
+                       VerticalAlignment="Center"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource InkBrush}" />
+            <Button x:Name="JournalButton" Grid.Column="2" Click="OnJournalClick" />
+            <Button x:Name="RescanButton" Grid.Column="3" Click="OnRescanClick" />
+        </Grid>
+
+        <!-- Where to look: the default folders and the ones the user adds; every change searches again. -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="8">
+                <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="FoldersTitle" VerticalAlignment="Center" Style="{StaticResource CardTitleStyle}" />
+                    <Button x:Name="AddFolderButton" Grid.Column="1" Click="OnAddFolderClick" />
+                </Grid>
+                <StackPanel x:Name="FolderList" Spacing="2" />
+                <TextBlock x:Name="FolderNote" Style="{StaticResource CardBodyStyle}" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel x:Name="ResultPanel"
+                    Grid.Row="2"
+                    Spacing="4"
+                    Visibility="Collapsed">
+            <TextBlock x:Name="MovedCounter"
+                       HorizontalAlignment="Center"
+                       FontSize="26"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Foreground="{StaticResource AccentBrush}" />
+            <TextBlock x:Name="MovedNote"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Style="{StaticResource CardBodyStyle}" />
+            <StackPanel x:Name="FailureList" Spacing="2" Margin="0,6,0,0" />
+        </StackPanel>
+
+        <ScrollViewer x:Name="ListScroller" Grid.Row="3" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="GroupList" Spacing="14" Padding="0,0,12,0" />
+        </ScrollViewer>
+
+        <Grid Grid.Row="4"
+              ColumnSpacing="12"
+              BorderBrush="{StaticResource LineBrush}"
+              BorderThickness="0,1,0,0"
+              Padding="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="SelectionSummary"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Foreground="{StaticResource InkSecondaryBrush}" />
+            <Button x:Name="MoveButton"
+                    Grid.Column="1"
+                    IsEnabled="False"
+                    Style="{StaticResource VoidPrimaryButtonStyle}"
+                    Click="OnMoveClick" />
+        </Grid>
+
+        <local:ConfirmCard x:Name="Confirm" Grid.RowSpan="5" />
+
+        <canvas:CanvasAnimatedControl x:Name="BurstCanvas"
+                                      Grid.RowSpan="5"
+                                      ClearColor="#00000000"
+                                      IsHitTestVisible="False"
+                                      Paused="True"
+                                      IsFixedTimeStep="False"
+                                      Visibility="Collapsed"
+                                      Update="OnBurstUpdate"
+                                      Draw="OnBurstDraw" />
+    </Grid>
+</UserControl>

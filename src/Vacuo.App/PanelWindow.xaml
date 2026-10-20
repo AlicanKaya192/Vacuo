@@ -64,8 +64,9 @@
                       Grid.Row="2"
                       VerticalScrollBarVisibility="Auto"
                       SizeChanged="OnCardsSizeChanged">
-        <!-- Two columns (B-137): Disk and Windows on the left, Memory, Organize and Battery on the right. -->
-        <Grid x:Name="Cards" ColumnSpacing="8" SizeChanged="OnCardsSizeChanged">
+        <!-- Two columns (B-137): Disk and Windows on the left, Memory, Organize and Battery on the right;
+             the tools card spans both below them. -->
+        <Grid x:Name="Cards" ColumnSpacing="8" RowSpacing="8" SizeChanged="OnCardsSizeChanged">
             <Grid.Transform3D>
                 <PerspectiveTransform3D Depth="700" />
             </Grid.Transform3D>
@@ -73,6 +74,10 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <!-- Both columns end level: the stretching row takes up the shorter column's spare height. -->
             <Grid RowSpacing="8">
                 <Grid.RowDefinitions>
@@ -194,6 +199,24 @@
                     </StackPanel>
                 </Border>
             </Grid>
+            <!-- Tools without a card of their own (Aşama 3d): duplicate files now, Kaldır next. Full width and
+                 low, so neither column grows and no card stretches into a gap (vacuo-kurallar 13). -->
+            <Border x:Name="ToolsCard" Grid.Row="1" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4" VerticalAlignment="Center">
+                        <TextBlock x:Name="ToolsTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="ToolsBody" Style="{StaticResource CardBodyStyle}" />
+                    </StackPanel>
+                    <Button x:Name="DuplicatesButton"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Click="OnDuplicatesClick" />
+                </Grid>
+            </Border>
         </Grid>
         </ScrollViewer>
 
