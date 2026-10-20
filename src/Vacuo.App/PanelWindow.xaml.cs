@@ -15,6 +15,7 @@ using Vacuo.App.Visuals;
 using Vacuo.Core.Actions;
 using Vacuo.Core.Disk;
 using Vacuo.Core.Journal;
+using Vacuo.Core.Battery;
 using Vacuo.Core.Formatting;
 using Vacuo.Core.Organize;
 using Vacuo.Core.Ram;
@@ -52,6 +53,7 @@ public sealed partial class PanelWindow : Window
     private const float ScreenStartScale = 0.96f;
     // The flyout's border sits outside the measured content.
     private const int FrameAllowance = 4;
+    private const int MaxMeasureShortfall = 48;
     private const int ScreenMargin = 12;
     private const int ParticleCount = 2000;
     private const double DefaultDpi = 96;
@@ -85,6 +87,7 @@ public sealed partial class PanelWindow : Window
     // The Disk or Windows screen is open: an ordinary window, not the card panel.
     private bool _showingWorkScreen;
     private int _cardPanelHeight;
+    private int _measureShortfall;
     private UserControl _journalOpenedFrom = null!;
     private bool _restoredSinceJournalOpened;
     private DateTime _hiddenAt = DateTime.MinValue;
@@ -101,6 +104,7 @@ public sealed partial class PanelWindow : Window
     private MemoryView? _memoryScreen;
     private OrganizeView? _organizeScreen;
     private SettingsView? _settingsScreen;
+    private BatteryView? _batteryScreen;
     private JournalView? _journalScreen;
 
     internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion, IReadOnlySet<string> probes)
@@ -268,7 +272,9 @@ public sealed partial class PanelWindow : Window
         DiskFreeLabel.Text = _localizer.Get("DiskFreeLabel");
         DiskInspectButton.Content = _localizer.Get("DiskInspectButton");
         WindowsTitle.Text = _localizer.Get("WindowsCardTitle");
-        WindowsBody.Text = _localizer.Get("WindowsCardBody");
+        WindowsItemTemp.Text = _localizer.Get("WindowsCardItemTemp");
+        WindowsItemUpdates.Text = _localizer.Get("WindowsCardItemUpdates");
+        WindowsItemComponents.Text = _localizer.Get("WindowsCardItemComponents");
         WindowsInspectButton.Content = _localizer.Get("WindowsInspectButton");
         MemoryTitle.Text = _localizer.Get("MemoryTitle");
         MemoryBody.Text = _localizer.Get("MemoryReading");
@@ -276,6 +282,8 @@ public sealed partial class PanelWindow : Window
         OrganizeTitle.Text = _localizer.Get("OrganizeTitle");
         OrganizeBody.Text = _localizer.Get("OrganizeCardReading");
         OrganizeInspectButton.Content = _localizer.Get("OrganizeInspectButton");
+        BatteryTitle.Text = _localizer.Get("BatteryTitle");
+        BatteryInspectButton.Content = _localizer.Get("BatteryInspectButton");
         QuitButton.Content = _localizer.Get("QuitButton");
         string settingsLabel = _localizer.Get("SettingsTitle");
         ToolTipService.SetToolTip(SettingsButton, settingsLabel);
@@ -325,6 +333,7 @@ public sealed partial class PanelWindow : Window
         RefreshMemoryCounters();
         _memoryTimer.Start();
         RefreshOrganizeCard();
+        _ = LoadBatteryAsync();
         if (_showingWorkScreen)
         {
             return;
@@ -598,6 +607,20 @@ public sealed partial class PanelWindow : Window
         return _settingsScreen = settings;
     }
 
+    private BatteryView EnsureBatteryScreen()
+    {
+        if (_batteryScreen is not null)
+        {
+            return _batteryScreen;
+        }
+
+        var battery = AddScreen(new BatteryView());
+        battery.Initialize(_localizer);
+        battery.BackRequested += (_, _) => ReturnToCards();
+        battery.RefreshRequested += async (_, _) => await LoadBatteryAsync();
+        return _batteryScreen = battery;
+    }
+
     private JournalView EnsureJournalScreen()
     {
         if (_journalScreen is not null)
@@ -625,7 +648,7 @@ public sealed partial class PanelWindow : Window
 
     // Screens not created yet are skipped.
     private UserControl[] LoadedScreens() =>
-        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _journalScreen }
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _journalScreen }
             .OfType<UserControl>().ToArray();
 
     private void ShowDiskScreen()
@@ -679,6 +702,48 @@ public sealed partial class PanelWindow : Window
         }
 
         FitCardPanel();
+    }
+
+    // Like Memory: the screen is filled before it appears.
+    private async void ShowBatteryScreen()
+    {
+        BatteryInspectButton.IsEnabled = false;
+        BatteryView battery = EnsureBatteryScreen();
+        await LoadBatteryAsync();
+        BatteryInspectButton.IsEnabled = true;
+        ShowWorkScreen(battery);
+    }
+
+    // The drivers answer at once, but off the UI thread all the same; only reads. Without a battery
+    // the card stays hidden, and the panel is measured again whenever the card comes or goes.
+    private async Task LoadBatteryAsync()
+    {
+        bool wasShown = BatteryCard.Visibility == Visibility.Visible;
+        try
+        {
+            BatterySummary? summary = BatterySummary.From(await Task.Run(BatteryReader.Read));
+            BatteryCard.Visibility = summary is null ? Visibility.Collapsed : Visibility.Visible;
+            if (summary is not null)
+            {
+                BatteryHealthText.Text = BatteryTexts.Health(_localizer, summary.Health);
+                BatteryHealthText.Foreground = BatteryTexts.BandBrush(summary.Health.Band);
+                BatteryBody.Text = BatteryTexts.CardLine(_localizer, summary);
+                _batteryScreen?.Show(summary);
+            }
+        }
+        catch (Exception exception)
+        {
+            string message = _localizer.Format("BatteryReadFailedFormat", exception.Message);
+            BatteryCard.Visibility = Visibility.Visible;
+            BatteryHealthText.Text = string.Empty;
+            BatteryBody.Text = message;
+            _batteryScreen?.ShowMessage(message);
+        }
+
+        if (wasShown != (BatteryCard.Visibility == Visibility.Visible))
+        {
+            FitCardPanel();
+        }
     }
 
     // The screen is filled before it appears, so it never opens on "Reading…".
@@ -918,7 +983,24 @@ public sealed partial class PanelWindow : Window
     private int MeasuredPanelHeight()
     {
         Root.Measure(new Size(_panelWidth, double.PositiveInfinity));
-        return (int)Math.Ceiling(Root.DesiredSize.Height) + FrameAllowance;
+        return (int)Math.Ceiling(Root.DesiredSize.Height) + FrameAllowance + _measureShortfall;
+    }
+
+    // The measurement fell a little short of the real window (the cards scrolled by a few pixels
+    // with room left on the screen, B-177). What still scrolls once laid out is learned and added,
+    // so the cards fit without a scroll bar (vacuo-kurallar 13). On a screen that is simply too
+    // short the panel is already as tall as it may be, and nothing is learned.
+    private void OnCardsSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        int shortBy = (int)Math.Ceiling(CardsScroller.ScrollableHeight);
+        if (!_isOpen || _showingWorkScreen || shortBy <= 0 || _measureShortfall >= MaxMeasureShortfall
+            || _cardPanelHeight >= AvailableLogicalHeight())
+        {
+            return;
+        }
+
+        _measureShortfall = Math.Min(MaxMeasureShortfall, _measureShortfall + shortBy);
+        FitCardPanel();
     }
 
     private int AvailableLogicalHeight()
@@ -963,7 +1045,7 @@ public sealed partial class PanelWindow : Window
     {
         Compositor compositor = ElementCompositionPreview.GetElementVisual(Root).Compositor;
         var easing = compositor.CreateCubicBezierEasingFunction(new Vector2(0.2f, 0.7f), new Vector2(0.2f, 1f));
-        UIElement[] cards = [DiskCard, WindowsCard, MemoryCard, OrganizeCard];
+        UIElement[] cards = [DiskCard, WindowsCard, MemoryCard, OrganizeCard, BatteryCard];
 
         for (int i = 0; i < cards.Length; i++)
         {
@@ -1035,6 +1117,8 @@ public sealed partial class PanelWindow : Window
     private void OnOrganizeInspectClick(object sender, RoutedEventArgs e) => ShowOrganizeScreen();
 
     private void OnSettingsClick(object sender, RoutedEventArgs e) => ShowSettingsScreen();
+
+    private void OnBatteryInspectClick(object sender, RoutedEventArgs e) => ShowBatteryScreen();
 
     // Only with --measure: when each step of a screen change happened, numbered per change.
     // Measurement only: each event gets its own number, so repeats are all kept.

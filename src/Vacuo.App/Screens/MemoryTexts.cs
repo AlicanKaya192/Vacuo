@@ -52,7 +52,7 @@ internal static class MemoryTexts
             : localizer.Get("MemoryNeverInFront");
     }
 
-    private static string Duration(Localizer localizer, TimeSpan span) => span switch
+    public static string Duration(Localizer localizer, TimeSpan span) => span switch
     {
         { TotalDays: >= 1 } => localizer.Format("DurationDaysFormat", (int)span.TotalDays, span.Hours),
         { TotalHours: >= 1 } => localizer.Format("DurationHoursFormat", (int)span.TotalHours, span.Minutes),

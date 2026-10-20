@@ -246,9 +246,6 @@
   <data name="WindowsCardTitle" xml:space="preserve">
     <value>Windows</value>
   </data>
-  <data name="WindowsCardBody" xml:space="preserve">
-    <value>Geçici dosyalar, güncelleme artıkları ve bileşen temizliği.</value>
-  </data>
   <data name="WindowsInspectButton" xml:space="preserve">
     <value>Windows kalıntılarını incele</value>
   </data>
@@ -650,5 +647,125 @@
   </data>
   <data name="SettingsStartupFailed" xml:space="preserve">
     <value>Değiştirilemedi: Windows izin vermedi.</value>
+  </data>
+  <data name="BatteryTitle" xml:space="preserve">
+    <value>Pil</value>
+  </data>
+  <data name="BatteryInspectButton" xml:space="preserve">
+    <value>Pili incele</value>
+  </data>
+  <data name="BatteryRefreshButton" xml:space="preserve">
+    <value>Yenile</value>
+  </data>
+  <data name="BatteryReadFailedFormat" xml:space="preserve">
+    <value>Pil okunamadı: {0}</value>
+  </data>
+  <data name="BatteryHealthFormat" xml:space="preserve">
+    <value>%{0:0} · {1}</value>
+  </data>
+  <data name="BatteryPercentFormat" xml:space="preserve">
+    <value>%{0:0}</value>
+  </data>
+  <data name="BatteryEnergyFormat" xml:space="preserve">
+    <value>{0:0.0} Wh</value>
+  </data>
+  <data name="BatteryRelativeFormat" xml:space="preserve">
+    <value>{0} (sürücünün birimi)</value>
+  </data>
+  <data name="BatteryPowerFormat" xml:space="preserve">
+    <value>{0:0.0} W</value>
+  </data>
+  <data name="BatteryCardChargeFormat" xml:space="preserve">
+    <value>Şarj %{0:0} · {1}</value>
+  </data>
+  <data name="BatteryTimeLeftFormat" xml:space="preserve">
+    <value>yaklaşık {0} kaldı</value>
+  </data>
+  <data name="BatteryTimeToFullFormat" xml:space="preserve">
+    <value>dolmasına yaklaşık {0}</value>
+  </data>
+  <data name="BatteryBand_Good" xml:space="preserve">
+    <value>İyi</value>
+  </data>
+  <data name="BatteryBand_Fair" xml:space="preserve">
+    <value>Orta</value>
+  </data>
+  <data name="BatteryBand_Weak" xml:space="preserve">
+    <value>Zayıf</value>
+  </data>
+  <data name="BatteryBand_Unknown" xml:space="preserve">
+    <value>Sağlık bilinmiyor</value>
+  </data>
+  <data name="BatteryBandHint_Good" xml:space="preserve">
+    <value>Pil, tasarlandığı kapasitenin büyük kısmını hâlâ tutuyor.</value>
+  </data>
+  <data name="BatteryBandHint_Fair" xml:space="preserve">
+    <value>Pil yıpranmış: tam şarj, yeniyken olduğundan belirgin biçimde kısa sürer.</value>
+  </data>
+  <data name="BatteryBandHint_Weak" xml:space="preserve">
+    <value>Pil çok yıpranmış: değiştirmeyi düşünmeye değer.</value>
+  </data>
+  <data name="BatteryBandHint_Unknown" xml:space="preserve">
+    <value>Pil tasarım kapasitesini bildirmiyor; sağlığı hesaplanamıyor.</value>
+  </data>
+  <data name="BatteryCappedNote" xml:space="preserve">
+    <value>Tam şarj kapasitesi tasarımdan biraz yüksek ölçülüyor; yeni pillerde olağandır, %100 gösterilir.</value>
+  </data>
+  <data name="BatteryState_Discharging" xml:space="preserve">
+    <value>pilde</value>
+  </data>
+  <data name="BatteryState_Charging" xml:space="preserve">
+    <value>şarj oluyor</value>
+  </data>
+  <data name="BatteryState_PluggedIn" xml:space="preserve">
+    <value>prizde</value>
+  </data>
+  <data name="BatteryState_Unknown" xml:space="preserve">
+    <value>durum bilinmiyor</value>
+  </data>
+  <data name="BatteryDesign" xml:space="preserve">
+    <value>Tasarım kapasitesi</value>
+  </data>
+  <data name="BatteryFullCharge" xml:space="preserve">
+    <value>Tam şarj kapasitesi</value>
+  </data>
+  <data name="BatteryWear" xml:space="preserve">
+    <value>Yıpranma</value>
+  </data>
+  <data name="BatteryCharge" xml:space="preserve">
+    <value>Şarj</value>
+  </data>
+  <data name="BatteryCycles" xml:space="preserve">
+    <value>Döngü sayısı</value>
+  </data>
+  <data name="BatteryCyclesNotReported" xml:space="preserve">
+    <value>Pil bildirmiyor</value>
+  </data>
+  <data name="BatteryPower" xml:space="preserve">
+    <value>Anlık güç</value>
+  </data>
+  <data name="BatteryStateLabel" xml:space="preserve">
+    <value>Durum</value>
+  </data>
+  <data name="BatteryEstimate" xml:space="preserve">
+    <value>Tahmin (şu anki güçle)</value>
+  </data>
+  <data name="BatteryNotKnown" xml:space="preserve">
+    <value>Bilinmiyor</value>
+  </data>
+  <data name="BatteryAboutTitle" xml:space="preserve">
+    <value>Ne yapabilirsin</value>
+  </data>
+  <data name="BatteryAbout" xml:space="preserve">
+    <value>Pil sağlığı kullandıkça yavaşça düşer; bu olağandır. Bilgisayarının üreticisinin uygulamasında şarj sınırı (ör. %80) varsa açmak pilin ömrünü uzatabilir. Vacuo hiçbir güç ya da pil ayarını değiştirmez; burada yalnızca okur.</value>
+  </data>
+  <data name="WindowsCardItemTemp" xml:space="preserve">
+    <value>Geçici dosyalar</value>
+  </data>
+  <data name="WindowsCardItemUpdates" xml:space="preserve">
+    <value>Güncelleme artıkları</value>
+  </data>
+  <data name="WindowsCardItemComponents" xml:space="preserve">
+    <value>Bileşen temizliği</value>
   </data>
 </root>

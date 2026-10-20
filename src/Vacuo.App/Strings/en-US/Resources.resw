@@ -246,9 +246,6 @@
   <data name="WindowsCardTitle" xml:space="preserve">
     <value>Windows</value>
   </data>
-  <data name="WindowsCardBody" xml:space="preserve">
-    <value>Temp files, update leftovers and component cleanup.</value>
-  </data>
   <data name="WindowsInspectButton" xml:space="preserve">
     <value>Inspect Windows leftovers</value>
   </data>
@@ -650,5 +647,125 @@
   </data>
   <data name="SettingsStartupFailed" xml:space="preserve">
     <value>Could not change it: Windows did not allow it.</value>
+  </data>
+  <data name="BatteryTitle" xml:space="preserve">
+    <value>Battery</value>
+  </data>
+  <data name="BatteryInspectButton" xml:space="preserve">
+    <value>Inspect the battery</value>
+  </data>
+  <data name="BatteryRefreshButton" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="BatteryReadFailedFormat" xml:space="preserve">
+    <value>The battery could not be read: {0}</value>
+  </data>
+  <data name="BatteryHealthFormat" xml:space="preserve">
+    <value>{0:0}% · {1}</value>
+  </data>
+  <data name="BatteryPercentFormat" xml:space="preserve">
+    <value>{0:0}%</value>
+  </data>
+  <data name="BatteryEnergyFormat" xml:space="preserve">
+    <value>{0:0.0} Wh</value>
+  </data>
+  <data name="BatteryRelativeFormat" xml:space="preserve">
+    <value>{0} (the driver's units)</value>
+  </data>
+  <data name="BatteryPowerFormat" xml:space="preserve">
+    <value>{0:0.0} W</value>
+  </data>
+  <data name="BatteryCardChargeFormat" xml:space="preserve">
+    <value>Charge {0:0}% · {1}</value>
+  </data>
+  <data name="BatteryTimeLeftFormat" xml:space="preserve">
+    <value>about {0} left</value>
+  </data>
+  <data name="BatteryTimeToFullFormat" xml:space="preserve">
+    <value>full in about {0}</value>
+  </data>
+  <data name="BatteryBand_Good" xml:space="preserve">
+    <value>Good</value>
+  </data>
+  <data name="BatteryBand_Fair" xml:space="preserve">
+    <value>Fair</value>
+  </data>
+  <data name="BatteryBand_Weak" xml:space="preserve">
+    <value>Weak</value>
+  </data>
+  <data name="BatteryBand_Unknown" xml:space="preserve">
+    <value>Health unknown</value>
+  </data>
+  <data name="BatteryBandHint_Good" xml:space="preserve">
+    <value>The battery still holds most of what it was designed to.</value>
+  </data>
+  <data name="BatteryBandHint_Fair" xml:space="preserve">
+    <value>The battery has worn: a full charge lasts noticeably less than when it was new.</value>
+  </data>
+  <data name="BatteryBandHint_Weak" xml:space="preserve">
+    <value>The battery is heavily worn: replacing it may be worth considering.</value>
+  </data>
+  <data name="BatteryBandHint_Unknown" xml:space="preserve">
+    <value>The battery does not report its design capacity, so its health cannot be worked out.</value>
+  </data>
+  <data name="BatteryCappedNote" xml:space="preserve">
+    <value>The full charge measures slightly above the design; usual for a new battery, shown as 100%.</value>
+  </data>
+  <data name="BatteryState_Discharging" xml:space="preserve">
+    <value>on battery</value>
+  </data>
+  <data name="BatteryState_Charging" xml:space="preserve">
+    <value>charging</value>
+  </data>
+  <data name="BatteryState_PluggedIn" xml:space="preserve">
+    <value>plugged in</value>
+  </data>
+  <data name="BatteryState_Unknown" xml:space="preserve">
+    <value>state unknown</value>
+  </data>
+  <data name="BatteryDesign" xml:space="preserve">
+    <value>Design capacity</value>
+  </data>
+  <data name="BatteryFullCharge" xml:space="preserve">
+    <value>Full charge capacity</value>
+  </data>
+  <data name="BatteryWear" xml:space="preserve">
+    <value>Wear</value>
+  </data>
+  <data name="BatteryCharge" xml:space="preserve">
+    <value>Charge</value>
+  </data>
+  <data name="BatteryCycles" xml:space="preserve">
+    <value>Cycle count</value>
+  </data>
+  <data name="BatteryCyclesNotReported" xml:space="preserve">
+    <value>Not reported by the battery</value>
+  </data>
+  <data name="BatteryPower" xml:space="preserve">
+    <value>Power now</value>
+  </data>
+  <data name="BatteryStateLabel" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="BatteryEstimate" xml:space="preserve">
+    <value>Estimate (at the present power)</value>
+  </data>
+  <data name="BatteryNotKnown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="BatteryAboutTitle" xml:space="preserve">
+    <value>What you can do</value>
+  </data>
+  <data name="BatteryAbout" xml:space="preserve">
+    <value>Battery health drops slowly with use; that is normal. If your computer maker's app has a charge limit (e.g. 80%), turning it on can make the battery last longer. Vacuo never changes a power or battery setting; it only reads here.</value>
+  </data>
+  <data name="WindowsCardItemTemp" xml:space="preserve">
+    <value>Temp files</value>
+  </data>
+  <data name="WindowsCardItemUpdates" xml:space="preserve">
+    <value>Update leftovers</value>
+  </data>
+  <data name="WindowsCardItemComponents" xml:space="preserve">
+    <value>Component cleanup</value>
   </data>
 </root>
