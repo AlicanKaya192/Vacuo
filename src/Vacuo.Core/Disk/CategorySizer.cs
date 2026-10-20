@@ -9,9 +9,6 @@ namespace Vacuo.Core.Disk;
 /// </summary>
 public static class CategorySizer
 {
-    // FILE_ATTRIBUTE_RECALL_ON_OPEN and FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS have no .NET names.
-    private const FileAttributes NotOnThisDisk = FileAttributes.Offline | (FileAttributes)0x40000 | (FileAttributes)0x400000;
-
     public static IReadOnlyList<CategorySize> Measure(IReadOnlyList<CategoryRoot> roots)
     {
         var rootPaths = new HashSet<string>(roots.Select(root => Normalize(root.Path)), StringComparer.OrdinalIgnoreCase);
@@ -41,7 +38,7 @@ public static class CategorySizer
             {
                 if (entry is FileInfo file)
                 {
-                    bytes += (file.Attributes & NotOnThisDisk) == 0 ? file.Length : 0;
+                    bytes += FileSystemWalk.IsOnThisDisk(file) ? file.Length : 0;
                 }
                 else if (!rootPaths.Contains(Normalize(entry.FullName)))
                 {
