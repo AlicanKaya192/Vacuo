@@ -6,6 +6,7 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>Vacuo.App</RootNamespace>
     <AssemblyName>Vacuo</AssemblyName>
+    <Version>0.4.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\vacuo.ico</ApplicationIcon>
     <Platforms>x64</Platforms>

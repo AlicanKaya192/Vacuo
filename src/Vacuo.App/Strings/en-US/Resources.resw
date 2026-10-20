@@ -627,9 +627,6 @@
   <data name="SettingsLanguageHint" xml:space="preserve">
     <value>Automatic: Turkish on a Turkish Windows, English on any other.</value>
   </data>
-  <data name="SettingsLanguageNextOpen" xml:space="preserve">
-    <value>The new language shows the next time the panel opens.</value>
-  </data>
   <data name="Language_Automatic" xml:space="preserve">
     <value>Automatic</value>
   </data>
@@ -983,5 +980,84 @@
   </data>
   <data name="JournalFoldersFormat" xml:space="preserve">
     <value>{0} folders</value>
+  </data>
+  <data name="SettingsInfoTitle" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="Info_About_Title" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="Info_About_Body" xml:space="preserve">
+    <value>Vacuo is a maintenance tool for Windows that looks after your disk, memory and cluttered folders from one panel. Its name is Latin for "in the void".
+
+Vacuo measures honestly: it shows caches with what it costs to rebuild them, and never fakes a "RAM clean-up". It does nothing without your approval, and everything it moves can be put back from the Journal.</value>
+  </data>
+  <data name="Info_Privacy_Title" xml:space="preserve">
+    <value>Privacy</value>
+  </data>
+  <data name="Info_Privacy_Body" xml:space="preserve">
+    <value># In short
+Vacuo asks for no account, and has no telemetry, analytics or ads. Your information stays on this computer.
+
+# Internet
+Vacuo makes no network connection at the moment. When the update check arrives, it will only read the list of releases on GitHub, send nothing, and be possible to turn off in Settings; this text will be updated then.
+
+# Kept on this computer
+In the %LOCALAPPDATA%\Vacuo folder: your settings (language and update choice), the Journal (path, size and time of each item moved) and the results of administrator clean-ups on the Windows screen (size and number of files deleted). If "Start with Windows" is on, only Vacuo's own startup entry is written.
+
+# Kept in memory only
+The results of the disk scan, the duplicate search and the list of installed programs, and, for the Memory screen, when each program was last in front. None of this is written to disk; it is gone when Vacuo closes.
+
+# What is read
+Vacuo reads the names, sizes and dates of files; to compare contents in the duplicate search it computes a digest (SHA-256). It only reads the installed programs from the registry. It reads battery information from the driver; the battery's name and serial number are never asked for.</value>
+  </data>
+  <data name="Info_License_Title" xml:space="preserve">
+    <value>License and open source</value>
+  </data>
+  <data name="Info_License_Body" xml:space="preserve">
+    <value># Vacuo
+Vacuo is distributed under the MIT License. © 2026 Alican Kaya.
+
+Anyone may use, copy, modify, merge, publish, distribute and sell the software free of charge, as long as the copyright line and the permission notice are kept in every copy. The software is provided "as is", without warranty of any kind.
+
+# Components used
+.NET: MIT License, © .NET Foundation and contributors.
+
+Windows App SDK 2.5.1 (WinUI 3): Microsoft Software License Terms, © Microsoft Corporation.
+
+Win2D 1.4.0: Microsoft license terms, © Microsoft Corporation.
+
+The components' license texts come with their own packages.</value>
+  </data>
+  <data name="Info_Terms_Title" xml:space="preserve">
+    <value>Terms of use</value>
+  </data>
+  <data name="Info_Terms_Body" xml:space="preserve">
+    <value># No warranty
+Vacuo is provided "as is", with no warranty that it works, suits a purpose or is free of errors. The developer cannot be held liable for what comes of using it.
+
+# Vacuo does nothing on its own
+Moving files, tidying folders, closing or uninstalling programs only happen when you choose and confirm them.
+
+# What can be undone
+Everything moved goes to the Recycle Bin and can be put back from the Journal. Vacuo never empties the Recycle Bin; once it is emptied, those items cannot be brought back.
+
+# What cannot be undone
+Clean-ups done with administrator permission on the Windows screen are permanent. An uninstalled program only comes back by installing it again; the program's own uninstaller does the removal.
+
+# Backups
+Keeping backups of your important files is up to you.</value>
+  </data>
+  <data name="InfoAboutVersionFormat" xml:space="preserve">
+    <value>Version {0}</value>
+  </data>
+  <data name="InfoAboutDeveloper" xml:space="preserve">
+    <value>Made by Alican Kaya</value>
+  </data>
+  <data name="InfoAboutCopyright" xml:space="preserve">
+    <value>© 2026 Alican Kaya · MIT License</value>
+  </data>
+  <data name="InfoAboutGitHubButton" xml:space="preserve">
+    <value>Open on GitHub</value>
   </data>
 </root>

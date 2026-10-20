@@ -25,9 +25,9 @@
                        Foreground="{StaticResource InkBrush}" />
         </Grid>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer x:Name="SettingsPage" Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="8" Padding="0,0,12,12">
-                <!-- Language: Automatic follows Windows (Turkish, else English). -->
+                <!-- Language: Automatic follows Windows (Turkish, else English); a change shows at once. -->
                 <Border Style="{StaticResource CardStyle}">
                     <Grid ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
@@ -37,10 +37,6 @@
                         <StackPanel Spacing="2" VerticalAlignment="Center">
                             <TextBlock x:Name="LanguageTitle" Style="{StaticResource CardTitleStyle}" />
                             <TextBlock x:Name="LanguageHint" Style="{StaticResource CardBodyStyle}" />
-                            <TextBlock x:Name="LanguageNote"
-                                       Style="{StaticResource CardBodyStyle}"
-                                       Foreground="{StaticResource AccentBrush}"
-                                       Visibility="Collapsed" />
                         </StackPanel>
                         <local:VoidPicker x:Name="LanguagePicker" Grid.Column="1" VerticalAlignment="Center" />
                     </Grid>
@@ -68,7 +64,23 @@
                                   Click="OnStartupClick" />
                     </Grid>
                 </Border>
+
+                <!-- About, privacy, licenses and terms: each row opens its text in the reading page below. -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="6">
+                        <TextBlock x:Name="InfoTitle" Style="{StaticResource CardTitleStyle}" />
+                        <StackPanel x:Name="InfoRows" Spacing="4" />
+                    </StackPanel>
+                </Border>
             </StackPanel>
+        </ScrollViewer>
+
+        <!-- The text of one info page, in place of the settings until Back. -->
+        <ScrollViewer x:Name="ReadingPage"
+                      Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      Visibility="Collapsed">
+            <StackPanel x:Name="ReadingText" Spacing="10" Padding="0,0,12,12" MaxWidth="720" HorizontalAlignment="Left" />
         </ScrollViewer>
     </Grid>
 </UserControl>

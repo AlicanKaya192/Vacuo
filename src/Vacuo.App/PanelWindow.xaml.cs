@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Microsoft.Graphics.Canvas.UI.Xaml;
@@ -69,7 +70,7 @@ public sealed partial class PanelWindow : Window
     private static readonly TimeSpan PagingWindow = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan MemorySnapshotFreshFor = MemoryRefreshInterval * 2;
 
-    private readonly Localizer _localizer;
+    private Localizer _localizer;
     private readonly MeasurementLog? _measurement;
     private readonly VoidField _voidField = new(ParticleCount);
     private readonly bool _animationsEnabled;
@@ -216,13 +217,64 @@ public sealed partial class PanelWindow : Window
         _memoryTimer.Stop();
         // Stops Win2D's game-loop thread before the window goes away.
         VoidCanvas.RemoveFromVisualTree();
+        ShutdownScreens();
+        Close();
+    }
+
+    // Win2D's game-loop threads and running searches stop before a screen goes away.
+    private void ShutdownScreens()
+    {
         _diskScreen?.Shutdown();
         _windowsScreen?.Shutdown();
         _memoryScreen?.Shutdown();
         _organizeScreen?.Shutdown();
         _duplicatesScreen?.Shutdown();
         _uninstallScreen?.Shutdown();
-        Close();
+    }
+
+    // A new language shows at once (Alican, 20 October 2026), not from the next opening: the cards take
+    // the new texts, and every screen made so far is dropped, to be made again in the new language when
+    // it next opens. The Settings screen, where the language was chosen, is made again in its place.
+    private void ChangeLanguage(LanguageChoice choice)
+    {
+        _localizer = new Localizer(LanguageRule.Resolve(choice, CultureInfo.CurrentUICulture.Name));
+        ShutdownScreens();
+        foreach (UserControl screen in LoadedScreens())
+        {
+            Root.Children.Remove(screen);
+        }
+
+        _diskScreen = null;
+        _windowsScreen = null;
+        _memoryScreen = null;
+        _organizeScreen = null;
+        _settingsScreen = null;
+        _batteryScreen = null;
+        _duplicatesScreen = null;
+        _uninstallScreen = null;
+        _journalScreen = null;
+
+        ApplyTexts();
+        if (_diskScans.Latest is { } latest)
+        {
+            UpdateDiskCard(latest);
+        }
+
+        if (_memorySnapshot is { } snapshot)
+        {
+            UpdateMemoryCard(snapshot);
+        }
+
+        RefreshOrganizeCard();
+        if (BatteryCard.Visibility == Visibility.Visible)
+        {
+            _ = LoadBatteryAsync();
+        }
+
+        SettingsView settings = EnsureSettingsScreen();
+        settings.Refresh();
+        settings.Visibility = Visibility.Visible;
+        EmergeFromVoid(settings);
     }
 
     // One frame for the cards and every screen: no Windows title bar, and a taskbar button that
@@ -617,6 +669,8 @@ public sealed partial class PanelWindow : Window
             new SettingsStore(SettingsStore.DefaultPath),
             trayProgram is null ? null : new StartupRegistration(new StartupRunKey(), trayProgram));
         settings.BackRequested += (_, _) => ReturnToCards();
+        // Not inside the picker's own event: the screen that raised it is replaced.
+        settings.LanguageChanged += (_, choice) => DispatcherQueue.TryEnqueue(() => ChangeLanguage(choice));
         return _settingsScreen = settings;
     }
 

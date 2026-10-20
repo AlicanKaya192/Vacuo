@@ -627,9 +627,6 @@
   <data name="SettingsLanguageHint" xml:space="preserve">
     <value>Otomatik: Windows Türkçe ise Türkçe, başka her dilde İngilizce.</value>
   </data>
-  <data name="SettingsLanguageNextOpen" xml:space="preserve">
-    <value>Yeni dil, panel bir sonraki açılışında görünür.</value>
-  </data>
   <data name="Language_Automatic" xml:space="preserve">
     <value>Otomatik</value>
   </data>
@@ -983,5 +980,84 @@
   </data>
   <data name="JournalFoldersFormat" xml:space="preserve">
     <value>{0} klasör</value>
+  </data>
+  <data name="SettingsInfoTitle" xml:space="preserve">
+    <value>Bilgi</value>
+  </data>
+  <data name="Info_About_Title" xml:space="preserve">
+    <value>Hakkında</value>
+  </data>
+  <data name="Info_About_Body" xml:space="preserve">
+    <value>Vacuo, Windows için diski, belleği ve dağınık klasörleri tek bir panelden yöneten bir bakım aracıdır. Adı Latince "boşlukta" demektir.
+
+Vacuo dürüst ölçer: önbellekleri yeniden kurma bedeliyle gösterir, bellekte sahte "RAM temizleme" yapmaz. Hiçbir şeyi senin onayın olmadan yapmaz; taşınan her şey Günlük'ten geri alınabilir.</value>
+  </data>
+  <data name="Info_Privacy_Title" xml:space="preserve">
+    <value>Gizlilik</value>
+  </data>
+  <data name="Info_Privacy_Body" xml:space="preserve">
+    <value># Kısaca
+Vacuo hesap istemez; telemetri, analiz ya da reklam yoktur. Bilgilerin bu bilgisayardan çıkmaz.
+
+# İnternet
+Vacuo şu an hiçbir ağ bağlantısı kurmaz. Güncelleme denetimi eklendiğinde yalnızca GitHub'daki sürüm listesini okuyacak, hiçbir veri göndermeyecek ve Ayarlar'dan kapatılabilecek; bu metin de o zaman güncellenecek.
+
+# Bu bilgisayarda tutulanlar
+%LOCALAPPDATA%\Vacuo klasöründe: ayarların (dil ve güncelleme seçimi), Günlük (taşınan öğelerin yolu, boyutu ve zamanı) ve Windows sekmesindeki yönetici işlemlerinin sonuçları (silinen boyut ve dosya sayısı). "Bilgisayar açılınca başlat" açıksa yalnızca Vacuo'nun kendi başlangıç kaydı yazılır.
+
+# Yalnızca bellekte kalanlar
+Disk taramasının, kopya aramasının ve kurulu programlar listesinin sonuçları; Bellek ekranı için hangi programın en son ne zaman öne geldiği. Bunlar diske yazılmaz, Vacuo kapanınca silinir.
+
+# Okunanlar
+Vacuo dosyaların adını, boyutunu ve tarihini okur; kopya aramada içerikleri karşılaştırmak için özet (SHA-256) hesaplar. Kurulu programları kayıt defterinden yalnızca okur. Pil bilgisini sürücüden okur; pilin adı ve seri numarası sorulmaz.</value>
+  </data>
+  <data name="Info_License_Title" xml:space="preserve">
+    <value>Lisans ve açık kaynak</value>
+  </data>
+  <data name="Info_License_Body" xml:space="preserve">
+    <value># Vacuo
+Vacuo MIT lisansıyla dağıtılır. © 2026 Alican Kaya.
+
+Yazılımı herkes ücretsiz kullanabilir, kopyalayabilir, değiştirebilir, birleştirebilir, yayımlayabilir, dağıtabilir ve satabilir; tek koşul telif satırının ve izin metninin her kopyada korunmasıdır. Yazılım "olduğu gibi", hiçbir garanti olmadan sunulur.
+
+# Kullanılan bileşenler
+.NET: MIT lisansı, © .NET Foundation ve katkıda bulunanlar.
+
+Windows App SDK 2.5.1 (WinUI 3): Microsoft Yazılım Lisans Koşulları, © Microsoft Corporation.
+
+Win2D 1.4.0: Microsoft lisans koşulları, © Microsoft Corporation.
+
+Bileşenlerin lisans metinleri kendi paketleriyle birlikte gelir.</value>
+  </data>
+  <data name="Info_Terms_Title" xml:space="preserve">
+    <value>Kullanım koşulları</value>
+  </data>
+  <data name="Info_Terms_Body" xml:space="preserve">
+    <value># Garanti yok
+Vacuo "olduğu gibi" sunulur; çalışacağına, bir işe uygun olacağına ya da hatasız olacağına dair hiçbir garanti verilmez. Kullanımından doğan sonuçlardan geliştirici sorumlu tutulamaz.
+
+# Vacuo kendi başına hiçbir şey yapmaz
+Dosya taşıma, klasör düzenleme, program kapatma ya da kaldırma yalnızca senin seçiminle ve onayınla yapılır.
+
+# Geri alınabilenler
+Taşınan her şey Geri Dönüşüm Kutusu'na gider ve Günlük'ten geri alınabilir. Vacuo Geri Dönüşüm Kutusu'nu boşaltmaz; kutu boşaltılınca o öğeler geri getirilemez.
+
+# Geri alınamayanlar
+Windows sekmesinde yönetici izniyle yapılan temizlik kalıcıdır. Kaldırılan bir program ancak yeniden kurularak geri gelir; kaldırmayı programın kendi kaldırıcısı yapar.
+
+# Yedek
+Önemli dosyalarının yedeğini almak senin sorumluluğundadır.</value>
+  </data>
+  <data name="InfoAboutVersionFormat" xml:space="preserve">
+    <value>Sürüm {0}</value>
+  </data>
+  <data name="InfoAboutDeveloper" xml:space="preserve">
+    <value>Geliştiren: Alican Kaya</value>
+  </data>
+  <data name="InfoAboutCopyright" xml:space="preserve">
+    <value>© 2026 Alican Kaya · MIT lisansı</value>
+  </data>
+  <data name="InfoAboutGitHubButton" xml:space="preserve">
+    <value>GitHub'da aç</value>
   </data>
 </root>
