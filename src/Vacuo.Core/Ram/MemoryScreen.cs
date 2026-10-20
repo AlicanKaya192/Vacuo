@@ -16,6 +16,9 @@ public sealed record MemoryScreen(
 
     public bool HistoryKnown => WatchingSince is not null;
 
+    /// <summary>Idle and in-use apps may be picked to close; system and protected ones never (B-153).</summary>
+    public static bool CanClose(AppUse use) => use.Group != AppGroup.Protected;
+
     private static readonly AppGroup[] Order = [AppGroup.Idle, AppGroup.InUse, AppGroup.Protected];
 
     public static MemoryScreen From(MemorySnapshot snapshot, IEnumerable<RunningApp> apps, ForegroundHistory? history, DateTimeOffset now)

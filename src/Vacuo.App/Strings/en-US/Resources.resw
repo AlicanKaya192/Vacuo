@@ -441,4 +441,46 @@
   <data name="DurationDaysFormat" xml:space="preserve">
     <value>{0} d {1} h</value>
   </data>
+  <data name="MemoryCloseButton" xml:space="preserve">
+    <value>Close selected</value>
+  </data>
+  <data name="MemoryCloseButtonFormat" xml:space="preserve">
+    <value>Close selected ({0})</value>
+  </data>
+  <data name="MemoryConfirmTitle" xml:space="preserve">
+    <value>Close the selected apps?</value>
+  </data>
+  <data name="MemoryConfirmSummaryFormat" xml:space="preserve">
+    <value>{0} apps will be asked to close · {1}</value>
+  </data>
+  <data name="MemoryConfirmNote" xml:space="preserve">
+    <value>An app with unsaved work asks you first; Vacuo never forces an app to close. The real difference is measured 30 s later.</value>
+  </data>
+  <data name="MemoryConfirmClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="MemoryClosingFormat" xml:space="preserve">
+    <value>{0} apps were asked to close; measuring in 30 s…</value>
+  </data>
+  <data name="MemoryClosedFormat" xml:space="preserve">
+    <value>Closed: {0}</value>
+  </data>
+  <data name="MemoryDifferenceFormat" xml:space="preserve">
+    <value>Measured difference · available RAM {0} · committed memory {1}</value>
+  </data>
+  <data name="MemoryCloseFailedFormat" xml:space="preserve">
+    <value>Closing could not finish: {0}</value>
+  </data>
+  <data name="MemorySearchPlaceholder" xml:space="preserve">
+    <value>Search apps</value>
+  </data>
+  <data name="MemoryNoMatchFormat" xml:space="preserve">
+    <value>No app matches “{0}”</value>
+  </data>
+  <data name="MemoryStillRunningHeader" xml:space="preserve">
+    <value>Still running; it may be waiting on a save question:</value>
+  </data>
+  <data name="MemorySwitchToButton" xml:space="preserve">
+    <value>Switch to app</value>
+  </data>
 </root>

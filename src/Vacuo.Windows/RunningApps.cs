@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using Vacuo.Core.Ram;
 
 namespace Vacuo.Windows;
@@ -24,7 +23,7 @@ public static class RunningApps
     {
         using Process self = Process.GetCurrentProcess();
         int session = self.SessionId;
-        HashSet<int> withWindow = ProcessesWithVisibleWindow();
+        HashSet<int> withWindow = TopLevelWindows.Switchable().Select(window => window.ProcessId).ToHashSet();
         Process[] processes = Process.GetProcesses();
         try
         {
@@ -59,41 +58,6 @@ public static class RunningApps
         }
     }
 
-    // Visible, titled top-level windows without an owner: the ones a user can switch to and close.
-    private static HashSet<int> ProcessesWithVisibleWindow()
-    {
-        var ids = new HashSet<int>();
-        EnumWindows((window, parameter) =>
-        {
-            if (IsWindowVisible(window) && GetWindow(window, GwOwner) == 0 && GetWindowTextLength(window) > 0)
-            {
-                _ = GetWindowThreadProcessId(window, out uint processId);
-                ids.Add((int)processId);
-            }
-
-            return true;
-        }, 0);
-        return ids;
-    }
-
-    private const uint GwOwner = 4;
-
-    private delegate bool EnumWindowsProc(nint window, nint parameter);
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool EnumWindows(EnumWindowsProc callback, nint parameter);
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool IsWindowVisible(nint window);
-
-    [DllImport("user32.dll")]
-    private static extern nint GetWindow(nint window, uint command);
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    private static extern int GetWindowTextLength(nint window);
-
-    [DllImport("user32.dll")]
-    private static extern uint GetWindowThreadProcessId(nint window, out uint processId);
+    /// <summary>Parts of Windows and Vacuo itself: listed, never asked to close.</summary>
+    public static bool IsProtectedName(string name) => ProtectedNames.Contains(name);
 }

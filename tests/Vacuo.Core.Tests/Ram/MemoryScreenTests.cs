@@ -94,6 +94,15 @@ public class MemoryScreenTests
         Assert.False(all.Single(use => use.App.Name == "blender").SeenInFront);
     }
 
+    [Theory]
+    [InlineData(AppGroup.Idle, true)]
+    [InlineData(AppGroup.InUse, true)]
+    [InlineData(AppGroup.Protected, false)]
+    public void OnlyProtectedApps_CannotBeClosed(AppGroup group, bool closable)
+    {
+        Assert.Equal(closable, MemoryScreen.CanClose(new AppUse(App("x", 300), group, null, false)));
+    }
+
     [Fact]
     public void Pressure_ComesFromTheSnapshot()
     {

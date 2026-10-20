@@ -203,6 +203,7 @@ public sealed partial class PanelWindow : Window
         VoidCanvas.RemoveFromVisualTree();
         _diskScreen?.Shutdown();
         _windowsScreen?.Shutdown();
+        _memoryScreen?.Shutdown();
         Close();
     }
 
@@ -534,7 +535,7 @@ public sealed partial class PanelWindow : Window
         }
 
         var memory = AddScreen(new MemoryView());
-        memory.Initialize(_localizer);
+        memory.Initialize(_localizer, _animationsEnabled);
         memory.BackRequested += (_, _) => ReturnToCards();
         memory.RefreshRequested += async (_, _) => await LoadMemoryScreenAsync();
         return _memoryScreen = memory;

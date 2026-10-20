@@ -441,4 +441,46 @@
   <data name="DurationDaysFormat" xml:space="preserve">
     <value>{0} gün {1} sa</value>
   </data>
+  <data name="MemoryCloseButton" xml:space="preserve">
+    <value>Seçilenleri kapat</value>
+  </data>
+  <data name="MemoryCloseButtonFormat" xml:space="preserve">
+    <value>Seçilenleri kapat ({0})</value>
+  </data>
+  <data name="MemoryConfirmTitle" xml:space="preserve">
+    <value>Seçilen uygulamalar kapatılsın mı?</value>
+  </data>
+  <data name="MemoryConfirmSummaryFormat" xml:space="preserve">
+    <value>{0} uygulamaya kapanma isteği gönderilecek · {1}</value>
+  </data>
+  <data name="MemoryConfirmNote" xml:space="preserve">
+    <value>Kaydedilmemiş işin varsa uygulama sana sorar; Vacuo hiçbir uygulamayı zorla kapatmaz. 30 sn sonra gerçek fark ölçülür.</value>
+  </data>
+  <data name="MemoryConfirmClose" xml:space="preserve">
+    <value>Kapat</value>
+  </data>
+  <data name="MemoryClosingFormat" xml:space="preserve">
+    <value>{0} uygulamaya kapanma isteği gönderildi; 30 sn sonra ölçülecek…</value>
+  </data>
+  <data name="MemoryClosedFormat" xml:space="preserve">
+    <value>Kapandı: {0}</value>
+  </data>
+  <data name="MemoryDifferenceFormat" xml:space="preserve">
+    <value>Ölçülen fark · kullanılabilir RAM {0} · ayrılan bellek {1}</value>
+  </data>
+  <data name="MemoryCloseFailedFormat" xml:space="preserve">
+    <value>Kapatma tamamlanamadı: {0}</value>
+  </data>
+  <data name="MemorySearchPlaceholder" xml:space="preserve">
+    <value>Uygulama ara</value>
+  </data>
+  <data name="MemoryNoMatchFormat" xml:space="preserve">
+    <value>“{0}” ile eşleşen uygulama yok</value>
+  </data>
+  <data name="MemoryStillRunningHeader" xml:space="preserve">
+    <value>Kapanmadı; kaydetme sorusunu bekliyor olabilir:</value>
+  </data>
+  <data name="MemorySwitchToButton" xml:space="preserve">
+    <value>Uygulamaya geç</value>
+  </data>
 </root>

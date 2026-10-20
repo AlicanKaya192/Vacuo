@@ -30,6 +30,10 @@ internal static class MemoryTexts
         DiskTexts.Size(localizer, snapshot.CommittedBytes),
         DiskTexts.Size(localizer, snapshot.CommitLimitBytes));
 
+    /// <summary>"+1,2 GB" or "−0,9 GB": a measured change, whichever way it went.</summary>
+    public static string SignedSize(Localizer localizer, long bytes) =>
+        (bytes < 0 ? "−" : "+") + DiskTexts.Size(localizer, Math.Abs(bytes));
+
     /// <summary>"Last in front: 2 h 5 min ago", or why that is not known.</summary>
     public static string Usage(Localizer localizer, AppUse use, bool historyKnown)
     {
