@@ -30,9 +30,6 @@
   <data name="OrganizeTitle" xml:space="preserve">
     <value>Düzen</value>
   </data>
-  <data name="OrganizePlaceholder" xml:space="preserve">
-    <value>Klasör kuralları v0.2'de gelecek.</value>
-  </data>
   <data name="QuitButton" xml:space="preserve">
     <value>Vacuo'dan çık</value>
   </data>
@@ -485,5 +482,140 @@
   </data>
   <data name="UndoFailure_FolderNotEmpty" xml:space="preserve">
     <value>klasöre başka bir şey kondu; dokunulmadı</value>
+  </data>
+  <data name="OrganizeCardReading" xml:space="preserve">
+    <value>Bakılıyor…</value>
+  </data>
+  <data name="OrganizeCardFormat" xml:space="preserve">
+    <value>Masaüstü'nde {0} dosya düzenlenebilir</value>
+  </data>
+  <data name="OrganizeCardTidy" xml:space="preserve">
+    <value>Masaüstü düzenli</value>
+  </data>
+  <data name="OrganizeCardFailedFormat" xml:space="preserve">
+    <value>Masaüstü okunamadı: {0}</value>
+  </data>
+  <data name="OrganizeInspectButton" xml:space="preserve">
+    <value>Klasörleri düzenle</value>
+  </data>
+  <data name="OrganizeFolderDesktop" xml:space="preserve">
+    <value>Masaüstü</value>
+  </data>
+  <data name="OrganizeFolderDownloads" xml:space="preserve">
+    <value>İndirilenler</value>
+  </data>
+  <data name="OrganizeFolderPick" xml:space="preserve">
+    <value>Klasör seç…</value>
+  </data>
+  <data name="OrganizeRule_ByType" xml:space="preserve">
+    <value>Türe göre</value>
+  </data>
+  <data name="OrganizeRule_ByDate" xml:space="preserve">
+    <value>Aya göre</value>
+  </data>
+  <data name="OrganizeRule_BySource" xml:space="preserve">
+    <value>Kaynağa göre</value>
+  </data>
+  <data name="OrganizeRule_ByTopic" xml:space="preserve">
+    <value>Konuya göre</value>
+  </data>
+  <data name="OrganizeHint" xml:space="preserve">
+    <value>Yalnızca en üstteki dosyalar taşınır; alt klasörlere, gizli dosyalara ve kısayollara dokunulmaz. Yeri belli olmayan dosya yerinde kalır.</value>
+  </data>
+  <data name="OrganizeRunButton" xml:space="preserve">
+    <value>Düzenle</value>
+  </data>
+  <data name="OrganizeRunButtonFormat" xml:space="preserve">
+    <value>Düzenle ({0})</value>
+  </data>
+  <data name="OrganizeGroupFormat" xml:space="preserve">
+    <value>{0} · {1} dosya</value>
+  </data>
+  <data name="OrganizeNewFolder" xml:space="preserve">
+    <value>yeni klasör</value>
+  </data>
+  <data name="OrganizeMoreFormat" xml:space="preserve">
+    <value>ve {0} dosya daha</value>
+  </data>
+  <data name="OrganizeNothing" xml:space="preserve">
+    <value>Bu kurala göre taşınacak dosya yok; hepsi yerinde kalır.</value>
+  </data>
+  <data name="OrganizeConfirmTitle" xml:space="preserve">
+    <value>Dosyalar taşınsın mı?</value>
+  </data>
+  <data name="OrganizeConfirmSummaryFormat" xml:space="preserve">
+    <value>{0} dosya, {1} klasöre</value>
+  </data>
+  <data name="OrganizeConfirmNote" xml:space="preserve">
+    <value>Her şey aynı klasörün içinde kalır; hiçbir şey silinmez, hiçbir dosyanın üzerine yazılmaz. Günlük'ten tek tıkla geri alınır.</value>
+  </data>
+  <data name="OrganizeMovingFormat" xml:space="preserve">
+    <value>{0} dosya taşınıyor…</value>
+  </data>
+  <data name="OrganizeDoneFormat" xml:space="preserve">
+    <value>{0} dosya düzenlendi</value>
+  </data>
+  <data name="OrganizeUndone" xml:space="preserve">
+    <value>Hepsi eski yerine döndü</value>
+  </data>
+  <data name="OrganizeUndoFailedFormat" xml:space="preserve">
+    <value>{0} öğe geri alınamadı: {1}</value>
+  </data>
+  <data name="OrganizeErrorFormat" xml:space="preserve">
+    <value>Düzenleme tamamlanamadı: {0}</value>
+  </data>
+  <data name="OrganizeSystemFolder" xml:space="preserve">
+    <value>Bu bir sistem klasörü; Vacuo onu düzenlemez.</value>
+  </data>
+  <data name="OrganizeReadFailedFormat" xml:space="preserve">
+    <value>Klasör okunamadı: {0}</value>
+  </data>
+  <data name="Organize_Kind_Documents" xml:space="preserve">
+    <value>Belgeler</value>
+  </data>
+  <data name="Organize_Kind_Images" xml:space="preserve">
+    <value>Resimler</value>
+  </data>
+  <data name="Organize_Kind_Videos" xml:space="preserve">
+    <value>Videolar</value>
+  </data>
+  <data name="Organize_Kind_Music" xml:space="preserve">
+    <value>Müzik</value>
+  </data>
+  <data name="Organize_Kind_Archives" xml:space="preserve">
+    <value>Arşivler</value>
+  </data>
+  <data name="Organize_Kind_Installers" xml:space="preserve">
+    <value>Kurulum dosyaları</value>
+  </data>
+  <data name="Organize_Kind_Code" xml:space="preserve">
+    <value>Kod</value>
+  </data>
+  <data name="Organize_Topic_Invoices" xml:space="preserve">
+    <value>Faturalar</value>
+  </data>
+  <data name="Organize_Topic_School" xml:space="preserve">
+    <value>Okul</value>
+  </data>
+  <data name="Organize_Topic_Work" xml:space="preserve">
+    <value>İş</value>
+  </data>
+  <data name="Organize_Topic_Travel" xml:space="preserve">
+    <value>Seyahat</value>
+  </data>
+  <data name="Organize_Topic_Screenshots" xml:space="preserve">
+    <value>Ekran görüntüleri</value>
+  </data>
+  <data name="JournalOrganizeFormat" xml:space="preserve">
+    <value>Düzen: {0}</value>
+  </data>
+  <data name="JournalFilesFormat" xml:space="preserve">
+    <value>{0} dosya</value>
+  </data>
+  <data name="JournalOrganized" xml:space="preserve">
+    <value>Taşındı</value>
+  </data>
+  <data name="JournalMoreFormat" xml:space="preserve">
+    <value>Daha eski {0} kaydı göster</value>
   </data>
 </root>

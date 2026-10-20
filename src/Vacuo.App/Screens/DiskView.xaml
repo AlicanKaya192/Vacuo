@@ -71,9 +71,7 @@
             <Button x:Name="MoveButton"
                     Grid.Column="1"
                     IsEnabled="False"
-                    Background="{StaticResource AccentBrush}"
-                    Foreground="{StaticResource VoidBrush}"
-                    FontWeight="SemiBold"
+                    Style="{StaticResource VoidPrimaryButtonStyle}"
                     Click="OnMoveClick" />
         </Grid>
 

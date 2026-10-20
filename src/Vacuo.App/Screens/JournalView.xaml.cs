@@ -15,8 +15,13 @@ namespace Vacuo.App.Screens;
 /// </summary>
 public sealed partial class JournalView : UserControl
 {
+    private const int PageSize = 50;
+
     private Localizer _localizer = null!;
     private JournalScreen _screen = null!;
+    private IReadOnlyList<JournalRow> _rows = [];
+    private int _shown;
+    private Button? _moreButton;
 
     public JournalView()
     {
@@ -37,37 +42,128 @@ public sealed partial class JournalView : UserControl
         Intro.Text = localizer.Get("JournalIntro");
     }
 
-    internal void Show()
+    /// <summary>
+    /// Reads the journal off the UI thread and lists the newest rows; a long journal built all at once
+    /// froze the window on every visit (400 rows, 20 October 2026).
+    /// </summary>
+    internal async Task LoadAsync()
     {
-        EntryList.Children.Clear();
-        IReadOnlyList<JournalEntry> entries;
+        IReadOnlyList<JournalRow> rows;
         try
         {
-            entries = _screen.Entries;
+            rows = await Task.Run(() => _screen.Rows);
         }
         catch (JournalCorruptException exception)
         {
+            EntryList.Children.Clear();
             EntryList.Children.Add(Text(_localizer.Format("JournalReadErrorFormat", exception.Message), "WarningBrush"));
             return;
         }
 
-        if (entries.Count == 0)
+        _rows = rows;
+        _shown = 0;
+        EntryList.Children.Clear();
+        if (rows.Count == 0)
         {
             EntryList.Children.Add(Text(_localizer.Get("JournalEmpty"), "InkSecondaryBrush"));
+            return;
         }
 
-        foreach (JournalEntry entry in entries)
+        ShowMore();
+    }
+
+    // Older rows come a page at a time, only when asked for.
+    private void ShowMore()
+    {
+        if (_moreButton is not null)
         {
-            EntryList.Children.Add(Row(entry));
+            EntryList.Children.Remove(_moreButton);
+            _moreButton = null;
+        }
+
+        foreach (JournalRow row in _rows.Skip(_shown).Take(PageSize))
+        {
+            EntryList.Children.Add(row.BatchId is { } batchId ? BatchRow(row, batchId) : Row(row.First));
+        }
+
+        _shown = Math.Min(_rows.Count, _shown + PageSize);
+        if (_shown < _rows.Count)
+        {
+            _moreButton = new Button
+            {
+                Content = _localizer.Format("JournalMoreFormat", _rows.Count - _shown),
+                HorizontalAlignment = HorizontalAlignment.Center,
+            };
+            _moreButton.Click += (_, _) => ShowMore();
+            EntryList.Children.Add(_moreButton);
         }
     }
 
-    // Same language as the confirm card: a rounded row with an edge that is lit while the item is in the
-    // bin and warns when it was deleted for good.
-    private Grid Row(JournalEntry entry)
+    // A whole Düzen run on one row (B-161): the folder, how many files, and one "Undo" for all of them.
+    private Grid BatchRow(JournalRow batch, Guid batchId)
     {
-        bool deletedForGood = entry.Undo is DeletedForGood;
-        bool inBin = entry.UndoneAt is null && !deletedForGood;
+        bool moved = batch.UndoneAt is null;
+        Grid row = RowFrame(moved ? "AccentBrush" : "LineBrush");
+        var details = new StackPanel { Padding = new Thickness(0, 10, 0, 10), Spacing = 2 };
+        details.Children.Add(Text(_localizer.Format("JournalOrganizeFormat", Path.GetFileName(batch.Folder)), "InkBrush"));
+        details.Children.Add(Text(batch.Folder, "InkSecondaryBrush", fontSize: 12));
+        string when = batch.At.ToLocalTime().ToString("g", _localizer.Culture);
+        string status = moved
+            ? _localizer.Get("JournalOrganized")
+            : _localizer.Format("JournalUndoneFormat", batch.UndoneAt!.Value.ToLocalTime().ToString("g", _localizer.Culture));
+        details.Children.Add(Text(
+            $"{_localizer.Format("JournalFilesFormat", batch.FileCount)} · {DiskTexts.Size(_localizer, batch.SizeBytes)} · {when} · {status}",
+            "InkSecondaryBrush",
+            fontSize: 12));
+        TextBlock message = HiddenMessage();
+        details.Children.Add(message);
+        Grid.SetColumn(details, 1);
+        row.Children.Add(details);
+
+        if (moved)
+        {
+            Button undo = UndoButton();
+            undo.Click += async (_, _) => await UndoBatchAsync(batchId, undo, message);
+            Grid.SetColumn(undo, 2);
+            row.Children.Add(undo);
+        }
+
+        return row;
+    }
+
+    private async Task UndoBatchAsync(Guid batchId, Button undo, TextBlock message)
+    {
+        undo.IsEnabled = false;
+        undo.Content = _localizer.Get("JournalUndoing");
+        string? problem;
+        try
+        {
+            IReadOnlyList<BatchUndoFailure> failures = await Task.Run(() => _screen.UndoBatch(batchId));
+            problem = failures.Count == 0
+                ? null
+                : _localizer.Format("OrganizeUndoFailedFormat", failures.Count, DiskTexts.UndoFailure(_localizer, failures[0].Reason));
+        }
+        catch (Exception exception)
+        {
+            // Unexpected (e.g. the journal could not be written): shown on the row, never a crash.
+            problem = $"{DiskTexts.UndoFailure(_localizer, UndoFailureReason.Refused)}: {exception.Message}";
+        }
+
+        Restored?.Invoke(this, EventArgs.Empty);
+        if (problem is null)
+        {
+            await LoadAsync();
+            return;
+        }
+
+        message.Text = problem;
+        message.Visibility = Visibility.Visible;
+        undo.Content = _localizer.Get("JournalUndoButton");
+        undo.IsEnabled = true;
+    }
+
+    private static Grid RowFrame(string edgeBrush)
+    {
         var row = new Grid
         {
             ColumnSpacing = 12,
@@ -78,7 +174,33 @@ public sealed partial class JournalView : UserControl
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(4) });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        row.Children.Add(new Border { Background = Resource<Brush>(deletedForGood ? "WarningBrush" : inBin ? "AccentBrush" : "LineBrush") });
+        row.Children.Add(new Border { Background = Resource<Brush>(edgeBrush) });
+        return row;
+    }
+
+    private Button UndoButton() => new()
+    {
+        Content = _localizer.Get("JournalUndoButton"),
+        Style = Resource<Style>("VoidGhostButtonStyle"),
+        HorizontalAlignment = HorizontalAlignment.Right,
+        VerticalAlignment = VerticalAlignment.Center,
+        Padding = new Thickness(18, 8, 18, 8),
+    };
+
+    private static TextBlock HiddenMessage()
+    {
+        TextBlock message = Text(string.Empty, "WarningBrush", fontSize: 12);
+        message.Visibility = Visibility.Collapsed;
+        return message;
+    }
+
+    // Same language as the confirm card: a rounded row with an edge that is lit while the item is in the
+    // bin and warns when it was deleted for good.
+    private Grid Row(JournalEntry entry)
+    {
+        bool deletedForGood = entry.Undo is DeletedForGood;
+        bool inBin = entry.UndoneAt is null && !deletedForGood;
+        Grid row = RowFrame(deletedForGood ? "WarningBrush" : inBin ? "AccentBrush" : "LineBrush");
 
         var details = new StackPanel { Padding = new Thickness(0, 10, 0, 10), Spacing = 2 };
         details.Children.Add(Text(DiskTexts.ShortName(entry.Undo.OriginalPath), "InkBrush"));
@@ -90,22 +212,14 @@ public sealed partial class JournalView : UserControl
         // DISM reports no size, so its entry shows none rather than "0 bytes".
         string size = deletedForGood && entry.SizeBytes == 0 ? string.Empty : $"{DiskTexts.Size(_localizer, entry.SizeBytes)} · ";
         details.Children.Add(Text($"{size}{when} · {status}", "InkSecondaryBrush", fontSize: 12));
-        var message = Text(string.Empty, "WarningBrush", fontSize: 12);
-        message.Visibility = Visibility.Collapsed;
+        TextBlock message = HiddenMessage();
         details.Children.Add(message);
         Grid.SetColumn(details, 1);
         row.Children.Add(details);
 
         if (inBin)
         {
-            var undo = new Button
-            {
-                Content = _localizer.Get("JournalUndoButton"),
-                Style = Resource<Style>("VoidGhostButtonStyle"),
-                HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Center,
-                Padding = new Thickness(18, 8, 18, 8),
-            };
+            Button undo = UndoButton();
             undo.Click += async (_, _) => await UndoAsync(entry, undo, message);
             Grid.SetColumn(undo, 2);
             row.Children.Add(undo);
@@ -133,7 +247,7 @@ public sealed partial class JournalView : UserControl
 
         if (failure is null)
         {
-            Show();
+            await LoadAsync();
             Restored?.Invoke(this, EventArgs.Empty);
             return;
         }

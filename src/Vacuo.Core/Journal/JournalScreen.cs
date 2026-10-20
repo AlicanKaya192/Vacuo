@@ -25,6 +25,9 @@ public sealed class JournalScreen(ActionJournal journal, ActionRunner runner)
 {
     public IReadOnlyList<JournalEntry> Entries => journal.ReadAll().OrderByDescending(entry => entry.At).ToList();
 
+    /// <summary>What the screen lists: newest first, a Düzen run as one row.</summary>
+    public IReadOnlyList<JournalRow> Rows => JournalRow.From(journal.ReadAll());
+
     /// <summary>
     /// Undoes a whole Düzen run: files go back newest first, then the folders it made are removed if
     /// they are empty. One failure does not stop the rest; the list is empty when everything is back.

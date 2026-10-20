@@ -77,9 +77,7 @@
                     <Button x:Name="TempMoveButton"
                             Grid.Column="1"
                             IsEnabled="False"
-                            Background="{StaticResource AccentBrush}"
-                            Foreground="{StaticResource VoidBrush}"
-                            FontWeight="SemiBold"
+                            Style="{StaticResource VoidPrimaryButtonStyle}"
                             Click="OnTempMoveClick" />
                 </Grid>
             </Grid>
@@ -126,9 +124,7 @@
                             Grid.Row="1"
                             HorizontalAlignment="Stretch"
                             IsEnabled="False"
-                            Background="{StaticResource WarningBrush}"
-                            Foreground="{StaticResource VoidBrush}"
-                            FontWeight="SemiBold"
+                            Style="{StaticResource VoidWarningButtonStyle}"
                             Click="OnAdminRunClick" />
                 </Grid>
             </Grid>

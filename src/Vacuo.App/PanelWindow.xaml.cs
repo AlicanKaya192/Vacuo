@@ -16,6 +16,7 @@ using Vacuo.Core.Actions;
 using Vacuo.Core.Disk;
 using Vacuo.Core.Journal;
 using Vacuo.Core.Formatting;
+using Vacuo.Core.Organize;
 using Vacuo.Core.Ram;
 using Vacuo.Core.Scanning;
 using Vacuo.Windows;
@@ -77,6 +78,7 @@ public sealed partial class PanelWindow : Window
     private MemorySnapshot? _memorySnapshot;
     private DateTime _memorySnapshotAt;
     private int _transition;
+    private int _eventCount;
     // Set on the UI thread, cleared on Win2D's drawing thread.
     private volatile bool _markNextVoidFrame;
     // The Disk or Windows screen is open: an ordinary window, not the card panel.
@@ -96,6 +98,7 @@ public sealed partial class PanelWindow : Window
     private DiskView? _diskScreen;
     private WindowsView? _windowsScreen;
     private MemoryView? _memoryScreen;
+    private OrganizeView? _organizeScreen;
     private JournalView? _journalScreen;
 
     internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion, IReadOnlySet<string> probes)
@@ -139,7 +142,7 @@ public sealed partial class PanelWindow : Window
     {
         if (_isOpen && !_showingWorkScreen)
         {
-            Hide();
+            Hide("toggle");
             return;
         }
 
@@ -204,6 +207,7 @@ public sealed partial class PanelWindow : Window
         _diskScreen?.Shutdown();
         _windowsScreen?.Shutdown();
         _memoryScreen?.Shutdown();
+        _organizeScreen?.Shutdown();
         Close();
     }
 
@@ -265,7 +269,8 @@ public sealed partial class PanelWindow : Window
         MemoryBody.Text = _localizer.Get("MemoryReading");
         MemoryInspectButton.Content = _localizer.Get("MemoryInspectButton");
         OrganizeTitle.Text = _localizer.Get("OrganizeTitle");
-        OrganizeBody.Text = _localizer.Get("OrganizePlaceholder");
+        OrganizeBody.Text = _localizer.Get("OrganizeCardReading");
+        OrganizeInspectButton.Content = _localizer.Get("OrganizeInspectButton");
         QuitButton.Content = _localizer.Get("QuitButton");
         string hideLabel = _localizer.Get("HideButton");
         ToolTipService.SetToolTip(HideButton, hideLabel);
@@ -289,6 +294,7 @@ public sealed partial class PanelWindow : Window
     private void Open()
     {
         _measurement?.MarkPanelRequested();
+        MarkEvent("open");
         if (!_showingWorkScreen)
         {
             ShowCardsNow();
@@ -310,6 +316,7 @@ public sealed partial class PanelWindow : Window
 
         RefreshMemoryCounters();
         _memoryTimer.Start();
+        RefreshOrganizeCard();
         if (_showingWorkScreen)
         {
             return;
@@ -327,12 +334,20 @@ public sealed partial class PanelWindow : Window
         }
     }
 
-    private void Hide()
+    // The reason goes to the measurement log only, so a hide nobody asked for can be traced.
+    // Hiding the window deactivates it, which would call this again; closed first, it runs once.
+    private void Hide(string reason)
     {
+        if (!_isOpen)
+        {
+            return;
+        }
+
+        _isOpen = false;
+        MarkEvent($"hidden-{reason}");
         VoidCanvas.Paused = true;
         _memoryTimer.Stop();
         AppWindow.Hide();
-        _isOpen = false;
         _hiddenAt = DateTime.UtcNow;
         _measurement?.MarkPanelHidden();
         Hidden?.Invoke(this, EventArgs.Empty);
@@ -541,6 +556,21 @@ public sealed partial class PanelWindow : Window
         return _memoryScreen = memory;
     }
 
+    private OrganizeView EnsureOrganizeScreen()
+    {
+        if (_organizeScreen is not null)
+        {
+            return _organizeScreen;
+        }
+
+        var organize = AddScreen(new OrganizeView());
+        organize.Initialize(_localizer, _runner, new JournalScreen(_journal, _runner), Handle, _animationsEnabled);
+        organize.BackRequested += (_, _) => ReturnToCards();
+        organize.JournalRequested += (_, _) => ShowJournal(organize);
+        organize.Changed += (_, _) => RefreshOrganizeCard();
+        return _organizeScreen = organize;
+    }
+
     private JournalView EnsureJournalScreen()
     {
         if (_journalScreen is not null)
@@ -568,7 +598,7 @@ public sealed partial class PanelWindow : Window
 
     // Screens not created yet are skipped.
     private UserControl[] LoadedScreens() =>
-        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _journalScreen }.OfType<UserControl>().ToArray();
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _journalScreen }.OfType<UserControl>().ToArray();
 
     private void ShowDiskScreen()
     {
@@ -589,6 +619,31 @@ public sealed partial class PanelWindow : Window
         WindowsView windows = EnsureWindowsScreen();
         ShowWorkScreen(windows);
         windows.Refresh();
+    }
+
+    private void ShowOrganizeScreen()
+    {
+        OrganizeView organize = EnsureOrganizeScreen();
+        ShowWorkScreen(organize);
+        organize.Refresh();
+    }
+
+    // Counts the Desktop under the default rule; only reads, so a failure is shown on the card.
+    private async void RefreshOrganizeCard()
+    {
+        try
+        {
+            OrganizePlan plan = await OrganizeView.PlanAsync(_localizer, OrganizeView.DesktopFolder, OrganizeRule.ByType);
+            OrganizeBody.Text = plan.Moves.Count == 0
+                ? _localizer.Get("OrganizeCardTidy")
+                : _localizer.Format("OrganizeCardFormat", plan.Moves.Count);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            OrganizeBody.Text = _localizer.Format("OrganizeCardFailedFormat", exception.Message);
+        }
+
+        FitCardPanel();
     }
 
     // The screen is filled before it appears, so it never opens on "Reading…".
@@ -667,21 +722,52 @@ public sealed partial class PanelWindow : Window
     }
 
     // The Journal opens in the same window as the screen that asked for it; its frame and size stay.
-    private void ShowJournal(UserControl from)
+    // The rows are read before the switch, so the Journal arrives filled, with the same animation as any screen.
+    private async void ShowJournal(UserControl from)
     {
+        if (_switching)
+        {
+            return;
+        }
+
+        _transition++;
+        MarkTransition("journal-click");
         _journalOpenedFrom = from;
         _restoredSinceJournalOpened = false;
-        from.Visibility = Visibility.Collapsed;
         JournalView journal = EnsureJournalScreen();
-        journal.Visibility = Visibility.Visible;
-        journal.Show();
+        await journal.LoadAsync();
+        SwitchContent(
+            [from],
+            () =>
+            {
+                from.Visibility = Visibility.Collapsed;
+                journal.Visibility = Visibility.Visible;
+                EmergeFromVoid(journal);
+            },
+            "journal-shown");
     }
 
     // Put-back items are on disk again, so the screen scans before it lists anything.
     private void BackFromJournal()
     {
-        EnsureJournalScreen().Visibility = Visibility.Collapsed;
-        _journalOpenedFrom.Visibility = Visibility.Visible;
+        if (_switching)
+        {
+            return;
+        }
+
+        _transition++;
+        MarkTransition("journal-back-click");
+        JournalView journal = EnsureJournalScreen();
+        UserControl from = _journalOpenedFrom;
+        SwitchContent(
+            [journal],
+            () =>
+            {
+                journal.Visibility = Visibility.Collapsed;
+                from.Visibility = Visibility.Visible;
+                EmergeFromVoid(from);
+            },
+            "journal-back-shown");
         if (!_restoredSinceJournalOpened)
         {
             return;
@@ -690,6 +776,11 @@ public sealed partial class PanelWindow : Window
         if (_journalOpenedFrom is WindowsView windows)
         {
             windows.Refresh();
+        }
+        else if (_journalOpenedFrom is OrganizeView organize)
+        {
+            organize.Refresh();
+            RefreshOrganizeCard();
         }
         else
         {
@@ -876,9 +967,10 @@ public sealed partial class PanelWindow : Window
     private void OnActivated(object sender, WindowActivatedEventArgs args)
     {
         // Only the card panel closes on losing focus; the Disk and Windows screens stay like any other window.
+        MarkEvent(args.WindowActivationState.ToString());
         if (args.WindowActivationState == WindowActivationState.Deactivated && _isOpen && !_showingWorkScreen)
         {
-            Hide();
+            Hide("deactivated");
         }
     }
 
@@ -891,7 +983,7 @@ public sealed partial class PanelWindow : Window
 
         // Alt+F4 only hides the panel; Vacuo keeps running in the tray.
         args.Cancel = true;
-        Hide();
+        Hide("closing");
     }
 
     private void OnDiskRingDraw(CanvasControl sender, CanvasDrawEventArgs args)
@@ -905,7 +997,18 @@ public sealed partial class PanelWindow : Window
 
     private void OnMemoryInspectClick(object sender, RoutedEventArgs e) => ShowMemoryScreen();
 
+    private void OnOrganizeInspectClick(object sender, RoutedEventArgs e) => ShowOrganizeScreen();
+
     // Only with --measure: when each step of a screen change happened, numbered per change.
+    // Measurement only: each event gets its own number, so repeats are all kept.
+    private void MarkEvent(string name)
+    {
+        if (_measurement is not null)
+        {
+            _measurement.MarkPhase($"e{++_eventCount:000} {name}");
+        }
+    }
+
     private void MarkTransition(string? phase)
     {
         if (phase is not null)
@@ -914,7 +1017,7 @@ public sealed partial class PanelWindow : Window
         }
     }
 
-    private void OnHideClick(object sender, RoutedEventArgs e) => Hide();
+    private void OnHideClick(object sender, RoutedEventArgs e) => Hide("button");
 
     // Without a Windows title bar the header is the handle: Windows moves the window as if its caption was dragged.
     // The cards stay where they open, above the tray.

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Vacuo.App.Screens.OrganizeView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Vacuo.App.Screens">
+
+    <Grid RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button x:Name="BackButton" Click="OnBackClick" />
+            <TextBlock x:Name="ScreenTitle"
+                       Grid.Column="1"
+                       VerticalAlignment="Center"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource InkBrush}" />
+            <Button x:Name="JournalButton" Grid.Column="2" Click="OnJournalClick" />
+            <Button x:Name="RunButton"
+                    Grid.Column="3"
+                    IsEnabled="False"
+                    Style="{StaticResource VoidPrimaryButtonStyle}"
+                    Click="OnRunClick" />
+        </Grid>
+
+        <!-- Which folder, by which rule; the preview below follows every change. -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="10">
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="170" />
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="DesktopButton" Click="OnDesktopClick" />
+                    <Button x:Name="DownloadsButton" Grid.Column="1" Click="OnDownloadsClick" />
+                    <Button x:Name="PickButton" Grid.Column="2" Click="OnPickClick" />
+                    <local:VoidPicker x:Name="RulePicker" Grid.Column="4" />
+                </Grid>
+                <TextBlock x:Name="FolderText" Style="{StaticResource CardBodyStyle}" TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="HintText" Style="{StaticResource CardBodyStyle}" />
+            </StackPanel>
+        </Border>
+
+        <!-- What the last run did, with its undo right here. -->
+        <Border x:Name="OutcomeCard" Grid.Row="2" Style="{StaticResource CardStyle}" Visibility="Collapsed">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel x:Name="OutcomePanel" Spacing="4" />
+                <Button x:Name="UndoButton"
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource VoidGhostButtonStyle}"
+                        Visibility="Collapsed"
+                        Click="OnUndoClick" />
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="GroupList" Spacing="8" Padding="0,0,12,12" />
+        </ScrollViewer>
+
+        <local:ConfirmCard x:Name="Confirm" Grid.RowSpan="4" />
+    </Grid>
+</UserControl>

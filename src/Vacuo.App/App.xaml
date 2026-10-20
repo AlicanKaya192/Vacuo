@@ -137,6 +137,228 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <!-- Amber for the one kind of action that cannot be undone (ADR-003). -->
+            <Style x:Key="VoidWarningButtonStyle" TargetType="Button" BasedOn="{StaticResource VoidPrimaryButtonStyle}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Root" CornerRadius="12">
+                                <Grid.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#FFF3CD86" Offset="0" />
+                                        <GradientStop Color="#FFE9B964" Offset="0.5" />
+                                        <GradientStop Color="#FFC9963F" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Grid.Background>
+                                <Border x:Name="Shine" CornerRadius="12" Background="#33FFFFFF" Opacity="0" />
+                                <ContentPresenter Padding="{TemplateBinding Padding}"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="Center"
+                                                  Content="{TemplateBinding Content}"
+                                                  Foreground="{TemplateBinding Foreground}" />
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="Shine.Opacity" Value="1" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Opacity" Value="0.82" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Opacity" Value="0.35" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!-- A bare glyph, like the header's hide button: no frame until the pointer comes. -->
+            <Style x:Key="VoidIconButtonStyle" TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}" />
+                <Setter Property="Padding" Value="10,6" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Root" CornerRadius="10" Background="Transparent">
+                                <ContentPresenter Padding="{TemplateBinding Padding}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Content="{TemplateBinding Content}"
+                                                  Foreground="{TemplateBinding Foreground}" />
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Background" Value="#1A9D7CFF" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Background" Value="#339D7CFF" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Opacity" Value="0.35" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!-- Every button without a style of its own is a compact ghost button (vacuo-kurallar 15). -->
+            <Style TargetType="Button" BasedOn="{StaticResource VoidGhostButtonStyle}">
+                <Setter Property="Padding" Value="14,8" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+            </Style>
+
+            <!-- Check boxes, text boxes and scroll bars keep their Windows templates but wear VOID colours:
+                 the brushes below replace the theme's own (lightweight styling). -->
+            <Style TargetType="CheckBox">
+                <Setter Property="CornerRadius" Value="6" />
+                <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+            </Style>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUnchecked" Color="#0DFFFFFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPointerOver" Color="#1A9D7CFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPressed" Color="#269D7CFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedDisabled" Color="Transparent" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUnchecked" Color="#809D7CFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPointerOver" Color="#FF9D7CFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPressed" Color="#FF9D7CFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedDisabled" Color="#FF2C2441" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#FF9D7CFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#FFB39BFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#FF7A5CE6" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedDisabled" Color="#4D9D7CFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked" Color="Transparent" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" Color="Transparent" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed" Color="Transparent" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedDisabled" Color="Transparent" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminate" Color="#FF9D7CFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminatePointerOver" Color="#FFB39BFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminatePressed" Color="#FF7A5CE6" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminateDisabled" Color="#4D9D7CFF" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeIndeterminate" Color="Transparent" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeIndeterminatePointerOver" Color="Transparent" />
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeIndeterminatePressed" Color="Transparent" />
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#FF0A0811" />
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FF0A0811" />
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="#FF0A0811" />
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminate" Color="#FF0A0811" />
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminatePointerOver" Color="#FF0A0811" />
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminatePressed" Color="#FF0A0811" />
+
+            <Style TargetType="TextBox">
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Padding" Value="12,7,8,7" />
+            </Style>
+            <SolidColorBrush x:Key="TextControlBackground" Color="#0DFFFFFF" />
+            <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#1A9D7CFF" />
+            <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF14101D" />
+            <SolidColorBrush x:Key="TextControlBorderBrush" Color="#4D9D7CFF" />
+            <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#999D7CFF" />
+            <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#FF9D7CFF" />
+            <SolidColorBrush x:Key="TextControlElevationBorderBrush" Color="#4D9D7CFF" />
+            <SolidColorBrush x:Key="TextControlElevationBorderFocusedBrush" Color="#FF9D7CFF" />
+            <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
+            <SolidColorBrush x:Key="TextControlForeground" Color="#FFECE7F5" />
+            <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#FFECE7F5" />
+            <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#FFECE7F5" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#FFABA1BF" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#FFABA1BF" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#99ABA1BF" />
+            <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#809D7CFF" />
+            <SolidColorBrush x:Key="TextControlButtonForeground" Color="#FFABA1BF" />
+            <SolidColorBrush x:Key="TextControlButtonForegroundPointerOver" Color="#FFECE7F5" />
+            <SolidColorBrush x:Key="TextControlButtonBackgroundPointerOver" Color="#1A9D7CFF" />
+
+            <SolidColorBrush x:Key="ScrollBarThumbFill" Color="#669D7CFF" />
+            <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="#999D7CFF" />
+            <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#FF9D7CFF" />
+            <SolidColorBrush x:Key="ScrollBarTrackFill" Color="Transparent" />
+            <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver" Color="#0DFFFFFF" />
+
+            <!-- VOID picker (vacuo-kurallar 15): our own drop-down instead of the stock ComboBox. -->
+            <Style x:Key="VoidPickerTriggerStyle" TargetType="Button" BasedOn="{StaticResource VoidGhostButtonStyle}">
+                <Setter Property="Padding" Value="14,9" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            </Style>
+            <Style x:Key="VoidFlyoutPresenterStyle" TargetType="FlyoutPresenter">
+                <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+                <Setter Property="BorderBrush" Value="#4D9D7CFF" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="14" />
+                <Setter Property="Padding" Value="6" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="IsDefaultShadowEnabled" Value="False" />
+            </Style>
+            <!-- One option: a lit edge and a violet tint when chosen, like the rows on every screen. -->
+            <Style x:Key="VoidPickerItemStyle" TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Padding" Value="16,9" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Root" CornerRadius="10" Background="{TemplateBinding Background}">
+                                <Border Width="3"
+                                        Margin="0,9"
+                                        HorizontalAlignment="Left"
+                                        CornerRadius="2"
+                                        Background="{TemplateBinding BorderBrush}" />
+                                <ContentPresenter Padding="{TemplateBinding Padding}"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="Center"
+                                                  Content="{TemplateBinding Content}"
+                                                  Foreground="{TemplateBinding Foreground}" />
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Background" Value="#1A9D7CFF" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Background" Value="#339D7CFF" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Opacity" Value="0.35" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="VoidPickerSelectedItemStyle" TargetType="Button" BasedOn="{StaticResource VoidPickerItemStyle}">
+                <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+                <Setter Property="Background" Value="#269D7CFF" />
+                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
             <Style x:Key="CardBodyStyle" TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}" />
                 <Setter Property="FontSize" Value="13" />

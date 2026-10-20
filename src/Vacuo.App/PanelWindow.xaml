@@ -37,10 +37,7 @@
             </StackPanel>
             <Button x:Name="HideButton"
                     Grid.Column="1"
-                    Padding="10,6"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Foreground="{StaticResource InkSecondaryBrush}"
+                    Style="{StaticResource VoidIconButtonStyle}"
                     Click="OnHideClick">
                 <FontIcon Glyph="&#xE921;" FontSize="12" />
             </Button>
@@ -123,9 +120,12 @@
                     </StackPanel>
                 </Border>
                 <Border x:Name="OrganizeCard" Style="{StaticResource CardStyle}">
-                    <StackPanel>
+                    <StackPanel Spacing="10">
                         <TextBlock x:Name="OrganizeTitle" Style="{StaticResource CardTitleStyle}" />
                         <TextBlock x:Name="OrganizeBody" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="OrganizeInspectButton"
+                                HorizontalAlignment="Stretch"
+                                Click="OnOrganizeInspectClick" />
                     </StackPanel>
                 </Border>
             </StackPanel>

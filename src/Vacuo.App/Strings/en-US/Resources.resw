@@ -30,9 +30,6 @@
   <data name="OrganizeTitle" xml:space="preserve">
     <value>Organize</value>
   </data>
-  <data name="OrganizePlaceholder" xml:space="preserve">
-    <value>Folder rules arrive in v0.2.</value>
-  </data>
   <data name="QuitButton" xml:space="preserve">
     <value>Quit Vacuo</value>
   </data>
@@ -485,5 +482,140 @@
   </data>
   <data name="UndoFailure_FolderNotEmpty" xml:space="preserve">
     <value>something else was put in the folder; left alone</value>
+  </data>
+  <data name="OrganizeCardReading" xml:space="preserve">
+    <value>Looking…</value>
+  </data>
+  <data name="OrganizeCardFormat" xml:space="preserve">
+    <value>{0} files on the Desktop can be organized</value>
+  </data>
+  <data name="OrganizeCardTidy" xml:space="preserve">
+    <value>The Desktop is tidy</value>
+  </data>
+  <data name="OrganizeCardFailedFormat" xml:space="preserve">
+    <value>Could not read the Desktop: {0}</value>
+  </data>
+  <data name="OrganizeInspectButton" xml:space="preserve">
+    <value>Organize folders</value>
+  </data>
+  <data name="OrganizeFolderDesktop" xml:space="preserve">
+    <value>Desktop</value>
+  </data>
+  <data name="OrganizeFolderDownloads" xml:space="preserve">
+    <value>Downloads</value>
+  </data>
+  <data name="OrganizeFolderPick" xml:space="preserve">
+    <value>Choose a folder…</value>
+  </data>
+  <data name="OrganizeRule_ByType" xml:space="preserve">
+    <value>By type</value>
+  </data>
+  <data name="OrganizeRule_ByDate" xml:space="preserve">
+    <value>By month</value>
+  </data>
+  <data name="OrganizeRule_BySource" xml:space="preserve">
+    <value>By source</value>
+  </data>
+  <data name="OrganizeRule_ByTopic" xml:space="preserve">
+    <value>By topic</value>
+  </data>
+  <data name="OrganizeHint" xml:space="preserve">
+    <value>Only the files at the top move; subfolders, hidden files and shortcuts are left alone. A file with no clear place stays where it is.</value>
+  </data>
+  <data name="OrganizeRunButton" xml:space="preserve">
+    <value>Organize</value>
+  </data>
+  <data name="OrganizeRunButtonFormat" xml:space="preserve">
+    <value>Organize ({0})</value>
+  </data>
+  <data name="OrganizeGroupFormat" xml:space="preserve">
+    <value>{0} · {1} files</value>
+  </data>
+  <data name="OrganizeNewFolder" xml:space="preserve">
+    <value>new folder</value>
+  </data>
+  <data name="OrganizeMoreFormat" xml:space="preserve">
+    <value>and {0} more files</value>
+  </data>
+  <data name="OrganizeNothing" xml:space="preserve">
+    <value>No file to move under this rule; everything stays where it is.</value>
+  </data>
+  <data name="OrganizeConfirmTitle" xml:space="preserve">
+    <value>Move the files?</value>
+  </data>
+  <data name="OrganizeConfirmSummaryFormat" xml:space="preserve">
+    <value>{0} files into {1} folders</value>
+  </data>
+  <data name="OrganizeConfirmNote" xml:space="preserve">
+    <value>Everything stays inside the same folder; nothing is deleted and no file is overwritten. One click in the Journal puts it all back.</value>
+  </data>
+  <data name="OrganizeMovingFormat" xml:space="preserve">
+    <value>Moving {0} files…</value>
+  </data>
+  <data name="OrganizeDoneFormat" xml:space="preserve">
+    <value>{0} files organized</value>
+  </data>
+  <data name="OrganizeUndone" xml:space="preserve">
+    <value>Everything is back where it was</value>
+  </data>
+  <data name="OrganizeUndoFailedFormat" xml:space="preserve">
+    <value>{0} items could not be put back: {1}</value>
+  </data>
+  <data name="OrganizeErrorFormat" xml:space="preserve">
+    <value>Organizing could not finish: {0}</value>
+  </data>
+  <data name="OrganizeSystemFolder" xml:space="preserve">
+    <value>This is a system folder; Vacuo does not organize it.</value>
+  </data>
+  <data name="OrganizeReadFailedFormat" xml:space="preserve">
+    <value>Could not read the folder: {0}</value>
+  </data>
+  <data name="Organize_Kind_Documents" xml:space="preserve">
+    <value>Documents</value>
+  </data>
+  <data name="Organize_Kind_Images" xml:space="preserve">
+    <value>Pictures</value>
+  </data>
+  <data name="Organize_Kind_Videos" xml:space="preserve">
+    <value>Videos</value>
+  </data>
+  <data name="Organize_Kind_Music" xml:space="preserve">
+    <value>Music</value>
+  </data>
+  <data name="Organize_Kind_Archives" xml:space="preserve">
+    <value>Archives</value>
+  </data>
+  <data name="Organize_Kind_Installers" xml:space="preserve">
+    <value>Installers</value>
+  </data>
+  <data name="Organize_Kind_Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Organize_Topic_Invoices" xml:space="preserve">
+    <value>Invoices</value>
+  </data>
+  <data name="Organize_Topic_School" xml:space="preserve">
+    <value>School</value>
+  </data>
+  <data name="Organize_Topic_Work" xml:space="preserve">
+    <value>Work</value>
+  </data>
+  <data name="Organize_Topic_Travel" xml:space="preserve">
+    <value>Travel</value>
+  </data>
+  <data name="Organize_Topic_Screenshots" xml:space="preserve">
+    <value>Screenshots</value>
+  </data>
+  <data name="JournalOrganizeFormat" xml:space="preserve">
+    <value>Organize: {0}</value>
+  </data>
+  <data name="JournalFilesFormat" xml:space="preserve">
+    <value>{0} files</value>
+  </data>
+  <data name="JournalOrganized" xml:space="preserve">
+    <value>Moved</value>
+  </data>
+  <data name="JournalMoreFormat" xml:space="preserve">
+    <value>Show {0} older entries</value>
   </data>
 </root>
