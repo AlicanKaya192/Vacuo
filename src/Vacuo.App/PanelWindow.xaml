@@ -36,6 +36,14 @@
                            FontSize="12"
                            VerticalAlignment="Center"
                            Foreground="{StaticResource InkSecondaryBrush}" />
+                <!-- A new version, its download, or the version just installed; low enough to keep the header's height. -->
+                <Button x:Name="UpdateBadge"
+                        Style="{StaticResource VoidPrimaryButtonStyle}"
+                        Padding="10,2"
+                        FontSize="12"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed"
+                        Click="OnUpdateBadgeClick" />
             </StackPanel>
             <!-- Settings open from the cards only, like every other screen. -->
             <Button x:Name="SettingsButton"

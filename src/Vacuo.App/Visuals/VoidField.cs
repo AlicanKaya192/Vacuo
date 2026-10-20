@@ -11,7 +11,7 @@ namespace Vacuo.App.Visuals;
 /// </summary>
 internal sealed class VoidField
 {
-    private const float Tilt = 0.42f;
+    internal const float Tilt = 0.42f;
     private const float Horizon = 0.2f;
     private const float InnerSpawn = 0.3f;
     private const float LightParticleShare = 0.3f;
@@ -40,16 +40,23 @@ internal sealed class VoidField
 
     public int Count => _count;
 
+    /// <summary>How hard the hole pulls; 1 is the panel's calm scene. Set from any thread.</summary>
+    public float PullStrength { get; set; } = 1f;
+
+    /// <summary>The disk's outer radius in a box of <paramref name="size"/>.</summary>
+    public static float DiskRadiusFor(Vector2 size) => MathF.Min(size.X * 0.47f, size.Y * 0.45f / Tilt);
+
     public void Advance(TimeSpan elapsed)
     {
         float dt = (float)Math.Min(elapsed.TotalSeconds, 0.05);
         AdaptToFrameTime(elapsed.TotalMilliseconds);
+        float strength = PullStrength;
 
         for (int i = 0; i < _count; i++)
         {
             ref Particle p = ref _particles[i];
             p.Angle += dt * 0.55f / MathF.Sqrt(p.Radius + 0.04f);
-            p.Radius -= dt * 0.06f * p.Pull * (1.2f - MathF.Min(1f, p.Radius));
+            p.Radius -= dt * 0.06f * strength * p.Pull * (1.2f - MathF.Min(1f, p.Radius));
             if (p.Radius < Horizon)
             {
                 p = Spawn(InnerSpawn + Random.Shared.NextSingle() * (1 - InnerSpawn));
@@ -60,7 +67,7 @@ internal sealed class VoidField
     public void Draw(CanvasDrawingSession session, Vector2 size)
     {
         var center = new Vector2(size.X / 2, size.Y / 2);
-        float diskRadius = MathF.Min(size.X * 0.47f, size.Y * 0.45f / Tilt);
+        float diskRadius = DiskRadiusFor(size);
 
         DrawParticles(session, center, diskRadius, front: false);
         session.FillCircle(center, diskRadius * Horizon, Void);

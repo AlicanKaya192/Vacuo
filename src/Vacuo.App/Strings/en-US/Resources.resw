@@ -1000,10 +1000,10 @@ Vacuo measures honestly: it shows caches with what it costs to rebuild them, and
 Vacuo asks for no account, and has no telemetry, analytics or ads. Your information stays on this computer.
 
 # Internet
-Vacuo makes no network connection at the moment. When the update check arrives, it will only read the list of releases on GitHub, send nothing, and be possible to turn off in Settings; this text will be updated then.
+Vacuo's only network connection is the update check. When the panel opens, at most every 6 hours, and when you press "Check now" in Settings, it reads the list of releases on GitHub. If you press Update, it downloads the new version's setup and its SHA-256 digest, also from GitHub. No account, identity or usage information is sent; the only thing GitHub learns is the name "Vacuo/version" (and, as with any connection, your IP address). With "Check for updates" turned off in Settings, Vacuo never goes online. The tray icon never goes online.
 
 # Kept on this computer
-In the %LOCALAPPDATA%\Vacuo folder: your settings (language and update choice), the Journal (path, size and time of each item moved) and the results of administrator clean-ups on the Windows screen (size and number of files deleted). If "Start with Windows" is on, only Vacuo's own startup entry is written.
+In the %LOCALAPPDATA%\Vacuo folder: your settings (language and update choice), the Journal (path, size and time of each item moved), the results of administrator clean-ups on the Windows screen (size and number of files deleted), the time of the last update check (update.json) and the downloaded setup (the updates folder; removed on the first start after updating). If "Start with Windows" is on, only Vacuo's own startup entry is written.
 
 # Kept in memory only
 The results of the disk scan, the duplicate search and the list of installed programs, and, for the Memory screen, when each program was last in front. None of this is written to disk; it is gone when Vacuo closes.
@@ -1059,5 +1059,128 @@ Keeping backups of your important files is up to you.</value>
   </data>
   <data name="InfoAboutGitHubButton" xml:space="preserve">
     <value>Open on GitHub</value>
+  </data>
+  <data name="UpdateScreenTitle" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="UpdateTitleFormat" xml:space="preserve">
+    <value>Vacuo {0}</value>
+  </data>
+  <data name="UpdateReadyFormat" xml:space="preserve">
+    <value>Vacuo {0} is ready</value>
+  </data>
+  <data name="UpdateReadyHintFormat" xml:space="preserve">
+    <value>You are on {0}. Download: {1}. Press Update and it is downloaded, checked and installed; Vacuo closes and opens again by itself.</value>
+  </data>
+  <data name="UpdateStartButton" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="UpdateRetryButton" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="UpdateBackgroundButton" xml:space="preserve">
+    <value>Keep going in the background</value>
+  </data>
+  <data name="UpdateCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="UpdateReleasesButton" xml:space="preserve">
+    <value>Open the releases page</value>
+  </data>
+  <data name="UpdatePercentFormat" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="UpdateSpeedFormat" xml:space="preserve">
+    <value>{0}/s</value>
+  </data>
+  <data name="UpdateRemainingUnknown" xml:space="preserve">
+    <value>working out the time left</value>
+  </data>
+  <data name="UpdateRemainingSecondsFormat" xml:space="preserve">
+    <value>about {0} s left</value>
+  </data>
+  <data name="UpdateRemainingMinutesFormat" xml:space="preserve">
+    <value>about {0} min left</value>
+  </data>
+  <data name="UpdateInstalling" xml:space="preserve">
+    <value>Installing</value>
+  </data>
+  <data name="UpdateInstallingHint" xml:space="preserve">
+    <value>The file checks out. Vacuo closes now and opens again by itself when setup is done.</value>
+  </data>
+  <data name="UpdateNotesTitle" xml:space="preserve">
+    <value>What's new</value>
+  </data>
+  <data name="UpdateNoNotes" xml:space="preserve">
+    <value>No notes were written for this version.</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>The download was stopped; the partial file was removed.</value>
+  </data>
+  <data name="UpdateOffline" xml:space="preserve">
+    <value>The connection dropped. Try again when you are online.</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Could not download: GitHub did not give the file.</value>
+  </data>
+  <data name="UpdateRejected" xml:space="preserve">
+    <value>The downloaded file did not match the release; it was not used and was removed. Try again.</value>
+  </data>
+  <data name="UpdateBlocked" xml:space="preserve">
+    <value>Windows blocked the setup (Smart App Control; Vacuo is unsigned). You can download it from the releases page and run it yourself.</value>
+  </data>
+  <data name="UpdateInstallFailed" xml:space="preserve">
+    <value>The setup could not be started. You can download it from the releases page and run it yourself.</value>
+  </data>
+  <data name="UpdateBadgeReadyFormat" xml:space="preserve">
+    <value>Vacuo {0} is ready · Update</value>
+  </data>
+  <data name="UpdateBadgeDownloadingFormat" xml:space="preserve">
+    <value>Updating · {0}%</value>
+  </data>
+  <data name="UpdateBadgeInstalling" xml:space="preserve">
+    <value>Installing…</value>
+  </data>
+  <data name="UpdateBadgeUpdatedFormat" xml:space="preserve">
+    <value>Updated to {0}</value>
+  </data>
+  <data name="SettingsUpdatesTitle" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="SettingsUpdatesHint" xml:space="preserve">
+    <value>When the panel opens, at most every 6 hours, it reads the list of releases on GitHub; nothing is sent. Turned off, Vacuo never goes online.</value>
+  </data>
+  <data name="SettingsUpdatesCheckButton" xml:space="preserve">
+    <value>Check now</value>
+  </data>
+  <data name="SettingsUpdatesVersionFormat" xml:space="preserve">
+    <value>Version {0}</value>
+  </data>
+  <data name="SettingsUpdatesChecking" xml:space="preserve">
+    <value>Checking…</value>
+  </data>
+  <data name="SettingsUpdatesCurrent" xml:space="preserve">
+    <value>This is the newest version.</value>
+  </data>
+  <data name="SettingsUpdatesAvailableFormat" xml:space="preserve">
+    <value>Vacuo {0} is ready.</value>
+  </data>
+  <data name="SettingsUpdatesOffline" xml:space="preserve">
+    <value>Could not get online.</value>
+  </data>
+  <data name="SettingsUpdatesFailed" xml:space="preserve">
+    <value>Could not check: GitHub did not give the list of releases.</value>
+  </data>
+  <data name="SettingsUpdatesLastCheckFormat" xml:space="preserve">
+    <value>Last checked: {0}</value>
+  </data>
+  <data name="SettingsUpdatesNever" xml:space="preserve">
+    <value>Not checked yet.</value>
+  </data>
+  <data name="TrayTooltipUpdatingFormat" xml:space="preserve">
+    <value>Vacuo is updating · {0}% · {1}</value>
+  </data>
+  <data name="TrayTooltipInstalling" xml:space="preserve">
+    <value>Vacuo is installing; it opens again shortly</value>
   </data>
 </root>

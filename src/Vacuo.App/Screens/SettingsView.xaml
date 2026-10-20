@@ -65,6 +65,35 @@
                     </Grid>
                 </Border>
 
+                <!-- Updates (vacuo-kurallar 6): reads GitHub's release list only; turned off, Vacuo never goes online. -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="10">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock x:Name="UpdatesTitle" Style="{StaticResource CardTitleStyle}" />
+                                <TextBlock x:Name="UpdatesHint" Style="{StaticResource CardBodyStyle}" />
+                                <TextBlock x:Name="UpdatesState" Style="{StaticResource CardBodyStyle}" Foreground="{StaticResource InkBrush}" />
+                            </StackPanel>
+                            <CheckBox x:Name="UpdatesBox"
+                                      Grid.Column="1"
+                                      MinWidth="0"
+                                      VerticalAlignment="Center"
+                                      Click="OnUpdatesBoxClick" />
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="CheckNowButton" Click="OnCheckNowClick" />
+                            <Button x:Name="UpdateNowButton"
+                                    Style="{StaticResource VoidPrimaryButtonStyle}"
+                                    Visibility="Collapsed"
+                                    Click="OnUpdateNowClick" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- About, privacy, licenses and terms: each row opens its text in the reading page below. -->
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="6">

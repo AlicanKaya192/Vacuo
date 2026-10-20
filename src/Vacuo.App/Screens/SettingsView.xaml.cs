@@ -3,13 +3,14 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Vacuo.App.Localization;
+using Vacuo.App.Updates;
 using Vacuo.Core.Settings;
 using Windows.System;
 
 namespace Vacuo.App.Screens;
 
 /// <summary>
-/// The Settings screen (Aşama 3c): the language and starting with Windows, then the info pages (about,
+/// The Settings screen (Aşama 3c): the language, starting with Windows and updates, then the info pages (about,
 /// privacy, licenses, terms) read in place. Each change is saved at once, and a new language shows at once.
 /// </summary>
 public sealed partial class SettingsView : UserControl
@@ -27,6 +28,7 @@ public sealed partial class SettingsView : UserControl
     private Localizer _localizer = null!;
     private SettingsStore _store = null!;
     private StartupRegistration? _startup;
+    private UpdateSession _updates = null!;
 
     public SettingsView()
     {
@@ -38,12 +40,22 @@ public sealed partial class SettingsView : UserControl
     /// <summary>Raised after a new language is saved; the panel switches to it at once.</summary>
     internal event EventHandler<LanguageChoice>? LanguageChanged;
 
+    /// <summary>Update was pressed on the Updates card; the panel opens the update screen.</summary>
+    internal event EventHandler? UpdateRequested;
+
     /// <param name="startup">Null when the tray's program is unknown (the panel runs without the tray): the card is hidden.</param>
-    internal void Initialize(Localizer localizer, SettingsStore store, StartupRegistration? startup)
+    internal void Initialize(Localizer localizer, SettingsStore store, StartupRegistration? startup, UpdateSession updates)
     {
         _localizer = localizer;
         _store = store;
         _startup = startup;
+        _updates = updates;
+        UpdatesTitle.Text = localizer.Get("SettingsUpdatesTitle");
+        UpdatesHint.Text = localizer.Get("SettingsUpdatesHint");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(UpdatesBox, UpdatesTitle.Text);
+        CheckNowButton.Content = localizer.Get("SettingsUpdatesCheckButton");
+        UpdateNowButton.Content = localizer.Get("UpdateStartButton");
+        updates.Changed += OnUpdatesChanged;
         StartupCard.Visibility = startup is null ? Visibility.Collapsed : Visibility.Visible;
         StartupTitle.Text = localizer.Get("SettingsStartup");
         StartupHint.Text = localizer.Get("SettingsStartupHint");
@@ -67,7 +79,28 @@ public sealed partial class SettingsView : UserControl
         {
             StartupBox.IsChecked = _startup.IsOn;
         }
+
+        ShowUpdates();
     }
+
+    internal void Shutdown() => _updates.Changed -= OnUpdatesChanged;
+
+    private void OnUpdatesChanged(object? sender, EventArgs e) => ShowUpdates();
+
+    private void ShowUpdates()
+    {
+        bool enabled = _updates.CheckingEnabled;
+        UpdatesBox.IsChecked = enabled;
+        UpdatesState.Text = UpdateTexts.CheckState(_localizer, _updates);
+        CheckNowButton.IsEnabled = enabled && _updates.Phase == UpdatePhase.Idle;
+        UpdateNowButton.Visibility = _updates.Offer is not null ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnUpdatesBoxClick(object sender, RoutedEventArgs e) => _updates.SetCheckingEnabled(UpdatesBox.IsChecked == true);
+
+    private async void OnCheckNowClick(object sender, RoutedEventArgs e) => await _updates.CheckAsync(byHand: true);
+
+    private void OnUpdateNowClick(object sender, RoutedEventArgs e) => UpdateRequested?.Invoke(this, EventArgs.Empty);
 
     // The Run key is the truth: after a change, or a refused one, the box shows what it now says.
     private void OnStartupClick(object sender, RoutedEventArgs e)

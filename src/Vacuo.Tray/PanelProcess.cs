@@ -166,13 +166,7 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
     /// </summary>
     public void SendData(nint panelWindow, int tag, byte[] data)
     {
-        if (_process is not { HasExited: false } process)
-        {
-            return;
-        }
-
-        GetWindowThreadProcessId(panelWindow, out uint owner);
-        if (owner != process.Id)
+        if (!IsPanelWindow(panelWindow))
         {
             return;
         }
@@ -188,6 +182,18 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
         {
             pinned.Free();
         }
+    }
+
+    /// <summary>Whether <paramref name="window"/> belongs to the running panel process this tray started.</summary>
+    public bool IsPanelWindow(nint window)
+    {
+        if (_process is not { HasExited: false } process)
+        {
+            return false;
+        }
+
+        GetWindowThreadProcessId(window, out uint owner);
+        return owner == process.Id;
     }
 
     // For the registered Vacuo messages only. The panel listens on its main window; WinUI's

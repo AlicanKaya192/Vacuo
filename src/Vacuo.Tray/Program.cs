@@ -50,8 +50,17 @@ internal static class Program
         window.PanelHidden += panel.HandleHidden;
         window.ForegroundRequested += asker =>
             panel.SendData(asker, PanelProtocol.ForegroundDataTag, foreground.Snapshot().Encode());
+        // While an update downloads behind a hidden panel, the icon's tooltip shows how far it is.
+        window.DataReceived += (sender, tag, data) =>
+        {
+            if (tag == PanelProtocol.TooltipDataTag && panel.IsPanelWindow(sender) && TrayTooltip.Decode(data) is { } tooltip)
+            {
+                window.SetTooltip(tooltip);
+            }
+        };
         window.PanelExited += () =>
         {
+            window.SetTooltip(string.Empty);
             panel.HandleExited();
             if (panel.QuitAllRequested)
             {

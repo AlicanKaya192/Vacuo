@@ -78,6 +78,6 @@ public static class LanguageRule
         _ => IsTurkish(windowsLanguage) ? Turkish : English,
     };
 
-    private static bool IsTurkish(string language) =>
+    internal static bool IsTurkish(string language) =>
         language.Equals("tr", StringComparison.OrdinalIgnoreCase) || language.StartsWith("tr-", StringComparison.OrdinalIgnoreCase);
 }

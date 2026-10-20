@@ -18,6 +18,8 @@ internal sealed class TrayWindow : IDisposable
     private const uint PanelExitedMessage = WmApp + 4;
     private const uint QuitMessage = WmApp + 5;
     private const uint IconId = 1;
+    // Nothing the panel sends is longer; a tooltip is at most 254 bytes.
+    private const int MaxCopyDataBytes = 4096;
 
     // Kept in a field so the delegate is not collected while Windows still calls it.
     private readonly WindowProc _windowProc;
@@ -25,11 +27,13 @@ internal sealed class TrayWindow : IDisposable
     private readonly uint _panelHiddenMessage = RegisterWindowMessage(PanelProtocol.PanelHiddenMessage);
     private readonly uint _foregroundRequestMessage = RegisterWindowMessage(PanelProtocol.ForegroundRequestMessage);
     private readonly nint _icon;
-    private readonly string _tooltip;
+    private readonly string _defaultTooltip;
+    private string _tooltip;
     private bool _iconAdded;
 
     public TrayWindow(string iconPath, string tooltip)
     {
+        _defaultTooltip = tooltip;
         _tooltip = tooltip;
         _windowProc = OnMessage;
         _taskbarCreatedMessage = RegisterWindowMessage("TaskbarCreated");
@@ -57,6 +61,9 @@ internal sealed class TrayWindow : IDisposable
 
     /// <summary>A window asked for the foreground history; the argument is the window to answer.</summary>
     public event Action<nint>? ForegroundRequested;
+
+    /// <summary>WM_COPYDATA arrived: the sending window, the data's tag and a copy of the data.</summary>
+    public event Action<nint, int, byte[]>? DataReceived;
 
     public nint Handle { get; }
 
@@ -146,6 +153,20 @@ internal sealed class TrayWindow : IDisposable
         Shell_NotifyIcon(NimModify, ref data);
     }
 
+    /// <summary>The icon's tooltip; empty puts back the tray's own. Kept when Explorer restarts.</summary>
+    public void SetTooltip(string text)
+    {
+        _tooltip = text.Length == 0 ? _defaultTooltip : text;
+        if (!_iconAdded)
+        {
+            return;
+        }
+
+        var data = CreateIconData();
+        data.uFlags = NifTip;
+        Shell_NotifyIcon(NimModify, ref data);
+    }
+
     private void RemoveIcon()
     {
         if (!_iconAdded)
@@ -208,6 +229,12 @@ internal sealed class TrayWindow : IDisposable
             return 0;
         }
 
+        if (message == WmCopyData)
+        {
+            ReceiveData(wParam, lParam);
+            return 1;
+        }
+
         if (message == _taskbarCreatedMessage)
         {
             // Explorer restarted; the icon has to be added again.
@@ -216,5 +243,23 @@ internal sealed class TrayWindow : IDisposable
         }
 
         return DefWindowProc(hWnd, message, wParam, lParam);
+    }
+
+    // The data is only valid during the message, so it is copied first; who sent it is checked by the listener.
+    private void ReceiveData(nint sender, nint lParam)
+    {
+        var copy = Marshal.PtrToStructure<CopyDataStruct>(lParam);
+        if (copy.cbData < 0 || copy.cbData > MaxCopyDataBytes || (copy.cbData > 0 && copy.lpData == 0))
+        {
+            return;
+        }
+
+        byte[] data = new byte[copy.cbData];
+        if (copy.cbData > 0)
+        {
+            Marshal.Copy(copy.lpData, data, 0, copy.cbData);
+        }
+
+        DataReceived?.Invoke(sender, (int)copy.dwData, data);
     }
 }

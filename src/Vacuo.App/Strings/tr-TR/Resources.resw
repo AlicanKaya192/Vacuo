@@ -1000,10 +1000,10 @@ Vacuo dürüst ölçer: önbellekleri yeniden kurma bedeliyle gösterir, bellekt
 Vacuo hesap istemez; telemetri, analiz ya da reklam yoktur. Bilgilerin bu bilgisayardan çıkmaz.
 
 # İnternet
-Vacuo şu an hiçbir ağ bağlantısı kurmaz. Güncelleme denetimi eklendiğinde yalnızca GitHub'daki sürüm listesini okuyacak, hiçbir veri göndermeyecek ve Ayarlar'dan kapatılabilecek; bu metin de o zaman güncellenecek.
+Vacuo'nun tek ağ bağlantısı güncelleme denetimidir. Panel açılınca, en çok 6 saatte bir ve Ayarlar'da "Şimdi denetle"ye basınca GitHub'daki sürüm listesini okur. Güncelle'ye basarsan yeni sürümün kurulum dosyasını ve SHA-256 özetini yine GitHub'dan indirir. Hesap, kimlik ya da kullanım bilgisi gönderilmez; GitHub'a giden tek bilgi "Vacuo/sürüm" adıdır (ve her bağlantıda olduğu gibi IP adresin). Ayarlar'da "Güncellemeleri denetle" kapalıyken Vacuo internete hiç çıkmaz. Tepsideki simge hiçbir zaman ağa çıkmaz.
 
 # Bu bilgisayarda tutulanlar
-%LOCALAPPDATA%\Vacuo klasöründe: ayarların (dil ve güncelleme seçimi), Günlük (taşınan öğelerin yolu, boyutu ve zamanı) ve Windows sekmesindeki yönetici işlemlerinin sonuçları (silinen boyut ve dosya sayısı). "Bilgisayar açılınca başlat" açıksa yalnızca Vacuo'nun kendi başlangıç kaydı yazılır.
+%LOCALAPPDATA%\Vacuo klasöründe: ayarların (dil ve güncelleme seçimi), Günlük (taşınan öğelerin yolu, boyutu ve zamanı), Windows sekmesindeki yönetici işlemlerinin sonuçları (silinen boyut ve dosya sayısı), son güncelleme denetiminin zamanı (update.json) ve indirilen kurulum dosyası (updates klasörü; güncellemeden sonraki ilk açılışta silinir). "Bilgisayar açılınca başlat" açıksa yalnızca Vacuo'nun kendi başlangıç kaydı yazılır.
 
 # Yalnızca bellekte kalanlar
 Disk taramasının, kopya aramasının ve kurulu programlar listesinin sonuçları; Bellek ekranı için hangi programın en son ne zaman öne geldiği. Bunlar diske yazılmaz, Vacuo kapanınca silinir.
@@ -1059,5 +1059,128 @@ Windows sekmesinde yönetici izniyle yapılan temizlik kalıcıdır. Kaldırıla
   </data>
   <data name="InfoAboutGitHubButton" xml:space="preserve">
     <value>GitHub'da aç</value>
+  </data>
+  <data name="UpdateScreenTitle" xml:space="preserve">
+    <value>Güncelleme</value>
+  </data>
+  <data name="UpdateTitleFormat" xml:space="preserve">
+    <value>Vacuo {0}</value>
+  </data>
+  <data name="UpdateReadyFormat" xml:space="preserve">
+    <value>Vacuo {0} hazır</value>
+  </data>
+  <data name="UpdateReadyHintFormat" xml:space="preserve">
+    <value>Şu an {0} kullanıyorsun. İndirilecek: {1}. Güncelle'ye basınca indirilir, doğrulanır ve kurulur; Vacuo kapanıp kendiliğinden yeniden açılır.</value>
+  </data>
+  <data name="UpdateStartButton" xml:space="preserve">
+    <value>Güncelle</value>
+  </data>
+  <data name="UpdateRetryButton" xml:space="preserve">
+    <value>Yeniden dene</value>
+  </data>
+  <data name="UpdateBackgroundButton" xml:space="preserve">
+    <value>Arka planda sürsün</value>
+  </data>
+  <data name="UpdateCancelButton" xml:space="preserve">
+    <value>Vazgeç</value>
+  </data>
+  <data name="UpdateReleasesButton" xml:space="preserve">
+    <value>Sürüm sayfasını aç</value>
+  </data>
+  <data name="UpdatePercentFormat" xml:space="preserve">
+    <value>%{0}</value>
+  </data>
+  <data name="UpdateSpeedFormat" xml:space="preserve">
+    <value>{0}/sn</value>
+  </data>
+  <data name="UpdateRemainingUnknown" xml:space="preserve">
+    <value>kalan süre hesaplanıyor</value>
+  </data>
+  <data name="UpdateRemainingSecondsFormat" xml:space="preserve">
+    <value>yaklaşık {0} sn kaldı</value>
+  </data>
+  <data name="UpdateRemainingMinutesFormat" xml:space="preserve">
+    <value>yaklaşık {0} dk kaldı</value>
+  </data>
+  <data name="UpdateInstalling" xml:space="preserve">
+    <value>Kuruluyor</value>
+  </data>
+  <data name="UpdateInstallingHint" xml:space="preserve">
+    <value>Dosya doğrulandı. Vacuo şimdi kapanacak ve kurulum bitince kendiliğinden açılacak.</value>
+  </data>
+  <data name="UpdateNotesTitle" xml:space="preserve">
+    <value>Yenilikler</value>
+  </data>
+  <data name="UpdateNoNotes" xml:space="preserve">
+    <value>Bu sürüm için not yazılmamış.</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>İndirme durduruldu; yarım kalan dosya silindi.</value>
+  </data>
+  <data name="UpdateOffline" xml:space="preserve">
+    <value>Bağlantı koptu. İnternet gelince yeniden dene.</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>İndirilemedi: GitHub dosyayı vermedi.</value>
+  </data>
+  <data name="UpdateRejected" xml:space="preserve">
+    <value>İndirilen dosya sürümdekiyle aynı çıkmadı; kullanılmadı ve silindi. Yeniden dene.</value>
+  </data>
+  <data name="UpdateBlocked" xml:space="preserve">
+    <value>Windows kurulumu engelledi (Akıllı Uygulama Denetimi; Vacuo imzasız). Kurulumu sürüm sayfasından indirip kendin açabilirsin.</value>
+  </data>
+  <data name="UpdateInstallFailed" xml:space="preserve">
+    <value>Kurulum başlatılamadı. Sürüm sayfasından indirip kendin açabilirsin.</value>
+  </data>
+  <data name="UpdateBadgeReadyFormat" xml:space="preserve">
+    <value>Vacuo {0} hazır · Güncelle</value>
+  </data>
+  <data name="UpdateBadgeDownloadingFormat" xml:space="preserve">
+    <value>Güncelleniyor · %{0}</value>
+  </data>
+  <data name="UpdateBadgeInstalling" xml:space="preserve">
+    <value>Kuruluyor…</value>
+  </data>
+  <data name="UpdateBadgeUpdatedFormat" xml:space="preserve">
+    <value>{0} sürümüne güncellendi</value>
+  </data>
+  <data name="SettingsUpdatesTitle" xml:space="preserve">
+    <value>Güncellemeleri denetle</value>
+  </data>
+  <data name="SettingsUpdatesHint" xml:space="preserve">
+    <value>Panel açılınca en çok 6 saatte bir GitHub'daki sürüm listesine bakar; hiçbir bilgi gönderilmez. Kapalıyken Vacuo internete hiç çıkmaz.</value>
+  </data>
+  <data name="SettingsUpdatesCheckButton" xml:space="preserve">
+    <value>Şimdi denetle</value>
+  </data>
+  <data name="SettingsUpdatesVersionFormat" xml:space="preserve">
+    <value>Sürüm {0}</value>
+  </data>
+  <data name="SettingsUpdatesChecking" xml:space="preserve">
+    <value>Denetleniyor…</value>
+  </data>
+  <data name="SettingsUpdatesCurrent" xml:space="preserve">
+    <value>En yeni sürüm bu.</value>
+  </data>
+  <data name="SettingsUpdatesAvailableFormat" xml:space="preserve">
+    <value>Vacuo {0} hazır.</value>
+  </data>
+  <data name="SettingsUpdatesOffline" xml:space="preserve">
+    <value>İnternete ulaşılamadı.</value>
+  </data>
+  <data name="SettingsUpdatesFailed" xml:space="preserve">
+    <value>Denetlenemedi: GitHub sürüm listesini vermedi.</value>
+  </data>
+  <data name="SettingsUpdatesLastCheckFormat" xml:space="preserve">
+    <value>Son denetim: {0}</value>
+  </data>
+  <data name="SettingsUpdatesNever" xml:space="preserve">
+    <value>Henüz denetlenmedi.</value>
+  </data>
+  <data name="TrayTooltipUpdatingFormat" xml:space="preserve">
+    <value>Vacuo güncelleniyor · %{0} · {1}</value>
+  </data>
+  <data name="TrayTooltipInstalling" xml:space="preserve">
+    <value>Vacuo kuruluyor; birazdan yeniden açılacak</value>
   </data>
 </root>

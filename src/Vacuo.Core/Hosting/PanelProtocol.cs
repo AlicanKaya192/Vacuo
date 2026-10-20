@@ -27,6 +27,11 @@ public static class PanelProtocol
     public const string ForegroundRequestMessage = "Vacuo.ForegroundRequest";
     /// <summary>"VACF": marks the WM_COPYDATA that carries a <see cref="Ram.ForegroundSnapshot"/>.</summary>
     public const int ForegroundDataTag = 0x5641_4346;
+    /// <summary>
+    /// "VACT": panel to tray, the WM_COPYDATA that carries a <see cref="TrayTooltip"/> for the icon, with the
+    /// panel window in wParam. The tray takes it only from a window of the panel process it started.
+    /// </summary>
+    public const int TooltipDataTag = 0x5641_4354;
 
     public const int PanelClosedExitCode = 0;
     public const int QuitAllExitCode = 2;

@@ -26,6 +26,11 @@ internal static class NativeMethods
     public const int SmallIconHeightMetric = 50;
 
     public const uint WmCopyData = 0x004A;
+    public const uint SendAbortIfHung = 0x0002;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern nint SendMessageTimeout(
+        nint hWnd, uint message, nint wParam, ref CopyDataStruct lParam, uint flags, uint timeoutMs, out nint result);
 
     [StructLayout(LayoutKind.Sequential)]
     public struct CopyDataStruct
@@ -92,6 +97,9 @@ internal static class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern uint GetDpiForWindow(nint hWnd);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern uint GetWindowThreadProcessId(nint hWnd, out uint processId);
 
     [DllImport("user32.dll")]
     public static extern int GetSystemMetricsForDpi(int index, uint dpi);

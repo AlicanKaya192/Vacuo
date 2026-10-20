@@ -8,12 +8,13 @@ namespace Vacuo.App.Hosting;
 
 /// <summary>
 /// The panel process's side of <see cref="PanelProtocol"/>: listens on the panel window for
-/// "show" and "quit" from the tray, tells the tray when the panel was hidden, and asks it for
-/// the foreground history.
+/// "show" and "quit" from the tray, tells the tray when the panel was hidden, asks it for
+/// the foreground history, and sets the icon's tooltip while an update runs.
 /// </summary>
 internal sealed class TrayChannel : IDisposable
 {
     private const nuint SubclassId = 2;
+    private const uint TooltipTimeoutMs = 1000;
 
     private readonly nint _panelWindow;
     private readonly nint _trayWindow;
@@ -75,6 +76,28 @@ internal sealed class TrayChannel : IDisposable
         }
 
         return await reply;
+    }
+
+    /// <summary>Puts <paramref name="text"/> over the tray icon; empty gives back the tray's own tooltip.</summary>
+    public void SendTooltip(string text)
+    {
+        if (_trayWindow == 0)
+        {
+            return;
+        }
+
+        byte[] data = TrayTooltip.Encode(text);
+        GCHandle pinned = GCHandle.Alloc(data, GCHandleType.Pinned);
+        try
+        {
+            var copy = new CopyDataStruct { dwData = PanelProtocol.TooltipDataTag, cbData = data.Length, lpData = pinned.AddrOfPinnedObject() };
+            // A busy tray must not freeze the panel.
+            _ = SendMessageTimeout(_trayWindow, WmCopyData, _panelWindow, ref copy, SendAbortIfHung, TooltipTimeoutMs, out _);
+        }
+        finally
+        {
+            pinned.Free();
+        }
     }
 
     public void Dispose() => RemoveWindowSubclass(_panelWindow, _subclassProc, SubclassId);

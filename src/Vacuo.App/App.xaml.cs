@@ -67,10 +67,21 @@ public partial class App : Application
         _channel = new TrayChannel(panel.Handle, options.TrayWindow);
         panel.ForegroundSource = () => _channel.RequestForegroundAsync(ForegroundTimeout);
         panel.TrayWindow = options.TrayWindow;
+        panel.TrayTooltipSink = _channel.SendTooltip;
         var linger = panel.DispatcherQueue.CreateTimer();
         linger.Interval = options.Linger;
         linger.IsRepeating = false;
-        linger.Tick += (_, _) => Quit(PanelProtocol.PanelClosedExitCode);
+        linger.Tick += (_, _) =>
+        {
+            // "Keep going in the background": the process lives until the download is done.
+            if (panel.IsUpdating)
+            {
+                linger.Start();
+                return;
+            }
+
+            Quit(PanelProtocol.PanelClosedExitCode);
+        };
 
         panel.Hidden += (_, _) =>
         {

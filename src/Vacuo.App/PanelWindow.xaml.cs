@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Composition;
@@ -12,6 +13,7 @@ using Microsoft.UI.Xaml.Media;
 using Vacuo.App.Localization;
 using Vacuo.App.Measurement;
 using Vacuo.App.Screens;
+using Vacuo.App.Updates;
 using Vacuo.App.Visuals;
 using Vacuo.Core.Actions;
 using Vacuo.Core.Disk;
@@ -22,6 +24,7 @@ using Vacuo.Core.Organize;
 using Vacuo.Core.Ram;
 using Vacuo.Core.Settings;
 using Vacuo.Core.Scanning;
+using Vacuo.Core.Updates;
 using Vacuo.Windows;
 using Windows.Foundation;
 using Windows.Graphics;
@@ -110,6 +113,11 @@ public sealed partial class PanelWindow : Window
     private DuplicatesView? _duplicatesScreen;
     private UninstallView? _uninstallScreen;
     private JournalView? _journalScreen;
+    private UpdateView? _updateScreen;
+    private readonly UpdateSession _updates;
+    // Shown in the header during the first opening after an update.
+    private InstallFollowUp _installFollowUp;
+    private string _trayTooltip = string.Empty;
 
     internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion, IReadOnlySet<string> probes)
     {
@@ -132,6 +140,15 @@ public sealed partial class PanelWindow : Window
         _memoryTimer = DispatcherQueue.CreateTimer();
         _memoryTimer.Interval = MemoryRefreshInterval;
         _memoryTimer.Tick += (_, _) => RefreshMemoryCounters();
+        _updates = CreateUpdateSession();
+        _updates.Changed += (_, _) =>
+        {
+            ShowUpdateBadge();
+            ShowTrayTooltip();
+        };
+        _updates.InstallStarted += (_, _) => QuitRequested?.Invoke(this, EventArgs.Empty);
+        _installFollowUp = _updates.FollowUpInstall();
+        ShowUpdateBadge();
 
         Activated += OnActivated;
         AppWindow.Closing += OnClosing;
@@ -145,11 +162,17 @@ public sealed partial class PanelWindow : Window
 
     internal bool IsOpen => _isOpen;
 
+    /// <summary>An update is downloading or installing; a hidden panel's process must wait for it.</summary>
+    internal bool IsUpdating => _updates.IsBusy;
+
     /// <summary>The tray's foreground history; null when the panel runs without the tray.</summary>
     internal Func<Task<ForegroundSnapshot?>> ForegroundSource { get; set; } = () => Task.FromResult<ForegroundSnapshot?>(null);
 
     /// <summary>The tray's window; its program is what starts with Windows. Zero when the panel runs without the tray.</summary>
     internal nint TrayWindow { get; set; }
+
+    /// <summary>Sets the tray icon's tooltip; does nothing when the panel runs without the tray.</summary>
+    internal Action<string> TrayTooltipSink { get; set; } = _ => { };
 
     internal void Toggle()
     {
@@ -230,6 +253,8 @@ public sealed partial class PanelWindow : Window
         _organizeScreen?.Shutdown();
         _duplicatesScreen?.Shutdown();
         _uninstallScreen?.Shutdown();
+        _updateScreen?.Shutdown();
+        _settingsScreen?.Shutdown();
     }
 
     // A new language shows at once (Alican, 20 October 2026), not from the next opening: the cards take
@@ -253,8 +278,10 @@ public sealed partial class PanelWindow : Window
         _duplicatesScreen = null;
         _uninstallScreen = null;
         _journalScreen = null;
+        _updateScreen = null;
 
         ApplyTexts();
+        ShowUpdateBadge();
         if (_diskScans.Latest is { } latest)
         {
             UpdateDiskCard(latest);
@@ -396,6 +423,13 @@ public sealed partial class PanelWindow : Window
         _memoryTimer.Start();
         RefreshOrganizeCard();
         _ = LoadBatteryAsync();
+        _updateScreen?.SetWindowOpen(true);
+        // A measurement run stays offline, so its numbers are the panel's own.
+        if (_measurement is null)
+        {
+            _ = _updates.CheckAsync(byHand: false);
+        }
+
         if (_showingWorkScreen)
         {
             return;
@@ -426,7 +460,15 @@ public sealed partial class PanelWindow : Window
         MarkEvent($"hidden-{reason}");
         VoidCanvas.Paused = true;
         _diskScreen?.SetWindowOpen(false);
+        _updateScreen?.SetWindowOpen(false);
         _memoryTimer.Stop();
+        // "Updated to X.Y.Z" is said for one opening only.
+        if (_installFollowUp != InstallFollowUp.None)
+        {
+            _installFollowUp = InstallFollowUp.None;
+            ShowUpdateBadge();
+        }
+
         AppWindow.Hide();
         _hiddenAt = DateTime.UtcNow;
         _measurement?.MarkPanelHidden();
@@ -667,8 +709,10 @@ public sealed partial class PanelWindow : Window
         settings.Initialize(
             _localizer,
             new SettingsStore(SettingsStore.DefaultPath),
-            trayProgram is null ? null : new StartupRegistration(new StartupRunKey(), trayProgram));
+            trayProgram is null ? null : new StartupRegistration(new StartupRunKey(), trayProgram),
+            _updates);
         settings.BackRequested += (_, _) => ReturnToCards();
+        settings.UpdateRequested += (_, _) => ShowUpdateScreen();
         // Not inside the picker's own event: the screen that raised it is replaced.
         settings.LanguageChanged += (_, choice) => DispatcherQueue.TryEnqueue(() => ChangeLanguage(choice));
         return _settingsScreen = settings;
@@ -730,6 +774,101 @@ public sealed partial class PanelWindow : Window
         return _journalScreen = journal;
     }
 
+    private UpdateView EnsureUpdateScreen()
+    {
+        if (_updateScreen is not null)
+        {
+            return _updateScreen;
+        }
+
+        var update = AddScreen(new UpdateView());
+        update.Initialize(_localizer, _updates, _animationsEnabled);
+        update.BackRequested += (_, _) => ReturnToCards();
+        // The panel hides; its process waits for the download (App: IsUpdating), then the setup takes over.
+        update.BackgroundRequested += (_, _) => Hide("update-background");
+        update.UpdateRequested += (_, _) => _ = _updates.UpdateAsync(TrayProcessId());
+        update.SetWindowOpen(_isOpen);
+        return _updateScreen = update;
+    }
+
+    private void ShowUpdateScreen()
+    {
+        UpdateView update = EnsureUpdateScreen();
+        update.Refresh();
+        ShowWorkScreen(update);
+    }
+
+    private static UpdateSession CreateUpdateSession()
+    {
+        string version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? "0.0.0";
+        if (!ReleaseVersion.TryParse(version, out ReleaseVersion? running))
+        {
+            throw new InvalidOperationException($"Vacuo's own version '{version}' is not a release number.");
+        }
+
+        HttpClient http = GitHubHttp.Create(version);
+        return new UpdateSession(
+            new SettingsStore(SettingsStore.DefaultPath),
+            new UpdateStateStore(UpdateStateStore.DefaultPath),
+            new ReleaseListClient(http, ReleaseListClient.DefaultTimeout),
+            new UpdateDownloader(http, UpdateDownloader.DefaultFolder, UpdateDownloader.DefaultStallTimeout),
+            running!,
+            UpdateDownloader.DefaultFolder);
+    }
+
+    // The setup waits for the tray as well, which holds Vacuo's files open too.
+    private int? TrayProcessId() =>
+        TrayWindow != 0 && GetWindowThreadProcessId(TrayWindow, out uint processId) != 0 ? (int)processId : null;
+
+    // The header says when a new version is ready, how far its download is, or, during the first opening
+    // after an update, which version this now is.
+    private void ShowUpdateBadge()
+    {
+        string? text = _updates switch
+        {
+            { Phase: UpdatePhase.Downloading } => _localizer.Format("UpdateBadgeDownloadingFormat", UpdateTexts.Percent(_updates.Progress)),
+            { Phase: UpdatePhase.Installing } => _localizer.Get("UpdateBadgeInstalling"),
+            { Offer: { } offer } => _localizer.Format("UpdateBadgeReadyFormat", offer.Version),
+            _ when _installFollowUp == InstallFollowUp.Updated => _localizer.Format("UpdateBadgeUpdatedFormat", _updates.Running),
+            _ => null,
+        };
+        UpdateBadge.Content = text;
+        UpdateBadge.Visibility = text is null ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    // While an update runs, the tray icon's tooltip says how far it is, for when the panel is hidden
+    // (Alican, 20 October 2026). Sent only when the text changes, about once a second.
+    private void ShowTrayTooltip()
+    {
+        string text = _updates.Phase switch
+        {
+            UpdatePhase.Downloading => _localizer.Format(
+                "TrayTooltipUpdatingFormat", UpdateTexts.Percent(_updates.Progress), UpdateTexts.Remaining(_localizer, _updates.Remaining)),
+            UpdatePhase.Installing => _localizer.Get("TrayTooltipInstalling"),
+            _ => string.Empty,
+        };
+        if (text == _trayTooltip)
+        {
+            return;
+        }
+
+        _trayTooltip = text;
+        TrayTooltipSink(text);
+    }
+
+    private void OnUpdateBadgeClick(object sender, RoutedEventArgs e)
+    {
+        if (_updates.Offer is null)
+        {
+            // Only "updated to X.Y.Z": a click puts it away.
+            _installFollowUp = InstallFollowUp.None;
+            ShowUpdateBadge();
+            return;
+        }
+
+        ShowUpdateScreen();
+    }
+
     // Where the screens sit: over the void and the cards, below the quit button.
     private T AddScreen<T>(T screen)
         where T : UserControl
@@ -743,7 +882,7 @@ public sealed partial class PanelWindow : Window
 
     // Screens not created yet are skipped.
     private UserControl[] LoadedScreens() =>
-        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _duplicatesScreen, _uninstallScreen, _journalScreen }
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _duplicatesScreen, _uninstallScreen, _journalScreen, _updateScreen }
             .OfType<UserControl>().ToArray();
 
     private void ShowDiskScreen()
