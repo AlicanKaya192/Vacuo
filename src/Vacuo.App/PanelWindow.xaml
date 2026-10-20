@@ -18,8 +18,9 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Vacuo's own header in place of a Windows title bar; on a screen it also moves the window. -->
-        <Grid x:Name="Header" Background="Transparent" PointerPressed="OnHeaderPointerPressed">
+        <!-- Vacuo's own header in place of a Windows title bar. The window never moves: it stays above the
+             tray (Alican, 20 October 2026: it had been dragged away by accident). -->
+        <Grid x:Name="Header" Background="Transparent">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />

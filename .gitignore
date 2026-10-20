@@ -24,3 +24,6 @@ TestResults/
 # Windows
 Thumbs.db
 desktop.ini
+
+# Setup builds (tools/build-installer.ps1)
+artifacts/

@@ -1,0 +1,57 @@
+# Builds the Vacuo setup on a setup-X.Y.Z tag and puts it on a DRAFT release; Alican checks and
+# publishes it (as in Odyssey, ADR-003 there). Nothing is published automatically.
+name: release
+
+on:
+  push:
+    tags:
+      - 'setup-*'
+
+permissions:
+  contents: write
+
+jobs:
+  setup:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Check the tag, the version and the release notes
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$project = Get-Content src\Vacuo.App\Vacuo.App.csproj
+          $version = ($project.Project.PropertyGroup | Where-Object { $_.Version } | Select-Object -First 1).Version
+          if ("setup-$version" -ne $env:GITHUB_REF_NAME) { throw "Tag $env:GITHUB_REF_NAME does not match version $version." }
+          if (-not (Test-Path "docs\releases\$version.md")) { throw "docs\releases\$version.md is missing." }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Run the tests
+        shell: pwsh
+        run: |
+          foreach ($project in 'tests\Vacuo.Core.Tests', 'tests\Vacuo.Cli.Tests', 'tests\Vacuo.Elevated.Tests') {
+            dotnet test --project $project -c Release
+            if ($LASTEXITCODE -ne 0) { throw "Tests failed in $project." }
+          }
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build the setup
+        shell: pwsh
+        run: tools\build-installer.ps1 -Iscc "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+
+      - name: Create the draft release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $files = Get-ChildItem artifacts\*\installer\Vacuo-$version-setup.exe*
+          gh release create $env:GITHUB_REF_NAME --draft --title "Vacuo $version" --notes-file "docs\releases\$version.md"
+          gh release upload $env:GITHUB_REF_NAME $files.FullName --clobber

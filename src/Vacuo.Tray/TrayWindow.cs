@@ -62,6 +62,13 @@ internal sealed class TrayWindow : IDisposable
 
     public void PostOpenPanel() => PostMessage(Handle, OpenPanelMessage, 0, 0);
 
+    /// <summary>Asks the tray already running for this user to open its panel; false when none answers.</summary>
+    public static bool OpenRunningPanel()
+    {
+        nint running = FindWindow(ClassName, null);
+        return running != 0 && PostMessage(running, OpenPanelMessage, 0, 0);
+    }
+
     public void PostClosePanel() => PostMessage(Handle, ClosePanelMessage, 0, 0);
 
     public void PostPanelExited() => PostMessage(Handle, PanelExitedMessage, 0, 0);

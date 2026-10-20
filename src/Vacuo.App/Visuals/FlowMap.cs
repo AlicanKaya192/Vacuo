@@ -35,7 +35,22 @@ internal sealed class FlowMap
     private const int MaximumParticles = 700;
     private const float CyclesPerSecond = 0.32f;
 
+    // The folder as a black hole seen almost edge-on (Alican, 20 October 2026: first "the inside is empty",
+    // then "not like a real black hole"): a dark shadow with a thin photon ring, the far side of the disk bent
+    // over the top of the shadow by its gravity, and the near side crossing in front of it.
+    private const float ShadowRadius = 9f;
+    private const float DiskInnerRadius = 12f;
+    private const float DiskOuterRadius = 32f;
+    private const float DiskTilt = 0.17f;
+    private const int DiskRows = 6;
+    private const int DiskPointsPerRow = 110;
+    private const int LensPoints = 90;
+    private const int LensLayers = 3;
+    private const float DiskTurnsPerSecond = 0.22f;
+    private const int HaloRings = 8;
+
     private static readonly Color Surface = Color.FromArgb(0xFF, 0x1D, 0x17, 0x2A);
+    private static readonly Color Void = Color.FromArgb(0xFF, 0x0A, 0x08, 0x11);
     private static readonly Color Line = Color.FromArgb(0xFF, 0x2C, 0x24, 0x41);
     private static readonly Color Accent = Color.FromArgb(0xFF, 0x9D, 0x7C, 0xFF);
     private static readonly Color AccentLight = Color.FromArgb(0xFF, 0xD4, 0xC6, 0xFF);
@@ -54,6 +69,7 @@ internal sealed class FlowMap
     private readonly Vector2 _source;
     private readonly Lane[] _lanes;
     private readonly Particle[] _particles;
+    private float _diskAngle;
 
     public FlowMap(string sourceLabel, IReadOnlyList<FlowTarget> targets, Vector2 size)
     {
@@ -94,6 +110,7 @@ internal sealed class FlowMap
     public void Advance(TimeSpan elapsed)
     {
         float seconds = (float)elapsed.TotalSeconds;
+        _diskAngle = (_diskAngle + DiskTurnsPerSecond * MathF.Tau * seconds) % MathF.Tau;
         for (int i = 0; i < _particles.Length; i++)
         {
             ref Particle particle = ref _particles[i];
@@ -131,8 +148,7 @@ internal sealed class FlowMap
             session.FillCircle(point, particle.Size, Color.FromArgb(alpha, color.R, color.G, color.B));
         }
 
-        session.FillCircle(_source, SourceRadius, Surface);
-        session.DrawCircle(_source, SourceRadius, Accent, 1.5f);
+        DrawSource(session);
         session.DrawText(_sourceLabel, new Vector2(_source.X, _source.Y + SourceRadius + 12), Ink, LabelFormat);
 
         foreach (Lane lane in _lanes)
@@ -143,6 +159,76 @@ internal sealed class FlowMap
             session.DrawText(lane.Target.Label, new Vector2(lane.Chip.X + lane.Width / 2, lane.Chip.Y + ChipHeight / 2), Ink, LabelFormat);
         }
     }
+
+    /// <summary>
+    /// The folder as a black hole: a soft glow, the far half of the disk, its image bent around the shadow, the
+    /// shadow with its photon ring, then the near half of the disk crossing in front.
+    /// </summary>
+    private void DrawSource(CanvasDrawingSession session)
+    {
+        for (int ring = 1; ring <= HaloRings; ring++)
+        {
+            session.FillCircle(_source, ShadowRadius + (SourceRadius - ShadowRadius) * ring / HaloRings, WithAlpha(Accent, 0x07));
+        }
+
+        DrawDisk(session, farSide: true);
+        DrawLensedDisk(session);
+        session.FillCircle(_source, ShadowRadius, Void);
+        session.DrawCircle(_source, ShadowRadius + 0.6f, WithAlpha(AccentLight, 0xD0), 1f);
+        DrawDisk(session, farSide: false);
+    }
+
+    /// <summary>
+    /// The disk as rings of glowing gas, brightest inside. The right side turns toward the viewer and shines
+    /// brighter; inner rings turn faster, so the bright clumps shear as they go round.
+    /// </summary>
+    private void DrawDisk(CanvasDrawingSession session, bool farSide)
+    {
+        for (int row = 0; row < DiskRows; row++)
+        {
+            float t = row / (float)(DiskRows - 1);
+            float radius = DiskInnerRadius + (DiskOuterRadius - DiskInnerRadius) * t;
+            float turn = _diskAngle * MathF.Pow(DiskInnerRadius / radius, 1.5f);
+            float fade = 0.15f + 0.85f * (1 - t) * (1 - t);
+            Color color = t < 0.4f ? AccentLight : Accent;
+            for (int i = 0; i < DiskPointsPerRow; i++)
+            {
+                float angle = i * MathF.Tau / DiskPointsPerRow;
+                // Screen y grows downward: the upper half is the far side.
+                if (MathF.Sin(angle) < 0 != farSide)
+                {
+                    continue;
+                }
+
+                float doppler = 0.35f + 0.65f * (1 + MathF.Cos(angle)) / 2;
+                float clumps = 0.7f + 0.3f * MathF.Sin(5 * (angle - turn) + row * 1.3f);
+                var point = new Vector2(_source.X + MathF.Cos(angle) * radius, _source.Y + MathF.Sin(angle) * radius * DiskTilt);
+                session.FillCircle(point, 1.1f, WithAlpha(color, (byte)(255 * doppler * clumps * fade)));
+            }
+        }
+    }
+
+    /// <summary>The far side of the disk, bent by gravity into a bright arc over the shadow and a faint one under it.</summary>
+    private void DrawLensedDisk(CanvasDrawingSession session)
+    {
+        for (int i = 0; i < LensPoints; i++)
+        {
+            float angle = i * MathF.Tau / LensPoints;
+            float sin = MathF.Sin(angle);
+            bool above = sin < 0;
+            float strength = above ? MathF.Pow(-sin, 1.5f) : 0.35f * sin * sin;
+            float doppler = 0.5f + 0.5f * (1 + MathF.Cos(angle)) / 2;
+            for (int layer = 0; layer < LensLayers; layer++)
+            {
+                float radius = ShadowRadius + 1.4f + layer * (above ? 1.6f : 0.8f);
+                var point = new Vector2(_source.X + MathF.Cos(angle) * radius, _source.Y + sin * radius);
+                byte alpha = (byte)(230 * strength * doppler * (1 - layer * 0.3f));
+                session.FillCircle(point, 1f, WithAlpha(layer == 0 ? AccentLight : Accent, alpha));
+            }
+        }
+    }
+
+    private static Color WithAlpha(Color color, byte alpha) => Color.FromArgb(alpha, color.R, color.G, color.B);
 
     private (Vector2 First, Vector2 Second) Controls(Lane lane)
     {

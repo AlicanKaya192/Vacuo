@@ -6,7 +6,7 @@ namespace Vacuo.Tray;
 /// <summary>
 /// Vacuo's resident process: only the logo in the notification area. A click starts the
 /// WinUI panel (Vacuo.exe) as a separate process, or shows it again while that process is
-/// still waiting after being closed. Switches: <c>--panel &lt;path&gt;</c>, <c>--lang en-US</c>,
+/// still waiting after being closed. Switches: <c>--panel &lt;path&gt;</c>, <c>--lang en-US</c>, <c>--open</c> (show the panel at once),
 /// and for Stage 0 measurement <c>--measure-dir &lt;folder&gt;</c>, <c>--linger-seconds &lt;n&gt;</c>
 /// with <c>--script idle|coldstart|full|linger</c>.
 /// </summary>
@@ -15,10 +15,19 @@ internal static class Program
     private const string PanelExecutable = "Vacuo.exe";
     private const string TrayIconFile = "Assets\\vacuo.ico";
     private const string Tooltip = "Vacuo";
+    private const string SingleTrayName = @"Local\Vacuo.Tray";
 
     [STAThread]
     private static int Main(string[] args)
     {
+        // One tray per user: a second start (the Start menu shortcut, a setup) opens the running tray's panel.
+        using var singleTray = new Mutex(initiallyOwned: true, SingleTrayName, out bool firstTray);
+        if (!firstTray)
+        {
+            TrayWindow.OpenRunningPanel();
+            return 0;
+        }
+
         var options = TrayOptions.Parse(args);
         var measurement = options.MeasurementDirectory is null ? null : new TrayMeasurement(options.MeasurementDirectory);
 
@@ -55,6 +64,13 @@ internal static class Program
             window.Quit();
         };
 
+        // After setup or from the Start menu the panel shows too, so a new user sees where Vacuo went;
+        // starting with Windows passes no switch and stays in the tray.
+        if (options.OpenPanelAtStart)
+        {
+            window.PostOpenPanel();
+        }
+
         if (options.Script is not null && measurement is not null)
         {
             _ = Task.Run(() => new TrayScript(window, measurement).RunAsync(options.Script));
@@ -66,13 +82,15 @@ internal static class Program
     }
 }
 
-internal sealed record TrayOptions(string? PanelPath, string? MeasurementDirectory, string? Script, IReadOnlyList<string> PanelArguments)
+internal sealed record TrayOptions(
+    string? PanelPath, string? MeasurementDirectory, string? Script, IReadOnlyList<string> PanelArguments, bool OpenPanelAtStart)
 {
     public static TrayOptions Parse(IReadOnlyList<string> args)
     {
         string? panelPath = null;
         string? measurementDirectory = null;
         string? script = null;
+        bool openPanelAtStart = false;
         var panelArguments = new List<string>();
 
         for (int i = 0; i < args.Count; i++)
@@ -88,6 +106,9 @@ internal sealed record TrayOptions(string? PanelPath, string? MeasurementDirecto
                 case "--script" when i + 1 < args.Count:
                     script = args[++i];
                     break;
+                case "--open":
+                    openPanelAtStart = true;
+                    break;
                 case "--lang" or PanelProtocol.LingerSecondsSwitch when i + 1 < args.Count:
                     // Passed on: the panel shows the text and decides how long it waits.
                     panelArguments.Add(args[i]);
@@ -96,6 +117,6 @@ internal sealed record TrayOptions(string? PanelPath, string? MeasurementDirecto
             }
         }
 
-        return new TrayOptions(panelPath, measurementDirectory, script, panelArguments);
+        return new TrayOptions(panelPath, measurementDirectory, script, panelArguments, openPanelAtStart);
     }
 }

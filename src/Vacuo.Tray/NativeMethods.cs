@@ -165,6 +165,9 @@ internal static class NativeMethods
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     public static extern uint RegisterWindowMessage(string name);
 
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern nint FindWindow(string className, string? windowName);
+
     [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool Shell_NotifyIcon(uint message, ref NotifyIconData data);

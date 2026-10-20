@@ -1298,19 +1298,6 @@ public sealed partial class PanelWindow : Window
 
     private void OnHideClick(object sender, RoutedEventArgs e) => Hide("button");
 
-    // Without a Windows title bar the header is the handle: Windows moves the window as if its caption was dragged.
-    // The cards stay where they open, above the tray.
-    private void OnHeaderPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        if (!_showingWorkScreen || !e.GetCurrentPoint(Header).Properties.IsLeftButtonPressed)
-        {
-            return;
-        }
-
-        ReleaseCapture();
-        SendMessage(Handle, WmNcLeftButtonDown, HtCaption, 0);
-    }
-
     private void OnQuitClick(object sender, RoutedEventArgs e)
     {
         QuitRequested?.Invoke(this, EventArgs.Empty);
