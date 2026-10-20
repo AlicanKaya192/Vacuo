@@ -804,9 +804,6 @@
   <data name="Category_SystemAndOther" xml:space="preserve">
     <value>System and other</value>
   </data>
-  <data name="DuplicatesCardBody" xml:space="preserve">
-    <value>Finds files with the same content, so you can remove the extra copies.</value>
-  </data>
   <data name="DuplicatesTitle" xml:space="preserve">
     <value>Duplicate files</value>
   </data>
@@ -875,5 +872,116 @@
   </data>
   <data name="DuplicatesFindButton" xml:space="preserve">
     <value>Find copies</value>
+  </data>
+  <data name="ToolsCardTitle" xml:space="preserve">
+    <value>Duplicate files and programs</value>
+  </data>
+  <data name="ToolsCardBody" xml:space="preserve">
+    <value>Find files with the same content, or remove a program with its own uninstaller.</value>
+  </data>
+  <data name="UninstallCardButton" xml:space="preserve">
+    <value>Uninstall a program</value>
+  </data>
+  <data name="UninstallTitle" xml:space="preserve">
+    <value>Uninstall programs</value>
+  </data>
+  <data name="UninstallSearchPlaceholder" xml:space="preserve">
+    <value>Search programs or publishers</value>
+  </data>
+  <data name="UninstallSort_Name" xml:space="preserve">
+    <value>By name</value>
+  </data>
+  <data name="UninstallSort_Size" xml:space="preserve">
+    <value>By size</value>
+  </data>
+  <data name="UninstallSort_InstalledOn" xml:space="preserve">
+    <value>By install date</value>
+  </data>
+  <data name="UninstallReading" xml:space="preserve">
+    <value>Reading installed programs…</value>
+  </data>
+  <data name="UninstallReadFailedFormat" xml:space="preserve">
+    <value>Could not read installed programs: {0}</value>
+  </data>
+  <data name="UninstallCountFormat" xml:space="preserve">
+    <value>{0} programs · reported sizes add up to {1}</value>
+  </data>
+  <data name="UninstallNothingMatches" xml:space="preserve">
+    <value>No program matches your search.</value>
+  </data>
+  <data name="UninstallMoreFormat" xml:space="preserve">
+    <value>Show {0} more programs</value>
+  </data>
+  <data name="UninstallButton" xml:space="preserve">
+    <value>Uninstall</value>
+  </data>
+  <data name="UninstallUnknownSize" xml:space="preserve">
+    <value>size not reported</value>
+  </data>
+  <data name="UninstallConfirmTitleFormat" xml:space="preserve">
+    <value>Uninstall {0}?</value>
+  </data>
+  <data name="UninstallConfirmSummary" xml:space="preserve">
+    <value>The program's own uninstaller opens; it asks its own questions and does the removal. Vacuo never uninstalls silently.</value>
+  </data>
+  <data name="UninstallConfirmAdminNote" xml:space="preserve">
+    <value>Windows may ask for administrator permission; that is for the uninstaller, not for Vacuo.</value>
+  </data>
+  <data name="UninstallConfirmLeftoversNote" xml:space="preserve">
+    <value>When the uninstaller closes, Vacuo looks for folders left behind and only suggests them; nothing moves unless you pick it.</value>
+  </data>
+  <data name="UninstallConfirmButton" xml:space="preserve">
+    <value>Open the uninstaller</value>
+  </data>
+  <data name="UninstallRunningFormat" xml:space="preserve">
+    <value>The {0} uninstaller is open. This updates when it closes.</value>
+  </data>
+  <data name="UninstallCancelled" xml:space="preserve">
+    <value>The uninstaller did not open: Windows permission was not given.</value>
+  </data>
+  <data name="UninstallNotFoundFormat" xml:space="preserve">
+    <value>Uninstaller not found: {0}</value>
+  </data>
+  <data name="UninstallCommandUnreadable" xml:space="preserve">
+    <value>This program's uninstall command could not be read.</value>
+  </data>
+  <data name="UninstallFailedFormat" xml:space="preserve">
+    <value>Could not check the removal: {0}</value>
+  </data>
+  <data name="UninstallStillInstalledFormat" xml:space="preserve">
+    <value>{0} still looks installed. If the uninstaller carries on in another window, press Check again when it is done.</value>
+  </data>
+  <data name="UninstallRecheckButton" xml:space="preserve">
+    <value>Check again</value>
+  </data>
+  <data name="UninstallRemovedFormat" xml:space="preserve">
+    <value>{0} was uninstalled.</value>
+  </data>
+  <data name="UninstallLeftoversSearching" xml:space="preserve">
+    <value>Looking for folders left behind…</value>
+  </data>
+  <data name="UninstallNoLeftovers" xml:space="preserve">
+    <value>No folders were left behind.</value>
+  </data>
+  <data name="UninstallLeftoversFormat" xml:space="preserve">
+    <value>{0} folders may have been left behind ({1}); pick the ones you want gone.</value>
+  </data>
+  <data name="UninstallLeftoversNonePicked" xml:space="preserve">
+    <value>None picked; folders you do not pick stay where they are.</value>
+  </data>
+  <data name="UninstallLeftoversPreviewTitle" xml:space="preserve">
+    <value>These folders will be moved</value>
+  </data>
+  <data name="UninstallLeftoversPreviewFormat" xml:space="preserve">
+    <value>{0} folders · {1}</value>
+  </data>
+  <data name="UninstallLeftoversWarningFormat" xml:space="preserve">
+    <value>These folders may hold the settings or data of {0}. If you install it again, it starts without them.</value>
+  </data>
+  <data name="JournalLeftovers" xml:space="preserve">
+    <value>Program leftovers</value>
+  </data>
+  <data name="JournalFoldersFormat" xml:space="preserve">
+    <value>{0} folders</value>
   </data>
 </root>

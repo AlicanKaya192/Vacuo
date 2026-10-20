@@ -25,8 +25,13 @@ public sealed record JournalRow(IReadOnlyList<JournalEntry> Entries)
         ? First.UndoneAt
         : Files.All(entry => entry.UndoneAt is not null) ? Files.Max(entry => entry.UndoneAt) : null;
 
-    /// <summary>Copies the duplicate files screen sent to the Recycle Bin together; Düzen runs only move files.</summary>
-    public bool IsDuplicatesRun => BatchId is not null && Entries.All(entry => entry.Undo is RecycledItem);
+    /// <summary>
+    /// Which screen the run came from; <see langword="null"/> for a single entry. Lines written before
+    /// batches carried their kind are told apart by what they did: only Düzen moved files.
+    /// </summary>
+    public JournalBatchKind? BatchKind => BatchId is null
+        ? null
+        : First.BatchKind ?? (Entries.All(entry => entry.Undo is RecycledItem) ? JournalBatchKind.Duplicates : JournalBatchKind.Organize);
 
     /// <summary>Every folder the row's items came from, in journal order.</summary>
     public IReadOnlyList<string> Folders => Files

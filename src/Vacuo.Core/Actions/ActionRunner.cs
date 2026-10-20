@@ -9,14 +9,14 @@ namespace Vacuo.Core.Actions;
 /// </summary>
 public sealed class ActionRunner(ActionJournal journal, IRecycleBin recycleBin, TimeProvider time)
 {
-    public JournalEntry Run(IAction action, Guid? batchId = null)
+    public JournalEntry Run(IAction action, Guid? batchId = null, JournalBatchKind? batchKind = null)
     {
         OpenFileProbe.EnsureNothingInUse(action.TargetPath);
         long sizeBytes = MeasureBytes(action.TargetPath);
 
         UndoRecord undo = action.Execute();
 
-        var entry = new JournalEntry(Guid.NewGuid(), time.GetUtcNow(), sizeBytes, undo, UndoneAt: null, batchId);
+        var entry = new JournalEntry(Guid.NewGuid(), time.GetUtcNow(), sizeBytes, undo, UndoneAt: null, batchId, batchKind);
         journal.Append(entry);
         return entry;
     }

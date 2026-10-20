@@ -99,30 +99,33 @@ public sealed partial class JournalView : UserControl
         }
     }
 
-    // A whole Düzen run, or the copies one duplicate files move sent to the Recycle Bin, on one row (B-161):
-    // where they were, how many files, and one "Undo" for all of them.
+    // A whole Düzen run, the copies one duplicate files move sent to the Recycle Bin, or the folders a removed
+    // program left behind, on one row (B-161): where they were, how many, and one "Undo" for all of them.
     private Grid BatchRow(JournalRow batch, Guid batchId)
     {
         bool moved = batch.UndoneAt is null;
+        bool organize = batch.BatchKind == JournalBatchKind.Organize;
         Grid row = RowFrame(moved ? "AccentBrush" : "LineBrush");
         var details = new StackPanel { Padding = new Thickness(0, 10, 0, 10), Spacing = 2 };
-        if (batch.IsDuplicatesRun)
-        {
-            details.Children.Add(Text(_localizer.Get("DuplicatesTitle"), "InkBrush"));
-            details.Children.Add(Text(string.Join(" · ", batch.Folders), "InkSecondaryBrush", fontSize: 12));
-        }
-        else
+        if (organize)
         {
             details.Children.Add(Text(_localizer.Format("JournalOrganizeFormat", Path.GetFileName(batch.Folder)), "InkBrush"));
             details.Children.Add(Text(batch.Folder, "InkSecondaryBrush", fontSize: 12));
         }
+        else
+        {
+            string title = batch.BatchKind == JournalBatchKind.Leftovers ? "JournalLeftovers" : "DuplicatesTitle";
+            details.Children.Add(Text(_localizer.Get(title), "InkBrush"));
+            details.Children.Add(Text(string.Join(" · ", batch.Folders), "InkSecondaryBrush", fontSize: 12));
+        }
 
         string when = batch.At.ToLocalTime().ToString("g", _localizer.Culture);
         string status = moved
-            ? _localizer.Get(batch.IsDuplicatesRun ? "JournalInBin" : "JournalOrganized")
+            ? _localizer.Get(organize ? "JournalOrganized" : "JournalInBin")
             : _localizer.Format("JournalUndoneFormat", batch.UndoneAt!.Value.ToLocalTime().ToString("g", _localizer.Culture));
+        string count = batch.BatchKind == JournalBatchKind.Leftovers ? "JournalFoldersFormat" : "JournalFilesFormat";
         details.Children.Add(Text(
-            $"{_localizer.Format("JournalFilesFormat", batch.FileCount)} · {DiskTexts.Size(_localizer, batch.SizeBytes)} · {when} · {status}",
+            $"{_localizer.Format(count, batch.FileCount)} · {DiskTexts.Size(_localizer, batch.SizeBytes)} · {when} · {status}",
             "InkSecondaryBrush",
             fontSize: 12));
         TextBlock message = HiddenMessage();

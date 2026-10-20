@@ -39,6 +39,35 @@ public class ActionJournalTests
     }
 
     [Fact]
+    public void Append_BatchKind_IsReadBack()
+    {
+        using var tree = new TempTree();
+        string file = tree.PathOf(@"Vacuo\journal.jsonl");
+        var journal = new ActionJournal(file);
+        JournalEntry labelled = RecycledEntry() with { BatchId = Guid.NewGuid(), BatchKind = JournalBatchKind.Leftovers };
+        JournalEntry unlabelled = MovedEntry() with { BatchId = Guid.NewGuid() };
+
+        journal.Append(labelled);
+        journal.Append(unlabelled);
+
+        Assert.Equal([labelled, unlabelled], new ActionJournal(file).ReadAll());
+    }
+
+    [Fact]
+    public void ReadAll_LineWrittenBeforeBatchKindExisted_HasNoBatchKind()
+    {
+        using var tree = new TempTree();
+        string file = tree.PathOf(@"Vacuo\journal.jsonl");
+        JournalEntry entry = MovedEntry() with { BatchId = Guid.NewGuid() };
+        new ActionJournal(file).Append(entry);
+        string line = File.ReadAllText(file);
+        Assert.Contains(",\"BatchKind\":null", line);
+        File.WriteAllText(file, line.Replace(",\"BatchKind\":null", string.Empty));
+
+        Assert.Equal([entry], new ActionJournal(file).ReadAll());
+    }
+
+    [Fact]
     public void MarkUndone_IsReadBackAsTheUndoTime()
     {
         using var tree = new TempTree();

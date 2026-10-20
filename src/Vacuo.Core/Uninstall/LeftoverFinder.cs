@@ -13,11 +13,24 @@ public sealed record LeftoverFolder(string Path, DirectorySize Size);
 /// </summary>
 public static partial class LeftoverFinder
 {
+    // Windows' own folders directly under AppData; a program sharing one of these names never gets them.
+    private static readonly HashSet<string> WindowsDataFolders = new(
+        ["temp", "programs", "packages", "microsoft", "windows", "comms", "connecteddevicesplatform", "crashdumps", "d3dscache", "publishers", "virtualstore"],
+        StringComparer.Ordinal);
+
+    /// <summary>Where programs keep the current user's data: AppData's Roaming, Local and LocalLow.</summary>
+    public static IReadOnlyList<string> DataRootsForThisUser() =>
+    [
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "LocalLow"),
+    ];
+
     public static IReadOnlyList<LeftoverFolder> Find(
         InstalledProgram removed, IReadOnlyList<string> dataRoots, IReadOnlyList<InstalledProgram> stillInstalled)
     {
         string target = Key(removed.Name);
-        if (target.Length == 0 || stillInstalled.Any(program => Key(program.Name) == target))
+        if (target.Length == 0 || WindowsDataFolders.Contains(target) || stillInstalled.Any(program => Key(program.Name) == target))
         {
             return [];
         }

@@ -67,7 +67,7 @@ public sealed class DuplicatesScreen
 
                 try
                 {
-                    moved.Add(runner.Run(new MoveToRecycleBinAction(copy.Path, recycleBin), batchId));
+                    moved.Add(runner.Run(new MoveToRecycleBinAction(copy.Path, recycleBin), batchId, JournalBatchKind.Duplicates));
                     gone.Add(copy.Path);
                 }
                 catch (ActionRefusedException refusal)

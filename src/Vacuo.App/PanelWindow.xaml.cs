@@ -107,6 +107,7 @@ public sealed partial class PanelWindow : Window
     private SettingsView? _settingsScreen;
     private BatteryView? _batteryScreen;
     private DuplicatesView? _duplicatesScreen;
+    private UninstallView? _uninstallScreen;
     private JournalView? _journalScreen;
 
     internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion, IReadOnlySet<string> probes)
@@ -220,6 +221,7 @@ public sealed partial class PanelWindow : Window
         _memoryScreen?.Shutdown();
         _organizeScreen?.Shutdown();
         _duplicatesScreen?.Shutdown();
+        _uninstallScreen?.Shutdown();
         Close();
     }
 
@@ -287,9 +289,10 @@ public sealed partial class PanelWindow : Window
         OrganizeInspectButton.Content = _localizer.Get("OrganizeInspectButton");
         BatteryTitle.Text = _localizer.Get("BatteryTitle");
         BatteryInspectButton.Content = _localizer.Get("BatteryInspectButton");
-        ToolsTitle.Text = _localizer.Get("DuplicatesTitle");
-        ToolsBody.Text = _localizer.Get("DuplicatesCardBody");
+        ToolsTitle.Text = _localizer.Get("ToolsCardTitle");
+        ToolsBody.Text = _localizer.Get("ToolsCardBody");
         DuplicatesButton.Content = _localizer.Get("DuplicatesFindButton");
+        UninstallButton.Content = _localizer.Get("UninstallCardButton");
         QuitButton.Content = _localizer.Get("QuitButton");
         string settingsLabel = _localizer.Get("SettingsTitle");
         ToolTipService.SetToolTip(SettingsButton, settingsLabel);
@@ -645,6 +648,20 @@ public sealed partial class PanelWindow : Window
         return _duplicatesScreen = duplicates;
     }
 
+    private UninstallView EnsureUninstallScreen()
+    {
+        if (_uninstallScreen is not null)
+        {
+            return _uninstallScreen;
+        }
+
+        var uninstall = AddScreen(new UninstallView());
+        uninstall.Initialize(_localizer, _runner, _recycleBin, _animationsEnabled);
+        uninstall.BackRequested += (_, _) => ReturnToCards();
+        uninstall.JournalRequested += (_, _) => ShowJournal(uninstall);
+        return _uninstallScreen = uninstall;
+    }
+
     private JournalView EnsureJournalScreen()
     {
         if (_journalScreen is not null)
@@ -672,7 +689,7 @@ public sealed partial class PanelWindow : Window
 
     // Screens not created yet are skipped.
     private UserControl[] LoadedScreens() =>
-        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _duplicatesScreen, _journalScreen }
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _duplicatesScreen, _uninstallScreen, _journalScreen }
             .OfType<UserControl>().ToArray();
 
     private void ShowDiskScreen()
@@ -710,6 +727,13 @@ public sealed partial class PanelWindow : Window
         DuplicatesView duplicates = EnsureDuplicatesScreen();
         ShowWorkScreen(duplicates);
         duplicates.Refresh();
+    }
+
+    private void ShowUninstallScreen()
+    {
+        UninstallView uninstall = EnsureUninstallScreen();
+        ShowWorkScreen(uninstall);
+        uninstall.Refresh();
     }
 
     private void ShowOrganizeScreen()
@@ -919,7 +943,7 @@ public sealed partial class PanelWindow : Window
         {
             duplicates.Rescan();
         }
-        else
+        else if (_journalOpenedFrom is DiskView)
         {
             RefreshDisk();
         }
@@ -1197,6 +1221,8 @@ public sealed partial class PanelWindow : Window
     private void OnBatteryInspectClick(object sender, RoutedEventArgs e) => ShowBatteryScreen();
 
     private void OnDuplicatesClick(object sender, RoutedEventArgs e) => ShowDuplicatesScreen();
+
+    private void OnUninstallClick(object sender, RoutedEventArgs e) => ShowUninstallScreen();
 
     // Only with --measure: when each step of a screen change happened, numbered per change.
     // Measurement only: each event gets its own number, so repeats are all kept.

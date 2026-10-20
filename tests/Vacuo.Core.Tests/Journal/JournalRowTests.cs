@@ -31,25 +31,44 @@ public class JournalRowTests
         Assert.Null(rows[1].BatchId);
     }
 
+    private static JournalEntry RecycledIn(Guid batch, string path, JournalBatchKind? kind = null) =>
+        new(Guid.NewGuid(), Later, 100, new RecycledItem(path, Later, @"C:\$Recycle.Bin\x"), null, batch, kind);
+
+    // Lines written before batches carried their kind: recycled-only runs came from the duplicates screen.
     [Fact]
-    public void ARunOfRecycledCopies_IsADuplicatesRunAcrossItsFolders()
+    public void AnUnlabelledRunOfRecycledCopies_IsADuplicatesRunAcrossItsFolders()
     {
         var copies = Guid.NewGuid();
-        JournalEntry Copy(string path) => new(Guid.NewGuid(), Later, 100, new RecycledItem(path, Later, @"C:\$Recycle.Bin\x"), null, copies);
 
         IReadOnlyList<JournalRow> rows = JournalRow.From(
-            [Copy(@"C:\Users\test\Downloads\a.pdf"), Copy(@"C:\Users\test\Desktop\b.jpg"), Copy(@"C:\Users\test\Downloads\c.pdf"), Folder(), Moved("d.pdf")]);
+        [
+            RecycledIn(copies, @"C:\Users\test\Downloads\a.pdf"),
+            RecycledIn(copies, @"C:\Users\test\Desktop\b.jpg"),
+            RecycledIn(copies, @"C:\Users\test\Downloads\c.pdf"),
+            Folder(),
+            Moved("d.pdf"),
+        ]);
 
         JournalRow duplicates = Assert.Single(rows, row => row.BatchId == copies);
-        Assert.True(duplicates.IsDuplicatesRun);
+        Assert.Equal(JournalBatchKind.Duplicates, duplicates.BatchKind);
         Assert.Equal([@"C:\Users\test\Downloads", @"C:\Users\test\Desktop"], duplicates.Folders);
-        Assert.False(Assert.Single(rows, row => row.BatchId == Batch).IsDuplicatesRun);
+        Assert.Equal(JournalBatchKind.Organize, Assert.Single(rows, row => row.BatchId == Batch).BatchKind);
     }
 
     [Fact]
-    public void ASingleRecycledEntry_IsNotADuplicatesRun()
+    public void ALabelledRun_KeepsItsKind()
     {
-        Assert.False(Assert.Single(JournalRow.From([Recycled()])).IsDuplicatesRun);
+        var leftovers = Guid.NewGuid();
+
+        JournalRow row = Assert.Single(JournalRow.From([RecycledIn(leftovers, @"C:\Users\test\AppData\Roaming\Foo", JournalBatchKind.Leftovers)]));
+
+        Assert.Equal(JournalBatchKind.Leftovers, row.BatchKind);
+    }
+
+    [Fact]
+    public void ASingleEntry_HasNoBatchKind()
+    {
+        Assert.Null(Assert.Single(JournalRow.From([Recycled()])).BatchKind);
     }
 
     [Fact]

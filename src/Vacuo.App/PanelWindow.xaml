@@ -199,8 +199,8 @@
                     </StackPanel>
                 </Border>
             </Grid>
-            <!-- Tools without a card of their own (Aşama 3d): duplicate files now, Kaldır next. Full width and
-                 low, so neither column grows and no card stretches into a gap (vacuo-kurallar 13). -->
+            <!-- Tools without a card of their own (Aşama 3d): duplicate files and Kaldır. Full width and low,
+                 buttons side by side, so neither column grows and no card stretches into a gap (vacuo-kurallar 13). -->
             <Border x:Name="ToolsCard" Grid.Row="1" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}">
                 <Grid ColumnSpacing="16">
                     <Grid.ColumnDefinitions>
@@ -211,10 +211,10 @@
                         <TextBlock x:Name="ToolsTitle" Style="{StaticResource CardTitleStyle}" />
                         <TextBlock x:Name="ToolsBody" Style="{StaticResource CardBodyStyle}" />
                     </StackPanel>
-                    <Button x:Name="DuplicatesButton"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Click="OnDuplicatesClick" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Button x:Name="DuplicatesButton" Click="OnDuplicatesClick" />
+                        <Button x:Name="UninstallButton" Click="OnUninstallClick" />
+                    </StackPanel>
                 </Grid>
             </Border>
         </Grid>

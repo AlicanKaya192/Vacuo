@@ -101,6 +101,7 @@ public class DuplicatesScreenTests
         Assert.Equal(2, journal.Count);
         Assert.NotNull(journal[0].BatchId);
         Assert.All(journal, entry => Assert.Equal(journal[0].BatchId, entry.BatchId));
+        Assert.All(journal, entry => Assert.Equal(JournalBatchKind.Duplicates, entry.BatchKind));
     }
 
     [Fact]

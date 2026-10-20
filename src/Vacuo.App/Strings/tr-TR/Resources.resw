@@ -804,9 +804,6 @@
   <data name="Category_SystemAndOther" xml:space="preserve">
     <value>Sistem ve diğer</value>
   </data>
-  <data name="DuplicatesCardBody" xml:space="preserve">
-    <value>Aynı içerikli dosyaları bulur, fazla kopyaları kaldırırsın.</value>
-  </data>
   <data name="DuplicatesTitle" xml:space="preserve">
     <value>Kopya dosyalar</value>
   </data>
@@ -875,5 +872,116 @@
   </data>
   <data name="DuplicatesFindButton" xml:space="preserve">
     <value>Kopyaları bul</value>
+  </data>
+  <data name="ToolsCardTitle" xml:space="preserve">
+    <value>Kopya dosyalar ve programlar</value>
+  </data>
+  <data name="ToolsCardBody" xml:space="preserve">
+    <value>Aynı içerikli dosyaları bul ya da programı kendi kaldırıcısıyla kaldır.</value>
+  </data>
+  <data name="UninstallCardButton" xml:space="preserve">
+    <value>Program kaldır</value>
+  </data>
+  <data name="UninstallTitle" xml:space="preserve">
+    <value>Programları kaldır</value>
+  </data>
+  <data name="UninstallSearchPlaceholder" xml:space="preserve">
+    <value>Program ya da yayıncı ara</value>
+  </data>
+  <data name="UninstallSort_Name" xml:space="preserve">
+    <value>Ada göre</value>
+  </data>
+  <data name="UninstallSort_Size" xml:space="preserve">
+    <value>Boyuta göre</value>
+  </data>
+  <data name="UninstallSort_InstalledOn" xml:space="preserve">
+    <value>Kurulum tarihine göre</value>
+  </data>
+  <data name="UninstallReading" xml:space="preserve">
+    <value>Kurulu programlar okunuyor…</value>
+  </data>
+  <data name="UninstallReadFailedFormat" xml:space="preserve">
+    <value>Kurulu programlar okunamadı: {0}</value>
+  </data>
+  <data name="UninstallCountFormat" xml:space="preserve">
+    <value>{0} program · bildirilen boyutların toplamı {1}</value>
+  </data>
+  <data name="UninstallNothingMatches" xml:space="preserve">
+    <value>Aramana uyan program yok.</value>
+  </data>
+  <data name="UninstallMoreFormat" xml:space="preserve">
+    <value>{0} program daha göster</value>
+  </data>
+  <data name="UninstallButton" xml:space="preserve">
+    <value>Kaldır</value>
+  </data>
+  <data name="UninstallUnknownSize" xml:space="preserve">
+    <value>boyut bildirilmiyor</value>
+  </data>
+  <data name="UninstallConfirmTitleFormat" xml:space="preserve">
+    <value>{0} kaldırılsın mı?</value>
+  </data>
+  <data name="UninstallConfirmSummary" xml:space="preserve">
+    <value>Programın kendi kaldırıcısı açılır; soruları o sorar ve kaldırmayı o yapar. Vacuo sessiz kaldırma yapmaz.</value>
+  </data>
+  <data name="UninstallConfirmAdminNote" xml:space="preserve">
+    <value>Windows yönetici izni isteyebilir; bu izin kaldırıcı içindir, Vacuo için değil.</value>
+  </data>
+  <data name="UninstallConfirmLeftoversNote" xml:space="preserve">
+    <value>Kaldırıcı kapanınca Vacuo geride kalan klasörlere bakar ve yalnızca önerir; sen seçmeden hiçbir şey taşınmaz.</value>
+  </data>
+  <data name="UninstallConfirmButton" xml:space="preserve">
+    <value>Kaldırıcıyı aç</value>
+  </data>
+  <data name="UninstallRunningFormat" xml:space="preserve">
+    <value>{0} kaldırıcısı açık. Kaldırıcı kapanınca burası güncellenir.</value>
+  </data>
+  <data name="UninstallCancelled" xml:space="preserve">
+    <value>Kaldırıcı açılmadı: Windows izni verilmedi.</value>
+  </data>
+  <data name="UninstallNotFoundFormat" xml:space="preserve">
+    <value>Kaldırıcı bulunamadı: {0}</value>
+  </data>
+  <data name="UninstallCommandUnreadable" xml:space="preserve">
+    <value>Bu programın kaldırma komutu okunamadı.</value>
+  </data>
+  <data name="UninstallFailedFormat" xml:space="preserve">
+    <value>Kaldırma denetlenemedi: {0}</value>
+  </data>
+  <data name="UninstallStillInstalledFormat" xml:space="preserve">
+    <value>{0} hâlâ kurulu görünüyor. Kaldırıcı başka bir pencerede sürüyorsa bitince Yeniden denetle'ye bas.</value>
+  </data>
+  <data name="UninstallRecheckButton" xml:space="preserve">
+    <value>Yeniden denetle</value>
+  </data>
+  <data name="UninstallRemovedFormat" xml:space="preserve">
+    <value>{0} kaldırıldı.</value>
+  </data>
+  <data name="UninstallLeftoversSearching" xml:space="preserve">
+    <value>Geride kalan klasörler aranıyor…</value>
+  </data>
+  <data name="UninstallNoLeftovers" xml:space="preserve">
+    <value>Geride kalan klasör bulunmadı.</value>
+  </data>
+  <data name="UninstallLeftoversFormat" xml:space="preserve">
+    <value>Geride kalmış olabilecek {0} klasör var ({1}); istediklerini seç.</value>
+  </data>
+  <data name="UninstallLeftoversNonePicked" xml:space="preserve">
+    <value>Hiçbiri seçili değil; seçmediğin klasörler yerinde kalır.</value>
+  </data>
+  <data name="UninstallLeftoversPreviewTitle" xml:space="preserve">
+    <value>Bu klasörler taşınacak</value>
+  </data>
+  <data name="UninstallLeftoversPreviewFormat" xml:space="preserve">
+    <value>{0} klasör · {1}</value>
+  </data>
+  <data name="UninstallLeftoversWarningFormat" xml:space="preserve">
+    <value>Bu klasörlerde {0} programının ayarları ya da verileri olabilir. Programı yeniden kurarsan bunlar olmadan başlar.</value>
+  </data>
+  <data name="JournalLeftovers" xml:space="preserve">
+    <value>Program kalıntıları</value>
+  </data>
+  <data name="JournalFoldersFormat" xml:space="preserve">
+    <value>{0} klasör</value>
   </data>
 </root>

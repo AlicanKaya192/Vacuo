@@ -83,4 +83,18 @@ public class LeftoverFinderTests
 
         Assert.Empty(Find(tree, Program("Foo Player")));
     }
+
+    // A program that happens to share a name with Windows' own data folders must not offer them.
+    [Theory]
+    [InlineData("Temp")]
+    [InlineData("Programs")]
+    [InlineData("Packages")]
+    [InlineData("Microsoft")]
+    public void AWindowsDataFolder_IsNeverSuggested(string name)
+    {
+        using var tree = new TempTree();
+        tree.AddFile($@"Local\{name}\x.dat", 10);
+
+        Assert.Empty(Find(tree, Program(name)));
+    }
 }

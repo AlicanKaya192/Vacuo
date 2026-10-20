@@ -38,7 +38,7 @@ public sealed class FolderOrganizer(ActionRunner runner)
 
             try
             {
-                moved.Add(runner.Run(new MoveFileAction(move.Source, move.Destination), batchId));
+                moved.Add(runner.Run(new MoveFileAction(move.Source, move.Destination), batchId, JournalBatchKind.Organize));
             }
             catch (Exception exception) when (exception is ActionRefusedException or IOException or UnauthorizedAccessException)
             {
