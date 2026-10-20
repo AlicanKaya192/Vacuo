@@ -18,6 +18,7 @@ internal sealed class TrayWindow : IDisposable
     private const uint PanelExitedMessage = WmApp + 4;
     private const uint QuitMessage = WmApp + 5;
     private const uint IconId = 1;
+    private const nuint TimerId = 1;
     // Nothing the panel sends is longer; a tooltip is at most 254 bytes.
     private const int MaxCopyDataBytes = 4096;
 
@@ -64,6 +65,18 @@ internal sealed class TrayWindow : IDisposable
 
     /// <summary>WM_COPYDATA arrived: the sending window, the data's tag and a copy of the data.</summary>
     public event Action<nint, int, byte[]>? DataReceived;
+
+    /// <summary>The repeating timer from <see cref="StartTimer"/> fired.</summary>
+    public event Action? TimerTicked;
+
+    /// <summary>A repeating timer on the tray thread; a message every <paramref name="interval"/>, no thread of its own.</summary>
+    public void StartTimer(TimeSpan interval)
+    {
+        if (SetTimer(Handle, TimerId, (uint)interval.TotalMilliseconds, 0) == 0)
+        {
+            throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not start the tray's timer.");
+        }
+    }
 
     public nint Handle { get; }
 
@@ -214,6 +227,9 @@ internal sealed class TrayWindow : IDisposable
                 return 0;
             case QuitMessage:
                 QuitRequested?.Invoke();
+                return 0;
+            case WmTimer when (nuint)wParam == TimerId:
+                TimerTicked?.Invoke();
                 return 0;
         }
 

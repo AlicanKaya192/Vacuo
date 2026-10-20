@@ -8,6 +8,37 @@ internal static class NativeMethods
     public const uint WmClose = 0x0010;
     public const uint WmLButtonUp = 0x0202;
     public const uint WmRButtonUp = 0x0205;
+    public const uint WmTimer = 0x0113;
+    public const byte AcOnline = 1;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LastInputInfo
+    {
+        public uint cbSize;
+        public uint dwTime;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SystemPowerStatus
+    {
+        public byte ACLineStatus;
+        public byte BatteryFlag;
+        public byte BatteryLifePercent;
+        public byte SystemStatusFlag;
+        public uint BatteryLifeTime;
+        public uint BatteryFullLifeTime;
+    }
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetLastInputInfo(ref LastInputInfo info);
+
+    [DllImport("kernel32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetSystemPowerStatus(out SystemPowerStatus status);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern nuint SetTimer(nint hWnd, nuint id, uint elapseMs, nint timerProc);
 
     public const uint NimAdd = 0x0;
     public const uint NimModify = 0x1;

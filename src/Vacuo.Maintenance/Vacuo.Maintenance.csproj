@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- No window and no console: it runs while the user is away. -->
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <AssemblyName>Vacuo.Maintenance</AssemblyName>
+    <RootNamespace>Vacuo.Maintenance</RootNamespace>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vacuo.Core\Vacuo.Core.csproj" />
+    <ProjectReference Include="..\Vacuo.Windows\Vacuo.Windows.csproj" />
+  </ItemGroup>
+
+</Project>

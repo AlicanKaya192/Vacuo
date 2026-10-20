@@ -1183,4 +1183,10 @@ Windows sekmesinde yönetici izniyle yapılan temizlik kalıcıdır. Kaldırıla
   <data name="TrayTooltipInstalling" xml:space="preserve">
     <value>Vacuo kuruluyor; birazdan yeniden açılacak</value>
   </data>
+  <data name="JournalMaintenance" xml:space="preserve">
+    <value>Otomatik Bakım</value>
+  </data>
+  <data name="JournalItemsFormat" xml:space="preserve">
+    <value>{0} öğe</value>
+  </data>
 </root>

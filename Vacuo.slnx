@@ -7,6 +7,7 @@
     <Project Path="src/Vacuo.Cli/Vacuo.Cli.csproj" />
     <Project Path="src/Vacuo.Core/Vacuo.Core.csproj" />
     <Project Path="src/Vacuo.Elevated/Vacuo.Elevated.csproj" />
+    <Project Path="src/Vacuo.Maintenance/Vacuo.Maintenance.csproj" />
     <Project Path="src/Vacuo.Tray/Vacuo.Tray.csproj" />
     <Project Path="src/Vacuo.Windows/Vacuo.Windows.csproj" />
   </Folder>

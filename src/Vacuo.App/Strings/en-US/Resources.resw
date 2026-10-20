@@ -1183,4 +1183,10 @@ Keeping backups of your important files is up to you.</value>
   <data name="TrayTooltipInstalling" xml:space="preserve">
     <value>Vacuo is installing; it opens again shortly</value>
   </data>
+  <data name="JournalMaintenance" xml:space="preserve">
+    <value>Automatic maintenance</value>
+  </data>
+  <data name="JournalItemsFormat" xml:space="preserve">
+    <value>{0} items</value>
+  </data>
 </root>

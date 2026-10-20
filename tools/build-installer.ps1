@@ -1,4 +1,4 @@
-# Builds the Vacuo setup: publishes the app and the tray self-contained into one folder, compiles
+# Builds the Vacuo setup: publishes the app, the tray and the maintenance helper self-contained into one folder, compiles
 # installer\vacuo.iss with Inno Setup 6, writes the setup's SHA-256 next to it and the release's file
 # list (Vacuo-<version>-files.json: every published file's SHA-256 and size). With -PatchFrom and an
 # earlier release's file list it also builds Vacuo-<version>-patch-<earlier>.exe, which writes only
@@ -34,7 +34,7 @@ $work = Join-Path $root "artifacts\$version-$stamp"
 $publish = Join-Path $work 'publish'
 $output = Join-Path $work 'installer'
 
-foreach ($app in 'src\Vacuo.App', 'src\Vacuo.Tray') {
+foreach ($app in 'src\Vacuo.App', 'src\Vacuo.Tray', 'src\Vacuo.Maintenance') {
     dotnet publish (Join-Path $root $app) -c Release -r win-x64 --self-contained true -o $publish
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed for $app." }
 }

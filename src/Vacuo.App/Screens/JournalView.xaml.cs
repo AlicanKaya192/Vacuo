@@ -114,7 +114,12 @@ public sealed partial class JournalView : UserControl
         }
         else
         {
-            string title = batch.BatchKind == JournalBatchKind.Leftovers ? "JournalLeftovers" : "DuplicatesTitle";
+            string title = batch.BatchKind switch
+            {
+                JournalBatchKind.Leftovers => "JournalLeftovers",
+                JournalBatchKind.Maintenance => "JournalMaintenance",
+                _ => "DuplicatesTitle",
+            };
             details.Children.Add(Text(_localizer.Get(title), "InkBrush"));
             details.Children.Add(Text(string.Join(" · ", batch.Folders), "InkSecondaryBrush", fontSize: 12));
         }
@@ -123,7 +128,13 @@ public sealed partial class JournalView : UserControl
         string status = moved
             ? _localizer.Get(organize ? "JournalOrganized" : "JournalInBin")
             : _localizer.Format("JournalUndoneFormat", batch.UndoneAt!.Value.ToLocalTime().ToString("g", _localizer.Culture));
-        string count = batch.BatchKind == JournalBatchKind.Leftovers ? "JournalFoldersFormat" : "JournalFilesFormat";
+        string count = batch.BatchKind switch
+        {
+            JournalBatchKind.Leftovers => "JournalFoldersFormat",
+            // Otomatik Bakım moves files and folders alike.
+            JournalBatchKind.Maintenance => "JournalItemsFormat",
+            _ => "JournalFilesFormat",
+        };
         details.Children.Add(Text(
             $"{_localizer.Format(count, batch.FileCount)} · {DiskTexts.Size(_localizer, batch.SizeBytes)} · {when} · {status}",
             "InkSecondaryBrush",

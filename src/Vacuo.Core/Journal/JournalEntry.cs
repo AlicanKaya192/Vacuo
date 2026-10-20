@@ -8,6 +8,7 @@ public enum JournalBatchKind
     Organize,
     Duplicates,
     Leftovers,
+    Maintenance,
 }
 
 /// <summary>

@@ -1,4 +1,5 @@
 using Vacuo.Core.Hosting;
+using Vacuo.Core.Maintenance;
 using Vacuo.Core.Settings;
 
 namespace Vacuo.Tray;
@@ -13,6 +14,7 @@ namespace Vacuo.Tray;
 internal static class Program
 {
     private const string PanelExecutable = "Vacuo.exe";
+    private const string MaintenanceExecutable = "Vacuo.Maintenance.exe";
     private const string TrayIconFile = "Assets\\vacuo.ico";
     private const string Tooltip = "Vacuo";
     private const string SingleTrayName = @"Local\Vacuo.Tray";
@@ -72,6 +74,11 @@ internal static class Program
             panel.Quit();
             window.Quit();
         };
+
+        // Otomatik Bakım: the tray only decides when; the helper does the work (ADR-004).
+        var maintenance = new MaintenanceScheduler(Path.Combine(AppContext.BaseDirectory, MaintenanceExecutable));
+        window.TimerTicked += maintenance.Check;
+        window.StartTimer(MaintenancePolicy.CheckInterval);
 
         // After setup or from the Start menu the panel shows too, so a new user sees where Vacuo went;
         // starting with Windows passes no switch and stays in the tray.

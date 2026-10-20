@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Vacuo.Core.Maintenance;
 
 namespace Vacuo.Core.Settings;
 
@@ -18,6 +19,8 @@ public enum LanguageChoice
 public sealed record VacuoSettings(LanguageChoice Language, bool CheckForUpdates)
 {
     public static VacuoSettings Default { get; } = new(LanguageChoice.Automatic, CheckForUpdates: true);
+
+    public MaintenanceSettings Maintenance { get; init; } = MaintenanceSettings.Default;
 }
 
 /// <summary>
@@ -44,7 +47,10 @@ public sealed class SettingsStore(string path)
                 ? VacuoSettings.Default
                 : new VacuoSettings(
                     file.Language ?? VacuoSettings.Default.Language,
-                    file.CheckForUpdates ?? VacuoSettings.Default.CheckForUpdates);
+                    file.CheckForUpdates ?? VacuoSettings.Default.CheckForUpdates)
+                {
+                    Maintenance = file.Maintenance?.ToSettings() ?? MaintenanceSettings.Default,
+                };
         }
         catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
         {
@@ -56,13 +62,32 @@ public sealed class SettingsStore(string path)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
         string temporary = path + ".tmp";
-        var file = new SettingsFile(settings.Language, settings.CheckForUpdates);
+        var file = new SettingsFile(settings.Language, settings.CheckForUpdates, MaintenanceFile.From(settings.Maintenance));
         File.WriteAllText(temporary, JsonSerializer.Serialize(file, JsonOptions));
         File.Move(temporary, path, overwrite: true);
     }
 
     // Every field may be missing in an older or hand-edited file.
-    private sealed record SettingsFile(LanguageChoice? Language, bool? CheckForUpdates);
+    private sealed record SettingsFile(LanguageChoice? Language, bool? CheckForUpdates, MaintenanceFile? Maintenance);
+
+    private sealed record MaintenanceFile(
+        bool? Enabled, bool? TempFiles, bool? DownloadCaches, bool? ProjectLeftovers, bool? OrganizeDesktop, bool? Sound)
+    {
+        public static MaintenanceFile From(MaintenanceSettings settings) => new(
+            settings.Enabled, settings.TempFiles, settings.DownloadCaches, settings.ProjectLeftovers, settings.OrganizeDesktop, settings.Sound);
+
+        public MaintenanceSettings ToSettings()
+        {
+            MaintenanceSettings defaults = MaintenanceSettings.Default;
+            return new MaintenanceSettings(
+                Enabled ?? defaults.Enabled,
+                TempFiles ?? defaults.TempFiles,
+                DownloadCaches ?? defaults.DownloadCaches,
+                ProjectLeftovers ?? defaults.ProjectLeftovers,
+                OrganizeDesktop ?? defaults.OrganizeDesktop,
+                Sound ?? defaults.Sound);
+        }
+    }
 }
 
 /// <summary>The language the interface uses: on Automatic, Turkish on a Turkish Windows and English on any other.</summary>
