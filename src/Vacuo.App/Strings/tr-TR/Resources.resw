@@ -618,4 +618,7 @@
   <data name="JournalMoreFormat" xml:space="preserve">
     <value>Daha eski {0} kaydı göster</value>
   </data>
+  <data name="OrganizeMoreFoldersFormat" xml:space="preserve">
+    <value>+{0} klasör daha · {1} dosya</value>
+  </data>
 </root>

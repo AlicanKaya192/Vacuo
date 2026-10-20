@@ -1,3 +1,4 @@
+using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -6,6 +7,7 @@ using Vacuo.Core.Actions;
 using Vacuo.Core.Disk;
 using Vacuo.Core.Journal;
 using Vacuo.Core.Organize;
+using Vacuo.App.Visuals;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI;
@@ -31,6 +33,8 @@ public sealed partial class OrganizeView : UserControl
     private OrganizePlan? _plan;
     private Guid? _lastBatch;
     private bool _busy;
+    private bool _animationsEnabled;
+    private volatile FlowMap? _flow;
 
     public OrganizeView()
     {
@@ -64,12 +68,20 @@ public sealed partial class OrganizeView : UserControl
         UndoButton.Content = localizer.Get("JournalUndoButton");
         RulePicker.SetItems(Enum.GetValues<OrganizeRule>().Select(rule => (OrganizeTexts.RuleName(localizer, rule), (object)rule)));
         RulePicker.SelectionChanged += OnRuleChanged;
+        _animationsEnabled = animationsEnabled;
+        // The flow only runs while this screen is on view (vacuo-kurallar 9).
+        RegisterPropertyChangedCallback(VisibilityProperty, (_, _) => UpdateFlowRunning());
+        FlowCanvas.SizeChanged += (_, _) => BuildFlow();
         Confirm.Initialize(animationsEnabled);
         UpdateRunButton();
     }
 
     /// <summary>Stops the confirm card's Win2D loop before the window goes away.</summary>
-    internal void Shutdown() => Confirm.Shutdown();
+    internal void Shutdown()
+    {
+        Confirm.Shutdown();
+        FlowCanvas.RemoveFromVisualTree();
+    }
 
     /// <summary>Reads the folder again; the screen calls this whenever it comes into view.</summary>
     internal async void Refresh() => await LoadPreviewAsync();
@@ -89,11 +101,13 @@ public sealed partial class OrganizeView : UserControl
         FolderText.Text = $"{FolderLabel()} · {_folder}";
         GroupList.Children.Clear();
         _plan = null;
+        BuildFlow();
         UpdateRunButton();
         try
         {
             _plan = await PlanAsync(_localizer, _folder, _rule);
             ShowPlan(_plan);
+            BuildFlow();
         }
         catch (ArgumentException)
         {
@@ -128,6 +142,63 @@ public sealed partial class OrganizeView : UserControl
             GroupList.Children.Add(GroupRow(group, isNew: plan.FoldersToCreate.Contains(group.Key, StringComparer.OrdinalIgnoreCase)));
         }
     }
+
+    // Rebuilt for every plan and size; an empty plan shows no flow.
+    private void BuildFlow()
+    {
+        if (_plan is not { Moves.Count: > 0 } plan || FlowCanvas.ActualWidth <= 0)
+        {
+            _flow = null;
+            FlowCanvas.Visibility = _plan is { Moves.Count: > 0 } ? Visibility.Visible : Visibility.Collapsed;
+            UpdateFlowRunning();
+            return;
+        }
+
+        // The busiest folders get their own chip; the rest share one, so a big folder stays readable.
+        List<IGrouping<string, PlannedMove>> groups = Groups(plan).OrderByDescending(group => group.Count()).ToList();
+        List<FlowTarget> targets = groups
+            .Take(FlowMap.MaximumTargetsShown)
+            .Select(group => new FlowTarget(
+                _localizer.Format("OrganizeGroupFormat", Path.GetFileName(group.Key), group.Count()),
+                group.Count(),
+                plan.FoldersToCreate.Contains(group.Key, StringComparer.OrdinalIgnoreCase)))
+            .ToList();
+        List<IGrouping<string, PlannedMove>> rest = groups.Skip(FlowMap.MaximumTargetsShown).ToList();
+        if (rest.Count > 0)
+        {
+            int files = rest.Sum(group => group.Count());
+            targets.Add(new FlowTarget(_localizer.Format("OrganizeMoreFoldersFormat", rest.Count, files), files, IsNew: false));
+        }
+
+        double height = FlowMap.HeightFor(targets.Count);
+        if (Math.Abs(FlowCanvas.Height - height) > 0.5)
+        {
+            // The new size comes back through SizeChanged, which builds the flow again.
+            FlowCanvas.Height = height;
+            return;
+        }
+
+        _flow = new FlowMap(FolderLabel(), targets, new System.Numerics.Vector2((float)FlowCanvas.ActualWidth, (float)FlowCanvas.ActualHeight));
+        FlowCanvas.Visibility = Visibility.Visible;
+        UpdateFlowRunning();
+    }
+
+    // With animation effects off, one still frame is drawn instead of the moving one.
+    private void UpdateFlowRunning()
+    {
+        bool onView = Visibility == Visibility.Visible && _flow is not null;
+        FlowCanvas.Paused = !onView || !_animationsEnabled;
+        if (onView && !_animationsEnabled)
+        {
+            FlowCanvas.Invalidate();
+        }
+    }
+
+    private void OnFlowUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) =>
+        _flow?.Advance(args.Timing.ElapsedTime);
+
+    private void OnFlowDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) =>
+        _flow?.Draw(args.DrawingSession);
 
     private static IEnumerable<IGrouping<string, PlannedMove>> Groups(OrganizePlan plan) =>
         plan.Moves.GroupBy(move => Path.GetDirectoryName(move.Destination)!, StringComparer.OrdinalIgnoreCase);
