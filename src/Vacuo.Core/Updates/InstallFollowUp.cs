@@ -33,9 +33,19 @@ public static partial class InstallFollowUps
             : InstallFollowUp.NotInstalled;
     }
 
-    /// <summary>A setup this updater downloaded, finished or not; the name <see cref="ReleaseFeed"/> accepts.</summary>
+    /// <summary>
+    /// A patch for <paramref name="offered"/> was started and this is still another version: the patch refuses
+    /// a different installed version and leaves everything as it was, so the next try takes the full setup
+    /// instead of the same patch again (as Odyssey's <c>patch_failed_before</c>).
+    /// </summary>
+    public static bool PatchFailedBefore(string? attemptedVersion, ReleaseVersion offered, ReleaseVersion running) =>
+        ReleaseVersion.TryParse(attemptedVersion ?? string.Empty, out ReleaseVersion? attempted)
+        && attempted!.CompareTo(offered) == 0
+        && running.CompareTo(offered) != 0;
+
+    /// <summary>A setup or patch this updater downloaded, finished or not; the names <see cref="ReleaseFeed"/> accepts.</summary>
     public static bool IsOwnDownload(string fileName) => OwnDownload().IsMatch(fileName);
 
-    [GeneratedRegex(@"^Vacuo-[0-9]+(\.[0-9]+){0,3}-setup\.exe(\.partial)?$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^Vacuo-[0-9]+(\.[0-9]+){0,3}-(setup|patch-[0-9]+(\.[0-9]+){0,3})\.exe(\.partial)?$", RegexOptions.CultureInvariant)]
     private static partial Regex OwnDownload();
 }

@@ -229,6 +229,14 @@
         </Grid>
         </ScrollViewer>
 
+        <!-- The running version, always in sight (Alican, 20 October 2026); beside Quit, so the row keeps its height. -->
+        <TextBlock x:Name="VersionText"
+                   Grid.Row="3"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center"
+                   FontSize="12"
+                   Foreground="{StaticResource InkSecondaryBrush}" />
+
         <Button x:Name="QuitButton"
                 Grid.Row="3"
                 HorizontalAlignment="Right"

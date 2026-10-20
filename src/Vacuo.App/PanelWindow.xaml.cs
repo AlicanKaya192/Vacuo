@@ -373,6 +373,7 @@ public sealed partial class PanelWindow : Window
         DuplicatesButton.Content = _localizer.Get("DuplicatesFindButton");
         UninstallButton.Content = _localizer.Get("UninstallCardButton");
         QuitButton.Content = _localizer.Get("QuitButton");
+        VersionText.Text = _localizer.Format("SettingsUpdatesVersionFormat", AppVersion);
         string settingsLabel = _localizer.Get("SettingsTitle");
         ToolTipService.SetToolTip(SettingsButton, settingsLabel);
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(SettingsButton, settingsLabel);
@@ -798,9 +799,12 @@ public sealed partial class PanelWindow : Window
         ShowWorkScreen(update);
     }
 
+    // From the build (Vacuo.App.csproj <Version>), so the panel, Settings and the updater say the same.
+    private static string AppVersion => Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? "0.0.0";
+
     private static UpdateSession CreateUpdateSession()
     {
-        string version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? "0.0.0";
+        string version = AppVersion;
         if (!ReleaseVersion.TryParse(version, out ReleaseVersion? running))
         {
             throw new InvalidOperationException($"Vacuo's own version '{version}' is not a release number.");

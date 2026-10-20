@@ -1,5 +1,6 @@
-# Builds the Vacuo setup on a setup-X.Y.Z tag and puts it on a DRAFT release; Alican checks and
-# publishes it (as in Odyssey, ADR-003 there). Nothing is published automatically.
+# Builds the Vacuo setup on a setup-X.Y.Z tag, and a patch setup from the last published release, and
+# puts them on a DRAFT release; Alican checks and publishes it (as in Odyssey, ADR-003 there). Nothing
+# is published automatically.
 name: release
 
 on:
@@ -42,9 +43,30 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
 
+      # The patch setup (K4) is built against the newest published release's file list; drafts and
+      # prereleases are skipped. Without one (the first release, or one built before K4) no patch is made.
+      - name: Fetch the last published release's file list
+        id: previous
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = gh release list --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName'
+          $list = ''
+          if ($tag) {
+            gh release download $tag --pattern 'Vacuo-*-files.json' --dir artifacts\previous
+            if ($LASTEXITCODE -eq 0) {
+              $list = (Get-ChildItem artifacts\previous\Vacuo-*-files.json | Select-Object -First 1).FullName
+            } else {
+              Write-Output "$tag has no file list; no patch."
+            }
+          }
+          "list=$list" >> $env:GITHUB_OUTPUT
+          exit 0
+
       - name: Build the setup
         shell: pwsh
-        run: tools\build-installer.ps1 -Iscc "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+        run: tools\build-installer.ps1 -Iscc "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" -PatchFrom '${{ steps.previous.outputs.list }}'
 
       - name: Create the draft release
         shell: pwsh
@@ -52,6 +74,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $version = '${{ steps.version.outputs.version }}'
-          $files = Get-ChildItem artifacts\*\installer\Vacuo-$version-setup.exe*
+          # The full setup, the patch when there is one, their checksums and this release's file list.
+          $files = Get-ChildItem artifacts\*\installer\Vacuo-$version-*
           gh release create $env:GITHUB_REF_NAME --draft --title "Vacuo $version" --notes-file "docs\releases\$version.md"
           gh release upload $env:GITHUB_REF_NAME $files.FullName --clobber

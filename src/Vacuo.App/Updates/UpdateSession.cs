@@ -40,6 +40,7 @@ internal sealed class UpdateSession(
     string downloadFolder)
 {
     private CancellationTokenSource? _download;
+    private SetupChoice? _choice;
     private TransferMeter _meter = new();
     private Stopwatch _clock = new();
 
@@ -63,7 +64,12 @@ internal sealed class UpdateSession(
 
     public double? BytesPerSecond => _meter.BytesPerSecond;
 
-    public TimeSpan? Remaining => Offer is { } offer ? _meter.Remaining(offer.Installer.Size) : null;
+    public TimeSpan? Remaining => _download is not null && _choice is { } choice ? _meter.Remaining(choice.Setup.Size) : null;
+
+    /// <summary>What Update would download: the patch from this version unless one already failed (K4), else the full setup.</summary>
+    public SetupChoice? NextSetup => Offer is { } offer
+        ? offer.ChooseSetup(InstallFollowUps.PatchFailedBefore(state.LoadPatchAttempt(), offer.Version, running))
+        : null;
 
     /// <summary>A download or setup is under way: the hidden panel's process must not end yet.</summary>
     public bool IsBusy => Phase is UpdatePhase.Downloading or UpdatePhase.Installing;
@@ -115,23 +121,25 @@ internal sealed class UpdateSession(
 
     public async Task UpdateAsync(int? trayProcessId)
     {
-        if (Offer is not { } offer || Phase != UpdatePhase.Idle)
+        if (Offer is not { } offer || NextSetup is not { } choice || Phase != UpdatePhase.Idle)
         {
             return;
         }
 
+        long size = choice.Setup.Size;
+        _choice = choice;
         Phase = UpdatePhase.Downloading;
         Problem = UpdateProblem.None;
-        Progress = new DownloadProgress(0, offer.Installer.Size);
+        Progress = new DownloadProgress(0, size);
         _meter = new TransferMeter();
         _clock = Stopwatch.StartNew();
-        Raise();
-
         using var cancellation = new CancellationTokenSource();
         _download = cancellation;
+        Raise();
+
         // Created here, on the UI thread, so each report arrives back on it.
         var progress = new Progress<DownloadProgress>(OnProgress);
-        DownloadResult result = await downloader.DownloadAsync(offer, progress, cancellation.Token);
+        DownloadResult result = await downloader.DownloadAsync(choice, progress, cancellation.Token);
         _download = null;
         if (result.Outcome != DownloadOutcome.Ready)
         {
@@ -140,9 +148,14 @@ internal sealed class UpdateSession(
         }
 
         Phase = UpdatePhase.Installing;
-        Progress = new DownloadProgress(offer.Installer.Size, offer.Installer.Size);
+        Progress = new DownloadProgress(size, size);
         Raise();
         state.SavePendingInstall(offer.Version.ToString());
+        if (choice.IsPatch)
+        {
+            // If the patch refuses this installation, the next Update takes the full setup.
+            state.SavePatchAttempt(offer.Version.ToString());
+        }
         InstallerStart start = InstallerLauncher.Start(result.InstallerPath!, InstallerCommand.Arguments(Environment.ProcessId, trayProcessId));
         if (start == InstallerStart.Started)
         {

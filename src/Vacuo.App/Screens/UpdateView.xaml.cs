@@ -83,7 +83,7 @@ public sealed partial class UpdateView : UserControl
             UpdatePhase.Checking => (_localizer.Get("SettingsUpdatesChecking"), string.Empty),
             _ when offer is not null => (
                 _localizer.Format("UpdateReadyFormat", offer.Version),
-                _localizer.Format("UpdateReadyHintFormat", _updates.Running, UpdateTexts.Size(_localizer, offer.Installer.Size))),
+                _localizer.Format("UpdateReadyHintFormat", _updates.Running, UpdateTexts.Size(_localizer, _updates.NextSetup!.Setup.Size))),
             _ => (_localizer.Get("SettingsUpdatesCurrent"), UpdateTexts.CheckState(_localizer, _updates)),
         };
 

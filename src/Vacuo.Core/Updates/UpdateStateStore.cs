@@ -3,9 +3,9 @@ using System.Text.Json;
 namespace Vacuo.Core.Updates;
 
 /// <summary>
-/// The updater's own notes in <c>%LOCALAPPDATA%\Vacuo\update.json</c>: when GitHub last answered a check, and
-/// which version a started setup is installing. A missing or damaged file means neither, so the next panel
-/// opening checks. Each save keeps the other note.
+/// The updater's own notes in <c>%LOCALAPPDATA%\Vacuo\update.json</c>: when GitHub last answered a check, which
+/// version a started setup is installing, and which version a patch was last tried for. A missing or damaged
+/// file means none of these, so the next panel opening checks. Each save keeps the other notes.
 /// </summary>
 public sealed class UpdateStateStore(string path)
 {
@@ -21,6 +21,10 @@ public sealed class UpdateStateStore(string path)
     public void SavePendingInstall(string version) => Save(Load() with { PendingInstall = version });
 
     public void ClearPendingInstall() => Save(Load() with { PendingInstall = null });
+
+    public string? LoadPatchAttempt() => Load().PatchAttempt;
+
+    public void SavePatchAttempt(string version) => Save(Load() with { PatchAttempt = version });
 
     private UpdateStateFile Load()
     {
@@ -42,8 +46,8 @@ public sealed class UpdateStateStore(string path)
         File.Move(temporary, path, overwrite: true);
     }
 
-    private sealed record UpdateStateFile(DateTimeOffset? LastCheck, string? PendingInstall)
+    private sealed record UpdateStateFile(DateTimeOffset? LastCheck, string? PendingInstall, string? PatchAttempt)
     {
-        public static UpdateStateFile Empty { get; } = new(null, null);
+        public static UpdateStateFile Empty { get; } = new(null, null, null);
     }
 }

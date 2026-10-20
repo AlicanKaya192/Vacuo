@@ -41,30 +41,32 @@ public sealed class UpdateDownloader(HttpClient http, string folder, TimeSpan st
     /// <summary>A connection that sends nothing for this long is treated as lost; HttpClient's own limit ends with the headers.</summary>
     public static TimeSpan DefaultStallTimeout { get; } = TimeSpan.FromSeconds(30);
 
-    public async Task<DownloadResult> DownloadAsync(UpdateOffer offer, IProgress<DownloadProgress>? progress, CancellationToken cancellation)
+    /// <param name="choice">The full setup or a patch (K4), each with its own SHA-256 file.</param>
+    public async Task<DownloadResult> DownloadAsync(SetupChoice choice, IProgress<DownloadProgress>? progress, CancellationToken cancellation)
     {
-        if (!IsVacuoRelease(offer.Installer) || !IsVacuoRelease(offer.Checksum))
+        ReleaseAsset setup = choice.Setup;
+        if (!IsVacuoRelease(setup) || !IsVacuoRelease(choice.Checksum))
         {
             return new DownloadResult(DownloadOutcome.Failed, Detail: "The offer points outside Vacuo's releases.");
         }
 
         Directory.CreateDirectory(folder);
-        string target = Path.Combine(folder, offer.Installer.Name);
+        string target = Path.Combine(folder, setup.Name);
         string partial = target + ".partial";
         try
         {
-            if (await ReadChecksumAsync(offer.Checksum.Url, cancellation) is not { } checksum)
+            if (await ReadChecksumAsync(choice.Checksum.Url, cancellation) is not { } checksum)
             {
                 return new DownloadResult(DownloadOutcome.Failed, Detail: "The checksum file could not be read.");
             }
 
-            if (await SaveAsync(offer.Installer, partial, progress, cancellation) is { } failure)
+            if (await SaveAsync(setup, partial, progress, cancellation) is { } failure)
             {
                 RemovePartial(partial);
                 return failure;
             }
 
-            DownloadVerdict verdict = DownloadVerifier.Verify(partial, offer.Installer.Size, checksum, offer.Installer.Name);
+            DownloadVerdict verdict = DownloadVerifier.Verify(partial, setup.Size, checksum, setup.Name);
             if (verdict != DownloadVerdict.Accepted)
             {
                 RemovePartial(partial);

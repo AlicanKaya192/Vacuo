@@ -12,6 +12,10 @@
 ;   turns it back on after the user turned it off. Uninstall removes Vacuo's own Run value only.
 ; - Parameters the app passes when it updates itself: /OLDPID=<panel> /OLDTRAYPID=<tray>; setup waits
 ;   for both to close, because they hold the files open.
+; - Patch setup (K4, as in Odyssey): tools/build-installer.ps1 -PatchFrom compares an earlier release's
+;   file list with this one and compiles this script again with /DPatchFrom=<earlier version> and
+;   /DPatchList=<sections file>. The result, Vacuo-<new>-patch-<earlier>.exe, writes only new and changed
+;   files and removes dropped ones. It runs only over <earlier>; on any other version it changes nothing.
 
 #define AppName "Vacuo"
 #define AppGuid "DF5C5D57-E519-49CE-91F5-63911A327D10"
@@ -49,16 +53,22 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir={#OutputDir}
+#ifdef PatchFrom
+OutputBaseFilename={#AppName}-{#AppVersion}-patch-{#PatchFrom}
+#else
 OutputBaseFilename={#AppName}-{#AppVersion}-setup
+#endif
 SetupIconFile=..\src\Vacuo.App\Assets\vacuo.ico
 UninstallDisplayIcon={app}\{#PanelExe}
 UninstallDisplayName={#AppName}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-; Setup waits for the old processes itself (/OLDPID, /OLDTRAYPID); Windows' "close the app" box
-; must not interrupt a silent update.
-CloseApplications=no
+; An update from the app: setup waits for the panel and the tray itself (/OLDPID, /OLDTRAYPID), so
+; nothing of Vacuo is running any more when files are checked. Started by hand while Vacuo runs, setup
+; lists Vacuo and closes it before writing (Alican, 20 October 2026: a patch run by hand stopped on a
+; locked Vacuo.dll). Only programs holding files in Vacuo's own folder are closed; [Run] starts Vacuo again.
+CloseApplications=force
 RestartApplications=no
 
 [Languages]
@@ -68,11 +78,17 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [CustomMessages]
 turkish.StartWithWindows=Bilgisayar açılınca başlat
 english.StartWithWindows=Start with Windows
+turkish.PatchNeedsBase=Bu yama yalnızca Vacuo %1 kuruluyken çalışır. Bu bilgisayarda Vacuo yok ya da başka bir sürüm kurulu; hiçbir şey değiştirilmedi.%n%nTam kurulumu kullan: Vacuo-%2-setup.exe
+english.PatchNeedsBase=This patch only works while Vacuo %1 is installed. Vacuo is not installed on this computer, or another version is; nothing was changed.%n%nUse the full setup: Vacuo-%2-setup.exe
 
 [Tasks]
 Name: "startup"; Description: "{cm:StartWithWindows}"; Check: IsFirstInstall
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
+#ifdef PatchFrom
+; Patch: the files to remove and to write come from the file lists ([InstallDelete] and [Files]).
+#include PatchList
+#else
 [InstallDelete]
 ; The previous version's program files go first, so a library dropped in the new version cannot be
 ; loaded from an old copy. Only Vacuo's own install folder; user data is elsewhere.
@@ -84,6 +100,7 @@ Type: files; Name: "{app}\*.json"
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+#endif
 
 [Icons]
 ; --open: started by hand, Vacuo shows its panel, so the user sees where it went (Alican, 20 October 2026).
@@ -114,18 +131,6 @@ function CloseHandle(hObject: THandle): Boolean;
 var
   FirstInstall: Boolean;
 
-function InitializeSetup(): Boolean;
-begin
-  FirstInstall := not RegKeyExists(HKCU, UNINSTALL_KEY);
-  Result := True;
-end;
-
-{ Starting with Windows is offered only the first time; an update keeps whatever the user chose. }
-function IsFirstInstall(): Boolean;
-begin
-  Result := FirstInstall;
-end;
-
 { Waits for one process the update named; it holds Vacuo's files open. }
 procedure WaitForProcess(const Param: String);
 var
@@ -140,6 +145,45 @@ begin
     Exit;
   WaitForSingleObject(Handle, OLD_EXIT_WAIT_MS);
   CloseHandle(Handle);
+end;
+
+#ifdef PatchFrom
+{ A patch writes only what changed since {#PatchFrom}; over any other version the files would mix. It then
+  changes nothing, waits for the old Vacuo to close and starts it again; the app takes the full setup on its
+  next try (InstallFollowUps.PatchFailedBefore). }
+function IsPatchBaseInstalled(): Boolean;
+var
+  Version, Location: String;
+  ResultCode: Integer;
+begin
+  Result := RegQueryStringValue(HKCU, UNINSTALL_KEY, 'DisplayVersion', Version) and (Version = '{#PatchFrom}');
+  if Result then
+    Exit;
+  { Started by hand, it says why it did nothing (Alican, 20 October 2026: it closed without a word). }
+  if not WizardSilent() then
+    MsgBox(FmtMessage(CustomMessage('PatchNeedsBase'), ['{#PatchFrom}', '{#AppVersion}']), mbInformation, MB_OK);
+  WaitForProcess('OLDPID');
+  WaitForProcess('OLDTRAYPID');
+  if RegQueryStringValue(HKCU, UNINSTALL_KEY, 'InstallLocation', Location) and
+     FileExists(AddBackslash(Location) + '{#TrayExe}') then
+    Exec(AddBackslash(Location) + '{#TrayExe}', '--open', Location, SW_SHOWNORMAL, ewNoWait, ResultCode);
+end;
+#endif
+
+function InitializeSetup(): Boolean;
+begin
+  FirstInstall := not RegKeyExists(HKCU, UNINSTALL_KEY);
+#ifdef PatchFrom
+  Result := IsPatchBaseInstalled();
+#else
+  Result := True;
+#endif
+end;
+
+{ Starting with Windows is offered only the first time; an update keeps whatever the user chose. }
+function IsFirstInstall(): Boolean;
+begin
+  Result := FirstInstall;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;

@@ -19,7 +19,7 @@ public class UpdateDownloaderTests
         byte[] setup = Setup(700_000);
         var progress = new Collected();
 
-        DownloadResult result = await Downloader(Server(setup, Checksum(setup)), tree).DownloadAsync(Offer(setup.Length), progress, TestContext.Current.CancellationToken);
+        DownloadResult result = await Downloader(Server(setup, Checksum(setup)), tree).DownloadAsync(Choice(setup.Length), progress, TestContext.Current.CancellationToken);
 
         Assert.Equal(DownloadOutcome.Ready, result.Outcome);
         Assert.Equal(tree.PathOf(Name), result.InstallerPath);
@@ -36,7 +36,7 @@ public class UpdateDownloaderTests
         byte[] setup = Setup(1000);
         string checksum = Checksum(Setup(1000));
 
-        DownloadResult result = await Downloader(Server(setup, checksum), tree).DownloadAsync(Offer(setup.Length), null, TestContext.Current.CancellationToken);
+        DownloadResult result = await Downloader(Server(setup, checksum), tree).DownloadAsync(Choice(setup.Length), null, TestContext.Current.CancellationToken);
 
         Assert.Equal(DownloadOutcome.Rejected, result.Outcome);
         Assert.Null(result.InstallerPath);
@@ -49,7 +49,7 @@ public class UpdateDownloaderTests
         using var tree = new TempTree();
         byte[] setup = Setup(1000);
 
-        DownloadResult result = await Downloader(Server(setup, Checksum(setup)), tree).DownloadAsync(Offer(setup.Length - 1), null, TestContext.Current.CancellationToken);
+        DownloadResult result = await Downloader(Server(setup, Checksum(setup)), tree).DownloadAsync(Choice(setup.Length - 1), null, TestContext.Current.CancellationToken);
 
         Assert.Equal(DownloadOutcome.Rejected, result.Outcome);
         Assert.Empty(Directory.GetFiles(tree.Root));
@@ -63,7 +63,7 @@ public class UpdateDownloaderTests
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         var progress = new Collected(_ => cancellation.Cancel());
 
-        DownloadResult result = await Downloader(Server(setup, Checksum(setup)), tree).DownloadAsync(Offer(setup.Length), progress, cancellation.Token);
+        DownloadResult result = await Downloader(Server(setup, Checksum(setup)), tree).DownloadAsync(Choice(setup.Length), progress, cancellation.Token);
 
         Assert.Equal(DownloadOutcome.Cancelled, result.Outcome);
         Assert.Single(progress.Reports);
@@ -76,7 +76,7 @@ public class UpdateDownloaderTests
         using var tree = new TempTree();
         var handler = StubHttpHandler.Always(HttpStatusCode.NotFound, "Not Found"u8.ToArray());
 
-        DownloadResult result = await Downloader(handler, tree).DownloadAsync(Offer(1000), null, TestContext.Current.CancellationToken);
+        DownloadResult result = await Downloader(handler, tree).DownloadAsync(Choice(1000), null, TestContext.Current.CancellationToken);
 
         Assert.Equal(DownloadOutcome.Failed, result.Outcome);
         Assert.Empty(Directory.GetFiles(tree.Root));
@@ -91,7 +91,7 @@ public class UpdateDownloaderTests
             ? Task.FromResult(StubHttpHandler.Response(HttpStatusCode.OK, Encoding.ASCII.GetBytes(Checksum(setup))))
             : throw new HttpRequestException("The connection was reset."));
 
-        DownloadResult result = await Downloader(handler, tree).DownloadAsync(Offer(setup.Length), null, TestContext.Current.CancellationToken);
+        DownloadResult result = await Downloader(handler, tree).DownloadAsync(Choice(setup.Length), null, TestContext.Current.CancellationToken);
 
         Assert.Equal(DownloadOutcome.Offline, result.Outcome);
         Assert.Empty(Directory.GetFiles(tree.Root));
@@ -107,7 +107,7 @@ public class UpdateDownloaderTests
             : new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new StallingStream()) }));
         var downloader = new UpdateDownloader(GitHubHttp.Create(handler, "0.4.0"), tree.Root, TimeSpan.FromMilliseconds(100));
 
-        DownloadResult result = await downloader.DownloadAsync(Offer(setup.Length), null, TestContext.Current.CancellationToken);
+        DownloadResult result = await downloader.DownloadAsync(Choice(setup.Length), null, TestContext.Current.CancellationToken);
 
         Assert.Equal(DownloadOutcome.Offline, result.Outcome);
         Assert.Empty(Directory.GetFiles(tree.Root));
@@ -119,9 +119,9 @@ public class UpdateDownloaderTests
         using var tree = new TempTree();
         byte[] setup = Setup(1000);
         StubHttpHandler handler = Server(setup, Checksum(setup));
-        var offer = Offer(setup.Length) with { Installer = new ReleaseAsset(Name, "https://example.com/" + Name, setup.Length) };
+        var choice = Choice(setup.Length) with { Setup = new ReleaseAsset(Name, "https://example.com/" + Name, setup.Length) };
 
-        DownloadResult result = await Downloader(handler, tree).DownloadAsync(offer, null, TestContext.Current.CancellationToken);
+        DownloadResult result = await Downloader(handler, tree).DownloadAsync(choice, null, TestContext.Current.CancellationToken);
 
         Assert.Equal(DownloadOutcome.Failed, result.Outcome);
         Assert.Empty(handler.Requests);
@@ -135,15 +135,28 @@ public class UpdateDownloaderTests
             ? StubHttpHandler.Response(HttpStatusCode.OK, Encoding.ASCII.GetBytes(checksum))
             : StubHttpHandler.Response(HttpStatusCode.OK, setup)));
 
-    private static UpdateOffer Offer(long size)
+    [Fact]
+    public async Task PatchSetup_IsSavedUnderItsOwnName()
     {
-        Assert.True(ReleaseVersion.TryParse("0.5.0", out ReleaseVersion? version));
-        return new UpdateOffer(
-            version!,
-            new ReleaseAsset(Name, Download + Name, size),
-            new ReleaseAsset(Name + ".sha256", Download + Name + ".sha256", 87),
-            "");
+        using var tree = new TempTree();
+        const string patchName = "Vacuo-0.5.0-patch-0.4.0.exe";
+        byte[] patch = Setup(5000);
+        string checksum = $"{Convert.ToHexStringLower(SHA256.HashData(patch))}  {patchName}";
+        var choice = new SetupChoice(
+            new ReleaseAsset(patchName, Download + patchName, patch.Length),
+            new ReleaseAsset(patchName + ".sha256", Download + patchName + ".sha256", 93),
+            IsPatch: true);
+
+        DownloadResult result = await Downloader(Server(patch, checksum), tree).DownloadAsync(choice, null, TestContext.Current.CancellationToken);
+
+        Assert.Equal(DownloadOutcome.Ready, result.Outcome);
+        Assert.Equal(tree.PathOf(patchName), result.InstallerPath);
     }
+
+    private static SetupChoice Choice(long size) => new(
+        new ReleaseAsset(Name, Download + Name, size),
+        new ReleaseAsset(Name + ".sha256", Download + Name + ".sha256", 87),
+        IsPatch: false);
 
     private static byte[] Setup(int size)
     {

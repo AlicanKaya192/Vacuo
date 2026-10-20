@@ -52,21 +52,30 @@ public static class ReleaseFeed
                 return UpdateCheck.Current;
             }
 
-            return Offer(chosen.Release, chosen.Version) is { } offer
+            return Offer(chosen.Release, chosen.Version, current) is { } offer
                 ? new UpdateCheck(UpdateStatus.Newer, offer)
                 : UpdateCheck.Failed($"Release {chosen.Version} lacks its setup program or checksum.");
         }
     }
 
-    private static UpdateOffer? Offer(JsonElement release, ReleaseVersion version)
+    private static UpdateOffer? Offer(JsonElement release, ReleaseVersion version, ReleaseVersion current)
     {
         string tag = Text(release, "tag_name");
         string installerName = $"Vacuo-{version}-setup.exe";
         ReleaseAsset? installer = Asset(release, tag, installerName);
         ReleaseAsset? checksum = Asset(release, tag, installerName + ".sha256");
-        return installer is { Size: > 0 } && checksum is not null
-            ? new UpdateOffer(version, installer, checksum, Text(release, "body"))
-            : null;
+        if (installer is not { Size: > 0 } || checksum is null)
+        {
+            return null;
+        }
+
+        // A patch only from the running version, and only with its own checksum (K4).
+        string patchName = $"Vacuo-{version}-patch-{current}.exe";
+        ReleaseAsset? patch = Asset(release, tag, patchName);
+        ReleaseAsset? patchChecksum = Asset(release, tag, patchName + ".sha256");
+        bool hasPatch = patch is { Size: > 0 } && patchChecksum is not null;
+        return new UpdateOffer(
+            version, installer, checksum, Text(release, "body"), hasPatch ? patch : null, hasPatch ? patchChecksum : null);
     }
 
     private static ReleaseAsset? Asset(JsonElement release, string tag, string name)
