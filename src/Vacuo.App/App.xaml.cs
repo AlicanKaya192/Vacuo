@@ -28,7 +28,9 @@ public partial class App : Application
         var localizer = new Localizer(options.Language);
         _measurement = options.MeasurementPath is null ? null : new MeasurementLog(options.MeasurementPath);
 
-        _panel = new PanelWindow(localizer, _measurement, options.ForceReducedMotion);
+        // Probes only change the panel during a measurement run.
+        IReadOnlySet<string> probes = _measurement is null ? new HashSet<string>() : options.Probes;
+        _panel = new PanelWindow(localizer, _measurement, options.ForceReducedMotion, probes);
 
         if (options.PanelOnly)
         {

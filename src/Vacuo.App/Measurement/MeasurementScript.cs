@@ -15,6 +15,21 @@ internal sealed class MeasurementScript(PanelWindow panel, MeasurementLog log, A
 
     public async Task RunAsync(string mode)
     {
+        // A failing step is written to the report and the app still quits, so a run never hangs.
+        try
+        {
+            await RunScenarioAsync(mode);
+        }
+        catch (Exception exception)
+        {
+            log.MarkError(exception);
+        }
+
+        quit();
+    }
+
+    private async Task RunScenarioAsync(string mode)
+    {
         switch (mode)
         {
             case "idle":
@@ -27,11 +42,19 @@ internal sealed class MeasurementScript(PanelWindow panel, MeasurementLog log, A
             case "full":
                 await RunFullAsync();
                 break;
+            case "memory":
+                await RunMemoryAsync();
+                break;
+            case "memory-cards":
+                // Only the cards, for comparing --probe runs.
+                log.MarkMemory("0-before-open");
+                panel.Toggle();
+                await Task.Delay(ScreenSettle);
+                log.MarkMemory("1-cards");
+                break;
             default:
                 throw new ArgumentException($"Unknown measurement script '{mode}'.", nameof(mode));
         }
-
-        quit();
     }
 
     private async Task RunFullAsync()
@@ -52,6 +75,34 @@ internal sealed class MeasurementScript(PanelWindow panel, MeasurementLog log, A
 
         log.MarkPhase("cycles-end");
     }
+
+    // The panel's own memory through each screen, to find what makes it heavy; only reads.
+    private async Task RunMemoryAsync()
+    {
+        log.MarkMemory("0-before-open");
+        panel.Toggle();
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        log.MarkMemory("1-cards-1s");
+        await Task.Delay(ScreenSettle * 2);
+        log.MarkMemory("2-cards-settled");
+        panel.ShowDiskScreenForMeasurement();
+        await Task.Delay(ScreenSettle);
+        log.MarkMemory("3-disk");
+        panel.ReturnToCardsForMeasurement();
+        await Task.Delay(ScreenSettle);
+        log.MarkMemory("4-cards");
+        panel.ShowMemoryScreenForMeasurement();
+        await Task.Delay(ScreenSettle);
+        log.MarkMemory("5-memory");
+        panel.ReturnToCardsForMeasurement();
+        await Task.Delay(ScreenSettle);
+        log.MarkMemory("6-cards");
+        panel.Toggle();
+        await Task.Delay(ScreenSettle);
+        log.MarkMemory("7-hidden");
+    }
+
+    private static readonly TimeSpan ScreenSettle = TimeSpan.FromSeconds(8);
 
     private async Task RunPhaseAsync(string name, TimeSpan duration)
     {

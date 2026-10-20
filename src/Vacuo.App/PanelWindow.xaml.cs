@@ -38,6 +38,7 @@ public sealed partial class PanelWindow : Window
 {
     // Two card columns side by side (B-137); the screens use the same window.
     private const int PanelWidth = 720;
+    private const int NarrowProbeWidth = 400;
     // The panel is as tall as its cards (vacuo-kurallar 13), never shorter than this.
     private const int MinPanelHeight = 640;
     private const double VoidHeight = 200;
@@ -88,13 +89,22 @@ public sealed partial class PanelWindow : Window
     private bool _shuttingDown;
     // A screen change is animating; further clicks wait for it.
     private bool _switching;
+    private int _panelWidth = PanelWidth;
+    private readonly ShellRecycleBin _recycleBin;
+    private readonly ActionJournal _journal;
+    private readonly ActionRunner _runner;
+    private DiskView? _diskScreen;
+    private WindowsView? _windowsScreen;
+    private MemoryView? _memoryScreen;
+    private JournalView? _journalScreen;
 
-    internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion)
+    internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion, IReadOnlySet<string> probes)
     {
         _localizer = localizer;
         _measurement = measurement;
         _animationsEnabled = !forceReducedMotion && new UISettings().AnimationsEnabled;
         InitializeComponent();
+        ApplyMeasurementProbes(probes);
 
         Handle = WindowNative.GetWindowHandle(this);
         _presenter.IsResizable = false;
@@ -103,28 +113,9 @@ public sealed partial class PanelWindow : Window
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, App.IconFile));
         UseFrame();
         ApplyTexts();
-        var recycleBin = new ShellRecycleBin(TimeProvider.System);
-        var journal = new ActionJournal(ActionJournal.DefaultPath);
-        var runner = new ActionRunner(journal, recycleBin, TimeProvider.System);
-        DiskScreenView.Initialize(localizer, runner, recycleBin, _animationsEnabled);
-        DiskScreenView.BackRequested += (_, _) => ReturnToCards();
-        DiskScreenView.RescanRequested += (_, _) => RefreshDisk();
-        DiskScreenView.JournalRequested += (_, _) => ShowJournal(DiskScreenView);
-        WindowsScreenView.Initialize(
-            localizer, runner, recycleBin, ElevatedLauncher.NextToThisApp(), WindowsLocations.ForThisMachine(), _animationsEnabled);
-        WindowsScreenView.BackRequested += (_, _) => ReturnToCards();
-        WindowsScreenView.JournalRequested += (_, _) => ShowJournal(WindowsScreenView);
-        JournalScreenView.Initialize(localizer, new JournalScreen(journal, runner));
-        JournalScreenView.BackRequested += (_, _) => BackFromJournal();
-        JournalScreenView.Restored += (_, _) => _restoredSinceJournalOpened = true;
-        DiskScreenView.Moved += (_, paths) =>
-        {
-            _diskScans.Forget(paths);
-            UpdateDiskCard(_diskScans.Latest!);
-        };
-        MemoryScreenView.Initialize(localizer);
-        MemoryScreenView.BackRequested += (_, _) => ReturnToCards();
-        MemoryScreenView.RefreshRequested += async (_, _) => await LoadMemoryScreenAsync();
+        _recycleBin = new ShellRecycleBin(TimeProvider.System);
+        _journal = new ActionJournal(ActionJournal.DefaultPath);
+        _runner = new ActionRunner(_journal, _recycleBin, TimeProvider.System);
         _memoryTimer = DispatcherQueue.CreateTimer();
         _memoryTimer.Interval = MemoryRefreshInterval;
         _memoryTimer.Tick += (_, _) => RefreshMemoryCounters();
@@ -172,14 +163,46 @@ public sealed partial class PanelWindow : Window
         Activate();
     }
 
+    // Measurement only (--probe): leaves one graphics part out so its share of memory shows.
+    // The parts are taken out before the window is first drawn, so they never create anything.
+    private void ApplyMeasurementProbes(IReadOnlySet<string> probes)
+    {
+        if (probes.Contains("no-void"))
+        {
+            Root.Children.Remove(VoidCanvas);
+        }
+
+        if (probes.Contains("no-ring") && DiskRingCanvas.Parent is Panel ringHost)
+        {
+            ringHost.Children.Remove(DiskRingCanvas);
+        }
+
+        if (probes.Contains("no-3d"))
+        {
+            Cards.Transform3D = null;
+        }
+
+        if (probes.Contains("narrow"))
+        {
+            _panelWidth = NarrowProbeWidth;
+        }
+    }
+
+    // For MeasurementScript only: the same paths a click takes.
+    internal void ShowDiskScreenForMeasurement() => ShowDiskScreen();
+
+    internal void ShowMemoryScreenForMeasurement() => ShowMemoryScreen();
+
+    internal void ReturnToCardsForMeasurement() => ReturnToCards();
+
     internal void Shutdown()
     {
         _shuttingDown = true;
         _memoryTimer.Stop();
         // Stops Win2D's game-loop thread before the window goes away.
         VoidCanvas.RemoveFromVisualTree();
-        DiskScreenView.Shutdown();
-        WindowsScreenView.Shutdown();
+        _diskScreen?.Shutdown();
+        _windowsScreen?.Shutdown();
         Close();
     }
 
@@ -271,7 +294,7 @@ public sealed partial class PanelWindow : Window
         }
 
         // A screen's lists would measure taller than the cards; the window keeps the cards' height.
-        PlaceAboveTray(PanelWidth, _showingWorkScreen ? _cardPanelHeight : CardPanelHeight());
+        PlaceAboveTray(_panelWidth, _showingWorkScreen ? _cardPanelHeight : CardPanelHeight());
         AppWindow.Show();
         Activate();
         _isOpen = true;
@@ -325,9 +348,8 @@ public sealed partial class PanelWindow : Window
         _transition++;
         MarkTransition("back-click");
         _markNextVoidFrame = _measurement is not null;
-        UIElement[] leaving = [DiskScreenView, WindowsScreenView, MemoryScreenView, JournalScreenView];
         SwitchContent(
-            leaving.Where(screen => screen.Visibility == Visibility.Visible).ToArray(),
+            LoadedScreens().Where(screen => screen.Visibility == Visibility.Visible).ToArray<UIElement>(),
             () =>
             {
                 ShowCardsNow();
@@ -348,10 +370,11 @@ public sealed partial class PanelWindow : Window
     {
         _showingWorkScreen = false;
         _presenter.IsAlwaysOnTop = true;
-        DiskScreenView.Visibility = Visibility.Collapsed;
-        WindowsScreenView.Visibility = Visibility.Collapsed;
-        MemoryScreenView.Visibility = Visibility.Collapsed;
-        JournalScreenView.Visibility = Visibility.Collapsed;
+        foreach (UserControl screen in LoadedScreens())
+        {
+            screen.Visibility = Visibility.Collapsed;
+        }
+
         VoidCanvas.Visibility = Visibility.Visible;
         CardsScroller.Visibility = Visibility.Visible;
         VoidCanvas.Paused = !_isOpen || !_animationsEnabled;
@@ -379,10 +402,11 @@ public sealed partial class PanelWindow : Window
                 VoidCanvas.Paused = true;
                 VoidCanvas.Visibility = Visibility.Collapsed;
                 CardsScroller.Visibility = Visibility.Collapsed;
-                JournalScreenView.Visibility = Visibility.Collapsed;
-                DiskScreenView.Visibility = screen == DiskScreenView ? Visibility.Visible : Visibility.Collapsed;
-                WindowsScreenView.Visibility = screen == WindowsScreenView ? Visibility.Visible : Visibility.Collapsed;
-                MemoryScreenView.Visibility = screen == MemoryScreenView ? Visibility.Visible : Visibility.Collapsed;
+                foreach (UserControl loaded in LoadedScreens())
+                {
+                    loaded.Visibility = loaded == screen ? Visibility.Visible : Visibility.Collapsed;
+                }
+
                 EmergeFromVoid(screen);
             },
             shownPhase);
@@ -465,23 +489,105 @@ public sealed partial class PanelWindow : Window
         visual.StartAnimation(nameof(Visual.Scale), grow);
     }
 
+    // The screens are created in code the first time they open: hidden in the window from the start,
+    // they held ~62 MB of the panel's memory even when never opened (B-148).
+    private DiskView EnsureDiskScreen()
+    {
+        if (_diskScreen is not null)
+        {
+            return _diskScreen;
+        }
+
+        var disk = AddScreen(new DiskView());
+        disk.Initialize(_localizer, _runner, _recycleBin, _animationsEnabled);
+        disk.BackRequested += (_, _) => ReturnToCards();
+        disk.RescanRequested += (_, _) => RefreshDisk();
+        disk.JournalRequested += (_, _) => ShowJournal(disk);
+        disk.Moved += (_, paths) =>
+        {
+            _diskScans.Forget(paths);
+            UpdateDiskCard(_diskScans.Latest!);
+        };
+        return _diskScreen = disk;
+    }
+
+    private WindowsView EnsureWindowsScreen()
+    {
+        if (_windowsScreen is not null)
+        {
+            return _windowsScreen;
+        }
+
+        var windows = AddScreen(new WindowsView());
+        windows.Initialize(
+            _localizer, _runner, _recycleBin, ElevatedLauncher.NextToThisApp(), WindowsLocations.ForThisMachine(), _animationsEnabled);
+        windows.BackRequested += (_, _) => ReturnToCards();
+        windows.JournalRequested += (_, _) => ShowJournal(windows);
+        return _windowsScreen = windows;
+    }
+
+    private MemoryView EnsureMemoryScreen()
+    {
+        if (_memoryScreen is not null)
+        {
+            return _memoryScreen;
+        }
+
+        var memory = AddScreen(new MemoryView());
+        memory.Initialize(_localizer);
+        memory.BackRequested += (_, _) => ReturnToCards();
+        memory.RefreshRequested += async (_, _) => await LoadMemoryScreenAsync();
+        return _memoryScreen = memory;
+    }
+
+    private JournalView EnsureJournalScreen()
+    {
+        if (_journalScreen is not null)
+        {
+            return _journalScreen;
+        }
+
+        var journal = AddScreen(new JournalView());
+        journal.Initialize(_localizer, new JournalScreen(_journal, _runner));
+        journal.BackRequested += (_, _) => BackFromJournal();
+        journal.Restored += (_, _) => _restoredSinceJournalOpened = true;
+        return _journalScreen = journal;
+    }
+
+    // Where the screens sit: over the void and the cards, below the quit button.
+    private T AddScreen<T>(T screen)
+        where T : UserControl
+    {
+        Grid.SetRow(screen, 1);
+        Grid.SetRowSpan(screen, 2);
+        screen.Visibility = Visibility.Collapsed;
+        Root.Children.Insert(Root.Children.IndexOf(QuitButton), screen);
+        return screen;
+    }
+
+    // Screens not created yet are skipped.
+    private UserControl[] LoadedScreens() =>
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _journalScreen }.OfType<UserControl>().ToArray();
+
     private void ShowDiskScreen()
     {
-        ShowWorkScreen(DiskScreenView);
+        DiskView disk = EnsureDiskScreen();
+        ShowWorkScreen(disk);
         if (_diskScans.Latest is { } latest)
         {
-            DiskScreenView.Show(latest);
+            disk.Show(latest);
         }
         else
         {
-            DiskScreenView.ShowScanning();
+            disk.ShowScanning();
         }
     }
 
     private void ShowWindowsScreen()
     {
-        ShowWorkScreen(WindowsScreenView);
-        WindowsScreenView.Refresh();
+        WindowsView windows = EnsureWindowsScreen();
+        ShowWorkScreen(windows);
+        windows.Refresh();
     }
 
     // The screen is filled before it appears, so it never opens on "Reading…".
@@ -490,9 +596,10 @@ public sealed partial class PanelWindow : Window
         _transition++;
         MarkTransition("memory-click");
         MemoryInspectButton.IsEnabled = false;
+        MemoryView memory = EnsureMemoryScreen();
         await LoadMemoryScreenAsync();
         MemoryInspectButton.IsEnabled = true;
-        ShowWorkScreen(MemoryScreenView, "memory-shown");
+        ShowWorkScreen(memory, "memory-shown");
     }
 
     // The app list and the tray's history are read off the UI thread; only reads. The card's own
@@ -509,18 +616,18 @@ public sealed partial class PanelWindow : Window
             ForegroundHistory? history = foreground is null ? null : ForegroundHistory.From(foreground);
             var screen = MemoryScreen.From(snapshot, await apps, history, DateTimeOffset.UtcNow);
             UpdateMemoryCard(screen.Snapshot);
-            MemoryScreenView.Show(screen);
+            EnsureMemoryScreen().Show(screen);
         }
         catch (Exception exception)
         {
-            MemoryScreenView.ShowMessage(_localizer.Format("MemoryReadFailedFormat", exception.Message));
+            EnsureMemoryScreen().ShowMessage(_localizer.Format("MemoryReadFailedFormat", exception.Message));
         }
     }
 
     // Only while the cards or the Memory screen are on screen; the Disk and Windows screens do not show memory.
     private async void RefreshMemoryCounters()
     {
-        bool memoryOnScreen = !_showingWorkScreen || MemoryScreenView.Visibility == Visibility.Visible;
+        bool memoryOnScreen = !_showingWorkScreen || _memoryScreen is { Visibility: Visibility.Visible };
         if (_readingMemory || !_isOpen || !memoryOnScreen)
         {
             return;
@@ -531,9 +638,9 @@ public sealed partial class PanelWindow : Window
         {
             MemorySnapshot snapshot = await Task.Run(() => MemoryCounters.Read(PagingWindow));
             UpdateMemoryCard(snapshot);
-            if (MemoryScreenView.Visibility == Visibility.Visible)
+            if (_memoryScreen is { Visibility: Visibility.Visible } memory)
             {
-                MemoryScreenView.ShowSnapshot(snapshot);
+                memory.ShowSnapshot(snapshot);
             }
         }
         catch (Exception exception)
@@ -564,23 +671,24 @@ public sealed partial class PanelWindow : Window
         _journalOpenedFrom = from;
         _restoredSinceJournalOpened = false;
         from.Visibility = Visibility.Collapsed;
-        JournalScreenView.Visibility = Visibility.Visible;
-        JournalScreenView.Show();
+        JournalView journal = EnsureJournalScreen();
+        journal.Visibility = Visibility.Visible;
+        journal.Show();
     }
 
     // Put-back items are on disk again, so the screen scans before it lists anything.
     private void BackFromJournal()
     {
-        JournalScreenView.Visibility = Visibility.Collapsed;
+        EnsureJournalScreen().Visibility = Visibility.Collapsed;
         _journalOpenedFrom.Visibility = Visibility.Visible;
         if (!_restoredSinceJournalOpened)
         {
             return;
         }
 
-        if (_journalOpenedFrom == WindowsScreenView)
+        if (_journalOpenedFrom is WindowsView windows)
         {
-            WindowsScreenView.Refresh();
+            windows.Refresh();
         }
         else
         {
@@ -592,9 +700,9 @@ public sealed partial class PanelWindow : Window
     private async void RefreshDisk()
     {
         DiskBody.Text = _localizer.Get("DiskScanning");
-        if (_showingWorkScreen)
+        if (_showingWorkScreen && _diskScreen is { } disk)
         {
-            DiskScreenView.ShowScanning();
+            disk.ShowScanning();
         }
 
         try
@@ -605,16 +713,16 @@ public sealed partial class PanelWindow : Window
         {
             string message = _localizer.Format("DiskScanFailedFormat", exception.Message);
             DiskBody.Text = message;
-            DiskScreenView.ShowMessage(message);
+            _diskScreen?.ShowMessage(message);
         }
     }
 
     private void ShowDiskResult(ScanSummary summary)
     {
         UpdateDiskCard(summary);
-        if (_showingWorkScreen)
+        if (_showingWorkScreen && _diskScreen is { } disk)
         {
-            DiskScreenView.Show(summary);
+            disk.Show(summary);
         }
     }
 
@@ -682,7 +790,7 @@ public sealed partial class PanelWindow : Window
 
     private int MeasuredPanelHeight()
     {
-        Root.Measure(new Size(PanelWidth, double.PositiveInfinity));
+        Root.Measure(new Size(_panelWidth, double.PositiveInfinity));
         return (int)Math.Ceiling(Root.DesiredSize.Height) + FrameAllowance;
     }
 
@@ -704,7 +812,7 @@ public sealed partial class PanelWindow : Window
         int previous = _cardPanelHeight;
         if (CardPanelHeight() != previous)
         {
-            Reshape(() => PlaceAboveTray(PanelWidth, _cardPanelHeight));
+            Reshape(() => PlaceAboveTray(_panelWidth, _cardPanelHeight));
         }
     }
 

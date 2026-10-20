@@ -6,7 +6,8 @@ namespace Vacuo.App;
 /// <summary>
 /// Command-line switches: <c>--panel-only</c> with <c>--tray-window &lt;handle&gt;</c> (started by
 /// the tray process), and for Stage 0 measurement <c>--lang en-US</c>, <c>--measure &lt;file.json&gt;</c>,
-/// <c>--open</c>, <c>--script idle|coldstart|full</c>, <c>--reduced-motion</c>, <c>--linger-seconds &lt;n&gt;</c>.
+/// <c>--open</c>, <c>--script idle|coldstart|full|memory|memory-cards</c>, <c>--reduced-motion</c>, <c>--linger-seconds &lt;n&gt;</c>,
+/// and <c>--probe no-void|no-ring|no-3d|narrow</c> (repeatable, only with <c>--measure</c>) to find what the panel's memory comes from.
 /// </summary>
 internal sealed record LaunchOptions(
     string? Language,
@@ -16,7 +17,8 @@ internal sealed record LaunchOptions(
     bool ForceReducedMotion,
     bool PanelOnly,
     nint TrayWindow,
-    TimeSpan Linger)
+    TimeSpan Linger,
+    IReadOnlySet<string> Probes)
 {
     public static LaunchOptions Parse(IReadOnlyList<string> args)
     {
@@ -28,6 +30,7 @@ internal sealed record LaunchOptions(
         bool panelOnly = false;
         nint trayWindow = 0;
         TimeSpan linger = PanelProtocol.LingerAfterHide;
+        var probes = new HashSet<string>(StringComparer.Ordinal);
 
         for (int i = 1; i < args.Count; i++)
         {
@@ -48,6 +51,9 @@ internal sealed record LaunchOptions(
                 case "--reduced-motion":
                     reducedMotion = true;
                     break;
+                case "--probe" when i + 1 < args.Count:
+                    probes.Add(args[++i]);
+                    break;
                 case PanelProtocol.PanelOnlySwitch:
                     panelOnly = true;
                     break;
@@ -60,6 +66,6 @@ internal sealed record LaunchOptions(
             }
         }
 
-        return new LaunchOptions(language, measurementPath, openPanel, script, reducedMotion, panelOnly, trayWindow, linger);
+        return new LaunchOptions(language, measurementPath, openPanel, script, reducedMotion, panelOnly, trayWindow, linger, probes);
     }
 }
