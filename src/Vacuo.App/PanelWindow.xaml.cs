@@ -77,6 +77,7 @@ public sealed partial class PanelWindow : Window
     private readonly OverlappedPresenter _presenter = OverlappedPresenter.Create();
     private readonly DispatcherQueueTimer _memoryTimer;
     private DiskOverview? _diskOverview;
+    private string? _categoriesFailure;
     private bool _readingMemory;
     private MemorySnapshot? _memorySnapshot;
     private DateTime _memorySnapshotAt;
@@ -321,6 +322,7 @@ public sealed partial class PanelWindow : Window
         AppWindow.Show();
         Activate();
         _isOpen = true;
+        _diskScreen?.SetWindowOpen(true);
         if (_diskScans.IsStale)
         {
             RefreshDisk();
@@ -363,6 +365,7 @@ public sealed partial class PanelWindow : Window
         _isOpen = false;
         MarkEvent($"hidden-{reason}");
         VoidCanvas.Paused = true;
+        _diskScreen?.SetWindowOpen(false);
         _memoryTimer.Stop();
         AppWindow.Hide();
         _hiddenAt = DateTime.UtcNow;
@@ -542,7 +545,9 @@ public sealed partial class PanelWindow : Window
         {
             _diskScans.Forget(paths);
             UpdateDiskCard(_diskScans.Latest!);
+            ShowDiskCategories();
         };
+        disk.SetWindowOpen(_isOpen);
         return _diskScreen = disk;
     }
 
@@ -663,6 +668,8 @@ public sealed partial class PanelWindow : Window
         {
             disk.ShowScanning();
         }
+
+        ShowDiskCategories();
     }
 
     private void ShowWindowsScreen()
@@ -897,6 +904,7 @@ public sealed partial class PanelWindow : Window
             disk.ShowScanning();
         }
 
+        MeasureDiskCategories();
         try
         {
             ShowDiskResult(await _diskScans.ScanAsync());
@@ -909,12 +917,50 @@ public sealed partial class PanelWindow : Window
         }
     }
 
+    // Far slower than the scan, so it does not hold the scan up; the Disk screen shows it when done.
+    private async void MeasureDiskCategories()
+    {
+        try
+        {
+            await _diskScans.MeasureCategoriesAsync();
+            _categoriesFailure = null;
+        }
+        catch (Exception exception)
+        {
+            _categoriesFailure = _localizer.Format("DiskCategoriesFailedFormat", exception.Message);
+        }
+
+        ShowDiskCategories();
+    }
+
     private void ShowDiskResult(ScanSummary summary)
     {
         UpdateDiskCard(summary);
         if (_showingWorkScreen && _diskScreen is { } disk)
         {
             disk.Show(summary);
+        }
+
+        ShowDiskCategories();
+    }
+
+    // Without a measurement yet the screen says it is measuring, or why it failed.
+    private void ShowDiskCategories()
+    {
+        if (_diskScreen is not { } disk)
+        {
+            return;
+        }
+
+        DriveInfo drive = SystemDrive();
+        DiskCategories? categories = _diskScans.Categories(drive.TotalSize - drive.AvailableFreeSpace);
+        if (categories is not null)
+        {
+            disk.ShowCategories(DiskFlow.From(categories));
+        }
+        else
+        {
+            disk.ShowCategoriesMessage(_categoriesFailure ?? _localizer.Get("DiskCategoriesMeasuring"));
         }
     }
 

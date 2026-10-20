@@ -150,7 +150,7 @@ internal sealed class FlowMap
         return (new Vector2(_source.X + reach, _source.Y), new Vector2(lane.End.X - reach, lane.End.Y));
     }
 
-    private static Vector2 Bezier(Vector2 start, Vector2 first, Vector2 second, Vector2 end, float t)
+    internal static Vector2 Bezier(Vector2 start, Vector2 first, Vector2 second, Vector2 end, float t)
     {
         float u = 1 - t;
         return u * u * u * start + 3 * u * u * t * first + 3 * u * t * t * second + t * t * t * end;

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Numerics;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Vacuo.App.Localization;
@@ -21,6 +22,8 @@ namespace Vacuo.App.Screens;
 public sealed partial class DiskView : UserControl
 {
     private static readonly TimeSpan CountUpDuration = TimeSpan.FromMilliseconds(700);
+    private const int FlowParticleBudget = 600;
+    private const int FlowParticleMinimum = 12;
 
     private readonly Dictionary<string, FrameworkElement> _rows = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<CheckBox> _checks = [];
@@ -32,6 +35,9 @@ public sealed partial class DiskView : UserControl
     private int _skippedEntries;
     private bool _moving;
     private volatile PullBurst? _burst;
+    private DiskFlow? _diskFlow;
+    private volatile DiskFlowMap? _flowMap;
+    private bool _windowOpen;
 
     public DiskView()
     {
@@ -59,14 +65,40 @@ public sealed partial class DiskView : UserControl
         JournalButton.Content = localizer.Get("DiskJournalButton");
         MoveButton.Content = localizer.Get("DiskMoveButton");
         MovedNote.Text = localizer.Get("DiskMovedNote");
+        CategoriesTitle.Text = localizer.Get("DiskCategoriesTitle");
         Confirm.Initialize(animationsEnabled);
+        RegisterPropertyChangedCallback(VisibilityProperty, (_, _) => UpdateFlowRunning());
+        FlowCanvas.SizeChanged += (_, _) => BuildFlow();
     }
 
-    /// <summary>Stops Win2D's game-loop thread before the window goes away.</summary>
+    /// <summary>Stops Win2D's game-loop threads before the window goes away.</summary>
     internal void Shutdown()
     {
         BurstCanvas.RemoveFromVisualTree();
+        FlowCanvas.RemoveFromVisualTree();
         Confirm.Shutdown();
+    }
+
+    /// <summary>The panel window was shown or hidden to the tray; the flow only moves while it is seen.</summary>
+    internal void SetWindowOpen(bool open)
+    {
+        _windowOpen = open;
+        UpdateFlowRunning();
+    }
+
+    internal void ShowCategories(DiskFlow flow)
+    {
+        _diskFlow = flow;
+        CategoriesNote.Text = _localizer.Format("DiskCategoriesHintFormat", DiskTexts.BucketName(_localizer, Bucket.Keep));
+        BuildFlow();
+    }
+
+    /// <summary>No categories to show yet: still measuring, or the measurement failed.</summary>
+    internal void ShowCategoriesMessage(string message)
+    {
+        _diskFlow = null;
+        CategoriesNote.Text = message;
+        BuildFlow();
     }
 
     internal void ShowScanning() => ShowMessage(_localizer.Get("DiskScanning"));
@@ -398,6 +430,71 @@ public sealed partial class DiskView : UserControl
         Rect list = ListBounds();
         return new Vector2((float)center.X, (float)Math.Clamp(center.Y, list.Top, list.Bottom));
     }
+
+    // Rebuilt for every measurement and size; without categories only the note shows.
+    private void BuildFlow()
+    {
+        if (_diskFlow is not { } flow || FlowCanvas.ActualWidth <= 0)
+        {
+            _flowMap = null;
+            FlowCanvas.Visibility = _diskFlow is null ? Visibility.Collapsed : Visibility.Visible;
+            UpdateFlowRunning();
+            return;
+        }
+
+        double height = DiskFlowMap.HeightFor(Math.Max(flow.Categories.Count, flow.Buckets.Count));
+        if (Math.Abs(FlowCanvas.Height - height) > 0.5)
+        {
+            // The new size comes back through SizeChanged, which builds the flow again.
+            FlowCanvas.Height = height;
+            return;
+        }
+
+        List<FlowChip> sources = flow.Categories
+            .Select(total => new FlowChip(
+                _localizer.Format(
+                    "DiskCategoryChipFormat",
+                    DiskTexts.CategoryName(_localizer, total.Category),
+                    DiskTexts.Size(_localizer, total.Bytes),
+                    DiskTexts.Percent(_localizer, total.Fraction)),
+                Dot: null))
+            .ToList();
+        List<FlowChip> sinks = flow.Buckets
+            .Select(bucket => new FlowChip(
+                _localizer.Format("DiskBucketChipFormat", DiskTexts.BucketName(_localizer, bucket), DiskTexts.Size(_localizer, flow.BytesInto(bucket))),
+                DiskRing.ColorOf(bucket)))
+            .ToList();
+        List<DiskCategory> categories = flow.Categories.Select(total => total.Category).ToList();
+        List<Bucket> buckets = flow.Buckets.ToList();
+        IReadOnlyList<int> particles = flow.ParticlesPerStream(FlowParticleBudget, FlowParticleMinimum);
+        List<FlowStream> streams = flow.Streams
+            .Select((stream, index) => new FlowStream(
+                categories.IndexOf(stream.Category), buckets.IndexOf(stream.Bucket), DiskRing.ColorOf(stream.Bucket), particles[index]))
+            .ToList();
+
+        // The canvas is only drawn; a screen reader reads the same chips from its name.
+        AutomationProperties.SetName(FlowCanvas, string.Join(", ", sources.Concat(sinks).Select(chip => chip.Label)));
+        _flowMap = new DiskFlowMap(sources, sinks, streams, new Vector2((float)FlowCanvas.ActualWidth, (float)FlowCanvas.ActualHeight));
+        FlowCanvas.Visibility = Visibility.Visible;
+        UpdateFlowRunning();
+    }
+
+    // Moves only while the window and this screen are seen; with animation effects off, one still frame.
+    private void UpdateFlowRunning()
+    {
+        bool onView = _windowOpen && Visibility == Visibility.Visible && _flowMap is not null;
+        FlowCanvas.Paused = !onView || !_animationsEnabled;
+        if (onView && !_animationsEnabled)
+        {
+            FlowCanvas.Invalidate();
+        }
+    }
+
+    private void OnFlowUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) =>
+        _flowMap?.Advance(args.Timing.ElapsedTime);
+
+    private void OnFlowDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) =>
+        _flowMap?.Draw(args.DrawingSession);
 
     private void OnBurstUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) =>
         _burst?.Advance(args.Timing.ElapsedTime);

@@ -661,7 +661,7 @@
     <value>The battery could not be read: {0}</value>
   </data>
   <data name="BatteryHealthFormat" xml:space="preserve">
-    <value>{0:0}% · {1}</value>
+    <value>Battery health {0:0}% · {1}</value>
   </data>
   <data name="BatteryPercentFormat" xml:space="preserve">
     <value>{0:0}%</value>
@@ -767,5 +767,41 @@
   </data>
   <data name="WindowsCardItemComponents" xml:space="preserve">
     <value>Component cleanup</value>
+  </data>
+  <data name="DiskCategoriesTitle" xml:space="preserve">
+    <value>Where the used space goes</value>
+  </data>
+  <data name="DiskCategoriesHintFormat" xml:space="preserve">
+    <value>Everything the scan found flows into its bucket; the rest stays in “{0}”.</value>
+  </data>
+  <data name="DiskCategoriesMeasuring" xml:space="preserve">
+    <value>Measuring the categories; this can take about half a minute…</value>
+  </data>
+  <data name="DiskCategoriesFailedFormat" xml:space="preserve">
+    <value>The categories could not be measured: {0}</value>
+  </data>
+  <data name="DiskCategoryChipFormat" xml:space="preserve">
+    <value>{0} · {1} · {2}</value>
+  </data>
+  <data name="DiskBucketChipFormat" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="DiskPercentUnderFormat" xml:space="preserve">
+    <value>&lt;{0}</value>
+  </data>
+  <data name="Category_AppsAndData" xml:space="preserve">
+    <value>Apps and data</value>
+  </data>
+  <data name="Category_DocumentsAndMedia" xml:space="preserve">
+    <value>Documents and media</value>
+  </data>
+  <data name="Category_Developer" xml:space="preserve">
+    <value>Developer</value>
+  </data>
+  <data name="Category_AiAgents" xml:space="preserve">
+    <value>AI agents</value>
+  </data>
+  <data name="Category_SystemAndOther" xml:space="preserve">
+    <value>System and other</value>
   </data>
 </root>

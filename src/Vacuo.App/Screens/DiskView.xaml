@@ -52,7 +52,24 @@
         </StackPanel>
 
         <ScrollViewer x:Name="ListScroller" Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            <StackPanel x:Name="BucketList" Spacing="14" Padding="0,0,12,0" />
+            <StackPanel Spacing="14" Padding="0,0,12,0">
+                <!-- Where the used space goes (Aşama 3d A, dilim 2): categories flowing into the buckets. -->
+                <StackPanel>
+                    <TextBlock x:Name="CategoriesTitle" Style="{StaticResource CardTitleStyle}" />
+                    <TextBlock x:Name="CategoriesNote" Style="{StaticResource CardBodyStyle}" />
+                    <canvas:CanvasAnimatedControl x:Name="FlowCanvas"
+                                                  Height="184"
+                                                  Margin="0,4,0,0"
+                                                  ClearColor="#00000000"
+                                                  IsHitTestVisible="False"
+                                                  Paused="True"
+                                                  IsFixedTimeStep="False"
+                                                  Visibility="Collapsed"
+                                                  Update="OnFlowUpdate"
+                                                  Draw="OnFlowDraw" />
+                </StackPanel>
+                <StackPanel x:Name="BucketList" Spacing="14" />
+            </StackPanel>
         </ScrollViewer>
 
         <Grid Grid.Row="3"

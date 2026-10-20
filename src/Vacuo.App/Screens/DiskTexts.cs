@@ -11,6 +11,14 @@ internal static class DiskTexts
 {
     public static string BucketName(Localizer localizer, Bucket bucket) => localizer.Get($"Bucket_{bucket}");
 
+    public static string CategoryName(Localizer localizer, DiskCategory category) => localizer.Get($"Category_{category}");
+
+    // A share under one percent still reads as "<1%", not as nothing.
+    public static string Percent(Localizer localizer, double fraction) =>
+        fraction is > 0 and < 0.01
+            ? localizer.Format("DiskPercentUnderFormat", 0.01.ToString("P0", localizer.Culture))
+            : fraction.ToString("P0", localizer.Culture);
+
     public static string BucketHint(Localizer localizer, Bucket bucket) => localizer.Get($"BucketHint_{bucket}");
 
     public static string CostName(Localizer localizer, RebuildCost cost) => localizer.Get($"Cost_{cost}");
