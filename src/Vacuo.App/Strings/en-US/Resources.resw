@@ -660,6 +660,9 @@
   <data name="JournalMoreFormat" xml:space="preserve">
     <value>Show {0} older entries</value>
   </data>
+  <data name="WindowsMoreFormat" xml:space="preserve">
+    <value>Show {0} more</value>
+  </data>
   <data name="OrganizeMoreFoldersFormat" xml:space="preserve">
     <value>+{0} more folders · {1} files</value>
   </data>

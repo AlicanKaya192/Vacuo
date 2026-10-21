@@ -19,7 +19,10 @@ namespace Vacuo.App.Screens;
 /// </summary>
 public sealed partial class WindowsView : UserControl
 {
+    private const int TempPageSize = 60;
     private readonly List<CheckBox> _tempChecks = [];
+    private IReadOnlyList<ScanFinding> _tempItems = [];
+    private Button? _moreTempButton;
     private readonly List<CheckBox> _adminChecks = [];
     private Localizer _localizer = null!;
     private ActionRunner _runner = null!;
@@ -111,27 +114,54 @@ public sealed partial class WindowsView : UserControl
     private void ClearTemp()
     {
         _tempChecks.Clear();
+        _tempItems = [];
+        _moreTempButton = null;
         TempList.Children.Clear();
         _syncingSelectAll = true;
         SelectAllBox.IsChecked = false;
         _syncingSelectAll = false;
     }
 
+    // A temp folder holds hundreds of items; building a row for each at once held the screen back
+    // (Alican, 21 October 2026: ~1.3 s with ~700 items). Rows come a page at a time, like the Journal.
     private void RenderTemp()
     {
         ClearTemp();
-        IReadOnlyList<ScanFinding> items = TempItems();
-        if (items.Count == 0)
+        _tempItems = TempItems();
+        if (_tempItems.Count == 0)
         {
             TempList.Children.Add(Text(_localizer.Get("WindowsTempEmpty"), "InkSecondaryBrush"));
         }
 
-        foreach (ScanFinding finding in items)
+        ShowMoreTemp();
+        SyncSelectAll();
+    }
+
+    private void ShowMoreTemp()
+    {
+        if (_moreTempButton is not null)
+        {
+            TempList.Children.Remove(_moreTempButton);
+            _moreTempButton = null;
+        }
+
+        foreach (ScanFinding finding in _tempItems.Skip(_tempChecks.Count).Take(TempPageSize))
         {
             TempList.Children.Add(TempRow(finding));
         }
 
-        SyncSelectAll();
+        int hidden = _tempItems.Count - _tempChecks.Count;
+        if (hidden > 0)
+        {
+            _moreTempButton = new Button
+            {
+                Content = _localizer.Format("WindowsMoreFormat", hidden),
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                IsEnabled = !_busy,
+            };
+            _moreTempButton.Click += (_, _) => ShowMoreTemp();
+            TempList.Children.Add(_moreTempButton);
+        }
     }
 
     private IReadOnlyList<ScanFinding> TempItems() =>
@@ -234,6 +264,11 @@ public sealed partial class WindowsView : UserControl
             check.IsEnabled = !busy;
         }
 
+        if (_moreTempButton is not null)
+        {
+            _moreTempButton.IsEnabled = !busy;
+        }
+
         UpdateSummaries();
         if (status is not null)
         {
@@ -264,12 +299,16 @@ public sealed partial class WindowsView : UserControl
         UpdateSummaries();
     }
 
+    // From the selection itself, so rows not shown yet count too.
     private void SyncSelectAll()
     {
+        int selectable = _tempItems.Count(IsSelectable);
         _syncingSelectAll = true;
-        SelectAllBox.IsChecked = _tempChecks.Count > 0 && _tempChecks.All(check => check.IsChecked == true);
+        SelectAllBox.IsChecked = selectable > 0 && _temp?.SelectedCount == selectable;
         _syncingSelectAll = false;
     }
+
+    private static bool IsSelectable(ScanFinding finding) => finding.Rule.Bucket != Bucket.Keep;
 
     private void OnSelectAllChecked(object sender, RoutedEventArgs e) => SetAllTempChecks(true);
 
@@ -277,9 +316,22 @@ public sealed partial class WindowsView : UserControl
 
     private void SetAllTempChecks(bool isChecked)
     {
-        if (_syncingSelectAll)
+        if (_syncingSelectAll || _temp is null)
         {
             return;
+        }
+
+        // Every item, the ones on pages not shown yet too; then the rows on screen follow.
+        foreach (ScanFinding finding in _tempItems.Where(IsSelectable))
+        {
+            if (isChecked)
+            {
+                _temp.Select(finding.Path);
+            }
+            else
+            {
+                _temp.Deselect(finding.Path);
+            }
         }
 
         _settingAllRows = true;
