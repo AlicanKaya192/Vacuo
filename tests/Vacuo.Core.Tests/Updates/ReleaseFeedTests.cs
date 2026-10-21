@@ -5,7 +5,7 @@ namespace Vacuo.Core.Tests.Updates;
 
 public class ReleaseFeedTests
 {
-    private const string Download = "https://github.com/AlicanKaya192/vacuo/releases/download/";
+    private const string Download = "https://github.com/AlicanKaya192/Vacuo/releases/download/";
     private static readonly ReleaseVersion Current = Version("0.4.0");
 
     [Fact]
@@ -86,6 +86,25 @@ public class ReleaseFeedTests
     public void InstallerFromAnotherReleasesFolder_IsNotOffered()
     {
         string json = Feed(Release("0.5.0", installerUrl: Download + "setup-0.1.0/Vacuo-0.5.0-setup.exe"));
+
+        Assert.Equal(UpdateStatus.Failed, ReleaseFeed.Read(json, Current).Status);
+    }
+
+    // GitHub keeps a repository's name in any case (it was renamed vacuo → Vacuo on 21 October 2026).
+    [Theory]
+    [InlineData("https://github.com/AlicanKaya192/Vacuo/releases/download/")]
+    [InlineData("https://github.com/alicankaya192/vacuo/releases/download/")]
+    public void RepositoryNameInAnyCase_IsOffered(string prefix)
+    {
+        string json = Feed(Release("0.5.0", installerUrl: prefix + "setup-0.5.0/Vacuo-0.5.0-setup.exe"));
+
+        Assert.Equal(UpdateStatus.Newer, ReleaseFeed.Read(json, Current).Status);
+    }
+
+    [Fact]
+    public void InstallerFromAnotherRepository_IsNotOffered()
+    {
+        string json = Feed(Release("0.5.0", installerUrl: "https://github.com/AlicanKaya192/Vacuo-fork/releases/download/setup-0.5.0/Vacuo-0.5.0-setup.exe"));
 
         Assert.Equal(UpdateStatus.Failed, ReleaseFeed.Read(json, Current).Status);
     }

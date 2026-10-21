@@ -7,7 +7,7 @@ namespace Vacuo.Windows.Tests;
 
 public class ReleaseListClientTests
 {
-    private const string Download = "https://github.com/AlicanKaya192/vacuo/releases/download/setup-0.5.0/";
+    private const string Download = "https://github.com/AlicanKaya192/Vacuo/releases/download/setup-0.5.0/";
 
     private static readonly string NewerFeed = $$"""
         [{ "tag_name": "setup-0.5.0", "draft": false, "prerelease": false, "body": "",

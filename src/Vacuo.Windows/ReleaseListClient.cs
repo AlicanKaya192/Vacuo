@@ -12,7 +12,7 @@ namespace Vacuo.Windows;
 /// </summary>
 public sealed class ReleaseListClient(HttpClient http, TimeSpan timeout)
 {
-    public const string ListUrl = "https://api.github.com/repos/AlicanKaya192/vacuo/releases?per_page=30";
+    public const string ListUrl = "https://api.github.com/repos/AlicanKaya192/Vacuo/releases?per_page=30";
 
     // Release notes make the list long: Odyssey measured 103 KB for 15 releases.
     public const int MaximumAnswerBytes = 2 * 1024 * 1024;

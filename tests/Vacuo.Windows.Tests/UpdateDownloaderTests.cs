@@ -9,7 +9,7 @@ namespace Vacuo.Windows.Tests;
 
 public class UpdateDownloaderTests
 {
-    private const string Download = "https://github.com/AlicanKaya192/vacuo/releases/download/setup-0.5.0/";
+    private const string Download = "https://github.com/AlicanKaya192/Vacuo/releases/download/setup-0.5.0/";
     private const string Name = "Vacuo-0.5.0-setup.exe";
 
     [Fact]
@@ -125,6 +125,21 @@ public class UpdateDownloaderTests
 
         Assert.Equal(DownloadOutcome.Failed, result.Outcome);
         Assert.Empty(handler.Requests);
+    }
+
+    [Fact]
+    public async Task OfferWithTheRepositoryNameInAnotherCase_IsDownloaded()
+    {
+        using var tree = new TempTree();
+        byte[] setup = Setup(1000);
+        var choice = Choice(setup.Length) with
+        {
+            Setup = new ReleaseAsset(Name, "https://github.com/alicankaya192/VACUO/releases/download/setup-0.5.0/" + Name, setup.Length),
+        };
+
+        DownloadResult result = await Downloader(Server(setup, Checksum(setup)), tree).DownloadAsync(choice, null, TestContext.Current.CancellationToken);
+
+        Assert.Equal(DownloadOutcome.Ready, result.Outcome);
     }
 
     private static UpdateDownloader Downloader(StubHttpHandler handler, TempTree tree) =>

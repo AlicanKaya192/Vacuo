@@ -7,11 +7,11 @@
 <p align="center"><i>Fazlalığı çeker, gerekene dokunmaz.</i></p>
 
 <p align="center">
-  <a href="https://github.com/AlicanKaya192/vacuo/releases/latest"><img alt="Son sürüm" src="https://img.shields.io/github/v/release/AlicanKaya192/vacuo?style=for-the-badge&label=s%C3%BCr%C3%BCm&color=9D7CFF&labelColor=14101D"></a>
+  <a href="https://github.com/AlicanKaya192/Vacuo/releases/latest"><img alt="Son sürüm" src="https://img.shields.io/github/v/release/AlicanKaya192/Vacuo?style=for-the-badge&label=s%C3%BCr%C3%BCm&color=9D7CFF&labelColor=14101D"></a>
   <img alt="Windows 11" src="https://img.shields.io/badge/Windows-11-9D7CFF?style=for-the-badge&labelColor=14101D">
   <img alt=".NET 10 ve WinUI 3" src="https://img.shields.io/badge/.NET%2010-WinUI%203-9D7CFF?style=for-the-badge&labelColor=14101D">
   <br>
-  <a href="LICENSE"><img alt="MIT lisansı" src="https://img.shields.io/github/license/AlicanKaya192/vacuo?style=for-the-badge&label=lisans&color=9D7CFF&labelColor=14101D"></a>
+  <a href="LICENSE"><img alt="MIT lisansı" src="https://img.shields.io/github/license/AlicanKaya192/Vacuo?style=for-the-badge&label=lisans&color=9D7CFF&labelColor=14101D"></a>
   <img alt="Türkçe ve İngilizce" src="https://img.shields.io/badge/Diller-TR%20%7C%20EN-9D7CFF?style=for-the-badge&labelColor=14101D">
   <img alt="Telemetri yok" src="https://img.shields.io/badge/Telemetri-yok-9D7CFF?style=for-the-badge&labelColor=14101D">
 </p>
@@ -60,7 +60,7 @@ Tek bir kurala göre yapıldı: **dürüst ölç, sana sormadan hiçbir şeyi de
 
 ## Başlarken
 
-**1. İndir:** [Sürümler](https://github.com/AlicanKaya192/vacuo/releases/latest) sayfasından `Vacuo-<sürüm>-setup.exe`. Windows 11, 64 bit.
+**1. İndir:** [Sürümler](https://github.com/AlicanKaya192/Vacuo/releases/latest) sayfasından `Vacuo-<sürüm>-setup.exe`. Windows 11, 64 bit.
 
 **2. Çalıştır.** Vacuo yalnızca senin kullanıcın için `%LOCALAPPDATA%\Programs\Vacuo` altına kurulur, yönetici izni istemez. Başlat menüsüne kısayol ekler ve işareti kaldırmazsan bilgisayar açılınca başlar. Kurulum bitince panel açılır, Vacuo'nun nerede durduğunu görürsün.
 

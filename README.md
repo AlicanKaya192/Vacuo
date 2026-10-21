@@ -7,11 +7,11 @@
 <p align="center"><i>Pulls in the clutter, leaves what matters.</i></p>
 
 <p align="center">
-  <a href="https://github.com/AlicanKaya192/vacuo/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/AlicanKaya192/vacuo?style=for-the-badge&label=version&color=9D7CFF&labelColor=14101D"></a>
+  <a href="https://github.com/AlicanKaya192/Vacuo/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/AlicanKaya192/Vacuo?style=for-the-badge&label=version&color=9D7CFF&labelColor=14101D"></a>
   <img alt="Windows 11" src="https://img.shields.io/badge/Windows-11-9D7CFF?style=for-the-badge&labelColor=14101D">
   <img alt=".NET 10 and WinUI 3" src="https://img.shields.io/badge/.NET%2010-WinUI%203-9D7CFF?style=for-the-badge&labelColor=14101D">
   <br>
-  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/github/license/AlicanKaya192/vacuo?style=for-the-badge&color=9D7CFF&labelColor=14101D"></a>
+  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/github/license/AlicanKaya192/Vacuo?style=for-the-badge&color=9D7CFF&labelColor=14101D"></a>
   <img alt="Turkish and English" src="https://img.shields.io/badge/Languages-TR%20%7C%20EN-9D7CFF?style=for-the-badge&labelColor=14101D">
   <img alt="No telemetry" src="https://img.shields.io/badge/Telemetry-none-9D7CFF?style=for-the-badge&labelColor=14101D">
 </p>
@@ -60,7 +60,7 @@ It is built around one rule: **measure honestly, change nothing without you.** C
 
 ## Getting started
 
-**1. Download** `Vacuo-<version>-setup.exe` from [Releases](https://github.com/AlicanKaya192/vacuo/releases/latest). Windows 11, 64-bit.
+**1. Download** `Vacuo-<version>-setup.exe` from [Releases](https://github.com/AlicanKaya192/Vacuo/releases/latest). Windows 11, 64-bit.
 
 **2. Run it.** Vacuo installs for your own user under `%LOCALAPPDATA%\Programs\Vacuo` and asks for no administrator rights. It adds a Start menu shortcut and, unless you untick it, starts with Windows. When the setup finishes, the panel opens so you can see where Vacuo lives.
 

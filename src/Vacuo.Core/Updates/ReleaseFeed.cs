@@ -10,7 +10,10 @@ namespace Vacuo.Core.Updates;
 /// </summary>
 public static class ReleaseFeed
 {
-    public const string DownloadPrefix = "https://github.com/AlicanKaya192/vacuo/releases/download/";
+    public const string DownloadPrefix = "https://github.com/AlicanKaya192/Vacuo/releases/download/";
+
+    // GitHub treats the owner and repository names in any case (renamed vacuo → Vacuo, 21 October 2026).
+    public const StringComparison AddressComparison = StringComparison.OrdinalIgnoreCase;
 
     public static UpdateCheck Read(string json, ReleaseVersion current)
     {
@@ -88,7 +91,7 @@ public static class ReleaseFeed
         string url = DownloadPrefix + tag + "/" + name;
         foreach (JsonElement asset in assets.EnumerateArray())
         {
-            if (asset.ValueKind == JsonValueKind.Object && Text(asset, "name") == name && Text(asset, "browser_download_url") == url)
+            if (asset.ValueKind == JsonValueKind.Object && Text(asset, "name") == name && string.Equals(Text(asset, "browser_download_url"), url, AddressComparison))
             {
                 long size = asset.TryGetProperty("size", out JsonElement value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out long bytes)
                     ? bytes

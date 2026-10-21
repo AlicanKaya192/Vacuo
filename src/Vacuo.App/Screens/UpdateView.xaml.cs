@@ -18,7 +18,7 @@ namespace Vacuo.App.Screens;
 /// </summary>
 public sealed partial class UpdateView : UserControl
 {
-    private static readonly Uri ReleasesPage = new("https://github.com/AlicanKaya192/vacuo/releases");
+    private static readonly Uri ReleasesPage = new("https://github.com/AlicanKaya192/Vacuo/releases");
 
     private readonly UpdateHole _hole = new();
     private Localizer _localizer = null!;

@@ -99,7 +99,7 @@ public sealed class UpdateDownloader(HttpClient http, string folder, TimeSpan st
     }
 
     private static bool IsVacuoRelease(ReleaseAsset asset) =>
-        asset.Url.StartsWith(ReleaseFeed.DownloadPrefix, StringComparison.Ordinal) && asset.Url.EndsWith("/" + asset.Name, StringComparison.Ordinal);
+        asset.Url.StartsWith(ReleaseFeed.DownloadPrefix, ReleaseFeed.AddressComparison) && asset.Url.EndsWith("/" + asset.Name, StringComparison.Ordinal);
 
     private async Task<string?> ReadChecksumAsync(string url, CancellationToken cancellation)
     {

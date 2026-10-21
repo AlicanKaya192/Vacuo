@@ -26,7 +26,7 @@ public sealed partial class SettingsView : UserControl
     private static readonly string[] ParagraphBreak = ["\r\n\r\n", "\n\n"];
     private const string HeadingMark = "# ";
     private const string ChevronGlyph = "";
-    private static readonly Uri RepositoryAddress = new("https://github.com/AlicanKaya192/vacuo");
+    private static readonly Uri RepositoryAddress = new("https://github.com/AlicanKaya192/Vacuo");
 
     private Localizer _localizer = null!;
     private SettingsStore _store = null!;

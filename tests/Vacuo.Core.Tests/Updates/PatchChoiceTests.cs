@@ -6,7 +6,7 @@ namespace Vacuo.Core.Tests.Updates;
 
 public class PatchChoiceTests
 {
-    private const string Download = "https://github.com/AlicanKaya192/vacuo/releases/download/setup-0.5.0/";
+    private const string Download = "https://github.com/AlicanKaya192/Vacuo/releases/download/setup-0.5.0/";
 
     [Fact]
     public void PatchFromTheRunningVersion_IsOffered()
