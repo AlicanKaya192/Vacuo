@@ -34,18 +34,18 @@ public sealed class LeftoversScreen(IReadOnlyList<LeftoverFolder> folders)
 
     public void Unpick(string path) => _picked.Remove(path);
 
-    public MoveOutcome MoveSelected(ActionRunner runner, IRecycleBin recycleBin)
+    public MoveOutcome MoveSelected(ActionRunner runner, IRecycleBin recycleBin, IProgress<MoveProgress>? progress = null)
     {
         var batchId = Guid.NewGuid();
         var moved = new List<JournalEntry>();
         var failed = new List<MoveFailure>();
 
-        foreach (LeftoverFolder folder in Picked())
+        MoveProgress.Track(Picked(), folder => folder.Size.Bytes, progress, folder =>
         {
             if (!Directory.Exists(folder.Path))
             {
                 failed.Add(new MoveFailure(folder.Path, MoveFailureReason.Missing));
-                continue;
+                return;
             }
 
             try
@@ -58,7 +58,7 @@ public sealed class LeftoversScreen(IReadOnlyList<LeftoverFolder> folders)
             {
                 failed.Add(new MoveFailure(folder.Path, MoveFailures.ReasonFor(refusal)));
             }
-        }
+        });
 
         return new MoveOutcome(moved, failed);
     }

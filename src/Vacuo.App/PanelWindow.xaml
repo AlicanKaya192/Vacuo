@@ -25,6 +25,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <!-- The logo, a small black hole (Alican, 21 October 2026): its light ring turns and its glow
@@ -88,15 +89,22 @@
                         Visibility="Collapsed"
                         Click="OnUpdateBadgeClick" />
             </StackPanel>
-            <!-- Settings open from the cards only, like every other screen. -->
-            <Button x:Name="SettingsButton"
+            <!-- "Freed this week" and Settings open from the cards only, like every other screen (Alican, 21 October 2026:
+                 its own icon button beside Settings). -->
+            <Button x:Name="WeekButton"
                     Grid.Column="1"
+                    Style="{StaticResource VoidIconButtonStyle}"
+                    Click="OnWeekClick">
+                <FontIcon Glyph="&#xE81C;" FontSize="13" />
+            </Button>
+            <Button x:Name="SettingsButton"
+                    Grid.Column="2"
                     Style="{StaticResource VoidIconButtonStyle}"
                     Click="OnSettingsClick">
                 <FontIcon Glyph="&#xE713;" FontSize="13" />
             </Button>
             <Button x:Name="HideButton"
-                    Grid.Column="2"
+                    Grid.Column="3"
                     Style="{StaticResource VoidIconButtonStyle}"
                     Click="OnHideClick">
                 <FontIcon Glyph="&#xE921;" FontSize="12" />

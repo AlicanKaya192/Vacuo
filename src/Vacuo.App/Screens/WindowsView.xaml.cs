@@ -31,6 +31,9 @@ public sealed partial class WindowsView : UserControl
     private bool _busy;
     // Ticking rows one by one also moves "Select all"; that must not select or clear everything.
     private bool _syncingSelectAll;
+    // "Select all" ticks every row; each row then only marks its item, and the totals are worked out once at
+    // the end. Done per row, they sorted the whole selection a thousand times over and the screen froze.
+    private bool _settingAllRows;
 
     public WindowsView()
     {
@@ -50,6 +53,8 @@ public sealed partial class WindowsView : UserControl
         _launcher = launcher;
         _locations = locations;
         Confirm.Initialize(animationsEnabled);
+        TempProgress.Initialize(animationsEnabled);
+        AdminProgress.Initialize(animationsEnabled);
         ScreenTitle.Text = localizer.Get("WindowsTitle");
         BackButton.Content = localizer.Get("DiskBackButton");
         RescanButton.Content = localizer.Get("DiskRescanButton");
@@ -239,13 +244,22 @@ public sealed partial class WindowsView : UserControl
     private void OnTempRowChecked(object sender, RoutedEventArgs e)
     {
         _temp?.Select((string)((CheckBox)sender).Tag);
-        SyncSelectAll();
-        UpdateSummaries();
+        AfterRowChanged();
     }
 
     private void OnTempRowUnchecked(object sender, RoutedEventArgs e)
     {
         _temp?.Deselect((string)((CheckBox)sender).Tag);
+        AfterRowChanged();
+    }
+
+    private void AfterRowChanged()
+    {
+        if (_settingAllRows)
+        {
+            return;
+        }
+
         SyncSelectAll();
         UpdateSummaries();
     }
@@ -268,10 +282,21 @@ public sealed partial class WindowsView : UserControl
             return;
         }
 
-        foreach (CheckBox check in _tempChecks)
+        _settingAllRows = true;
+        try
         {
-            check.IsChecked = isChecked;
+            foreach (CheckBox check in _tempChecks)
+            {
+                check.IsChecked = isChecked;
+            }
         }
+        finally
+        {
+            _settingAllRows = false;
+        }
+
+        SyncSelectAll();
+        UpdateSummaries();
     }
 
     private async void OnTempMoveClick(object sender, RoutedEventArgs e)
@@ -284,9 +309,16 @@ public sealed partial class WindowsView : UserControl
         TempResult.Children.Clear();
         SetBusy(true);
         TempSummary.Text = _localizer.Get("DiskMoving");
+        TempProgress.ShowFraction(0);
+        // Reported on the UI thread after every item: the bar fills and the line says how many are left.
+        var progress = new Progress<MoveProgress>(report =>
+        {
+            TempProgress.ShowFraction(report.Fraction);
+            TempSummary.Text = RemovalTexts.Progress(_localizer, report);
+        });
         try
         {
-            MoveOutcome outcome = await Task.Run(() => temp.MoveSelected(_runner, _recycleBin));
+            MoveOutcome outcome = await Task.Run(() => temp.MoveSelected(_runner, _recycleBin, progress));
             RenderTemp();
             ShowTempOutcome(outcome);
         }
@@ -298,6 +330,7 @@ public sealed partial class WindowsView : UserControl
         }
         finally
         {
+            TempProgress.Hide();
             SetBusy(false);
         }
     }
@@ -345,6 +378,8 @@ public sealed partial class WindowsView : UserControl
 
         AdminResult.Children.Clear();
         SetBusy(true, _localizer.Get("WindowsAdminRunning"));
+        // The administrator helper reports only when it is done, so the bar sweeps instead of filling.
+        AdminProgress.ShowSweep();
         try
         {
             IReadOnlyList<ElevatedResult> results = await Task.Run(() => admin.Run(_launcher, _runner));
@@ -361,6 +396,7 @@ public sealed partial class WindowsView : UserControl
         }
         finally
         {
+            AdminProgress.Hide();
             SetBusy(false);
         }
     }

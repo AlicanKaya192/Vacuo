@@ -15,6 +15,48 @@
   <data name="AppTagline" xml:space="preserve">
     <value>Pulls in the clutter, leaves what matters.</value>
   </data>
+  <data name="WeekTitle" xml:space="preserve">
+    <value>Freed this week</value>
+  </data>
+  <data name="WeekTotalFormat" xml:space="preserve">
+    <value>In the last 7 days {0} went to the Recycle Bin; the space frees up when the bin is emptied. What was put back is not counted.</value>
+  </data>
+  <data name="WeekDeletedFormat" xml:space="preserve">
+    <value>{0} of Windows leftovers was deleted at once; that space is already free.</value>
+  </data>
+  <data name="WeekEmpty" xml:space="preserve">
+    <value>Vacuo moved nothing in the last 7 days.</value>
+  </data>
+  <data name="WeekItemsFormat" xml:space="preserve">
+    <value>{0} items · last {1}</value>
+  </data>
+  <data name="WeekOrganizedFormat" xml:space="preserve">
+    <value>{0} files sorted</value>
+  </data>
+  <data name="WeekPrevious" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="WeekNext" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="WeekSource_Disk" xml:space="preserve">
+    <value>Disk</value>
+  </data>
+  <data name="WeekSource_Windows" xml:space="preserve">
+    <value>Windows leftovers</value>
+  </data>
+  <data name="WeekSource_Duplicates" xml:space="preserve">
+    <value>Duplicate files</value>
+  </data>
+  <data name="WeekSource_Uninstall" xml:space="preserve">
+    <value>Program leftovers</value>
+  </data>
+  <data name="WeekSource_Maintenance" xml:space="preserve">
+    <value>Automatic maintenance</value>
+  </data>
+  <data name="WeekSource_Organize" xml:space="preserve">
+    <value>Organize</value>
+  </data>
   <data name="TrayTooltip" xml:space="preserve">
     <value>Vacuo</value>
   </data>
@@ -158,6 +200,9 @@
   </data>
   <data name="DiskMoving" xml:space="preserve">
     <value>Moving…</value>
+  </data>
+  <data name="RemovalProgressFormat" xml:space="preserve">
+    <value>Moving… {0} of {1} · {2}%</value>
   </data>
   <data name="DiskMovedFormat" xml:space="preserve">
     <value>{0} moved to the Recycle Bin</value>

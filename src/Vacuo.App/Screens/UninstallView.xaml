@@ -72,6 +72,7 @@
                             Style="{StaticResource VoidPrimaryButtonStyle}"
                             Click="OnMoveLeftoversClick" />
                 </Grid>
+                <local:VoidProgress x:Name="LeftoverProgress" />
                 <StackPanel x:Name="OutcomeList" Spacing="2" />
             </StackPanel>
         </Border>

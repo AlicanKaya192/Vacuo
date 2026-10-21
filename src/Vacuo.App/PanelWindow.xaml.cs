@@ -118,12 +118,15 @@ public sealed partial class PanelWindow : Window
     private DuplicatesView? _duplicatesScreen;
     private UninstallView? _uninstallScreen;
     private JournalView? _journalScreen;
+    private WeekView? _weekScreen;
     private UpdateView? _updateScreen;
     private readonly UpdateSession _updates;
     // Shown in the header during the first opening after an update.
     private InstallFollowUp _installFollowUp;
     private string _trayTooltip = string.Empty;
     private bool _pretendNoBattery;
+    private const string TempProbePrefix = "temp=";
+    private string? _tempProbe;
 
     internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion, IReadOnlySet<string> probes)
     {
@@ -234,6 +237,9 @@ public sealed partial class PanelWindow : Window
 
         // Shows a desktop's panel on a laptop: the cards as if there were no battery.
         _pretendNoBattery = probes.Contains("no-battery");
+
+        // Points the Windows screen's temp list at a test folder, so a removal can be tried without the real one.
+        _tempProbe = probes.FirstOrDefault(probe => probe.StartsWith(TempProbePrefix, StringComparison.Ordinal))?[TempProbePrefix.Length..];
     }
 
     // For MeasurementScript only: the same paths a click takes.
@@ -287,6 +293,7 @@ public sealed partial class PanelWindow : Window
         _duplicatesScreen = null;
         _uninstallScreen = null;
         _journalScreen = null;
+        _weekScreen = null;
         _updateScreen = null;
 
         ApplyTexts();
@@ -383,6 +390,9 @@ public sealed partial class PanelWindow : Window
         UninstallButton.Content = _localizer.Get("UninstallCardButton");
         QuitButton.Content = _localizer.Get("QuitButton");
         VersionText.Text = _localizer.Format("SettingsUpdatesVersionFormat", AppVersion);
+        string weekLabel = _localizer.Get("WeekTitle");
+        ToolTipService.SetToolTip(WeekButton, weekLabel);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(WeekButton, weekLabel);
         string settingsLabel = _localizer.Get("SettingsTitle");
         ToolTipService.SetToolTip(SettingsButton, settingsLabel);
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(SettingsButton, settingsLabel);
@@ -434,6 +444,7 @@ public sealed partial class PanelWindow : Window
         RefreshOrganizeCard();
         _ = LoadBatteryAsync();
         _updateScreen?.SetWindowOpen(true);
+        _weekScreen?.SetWindowOpen(true);
         if (_animationsEnabled)
         {
             LogoMotion.Begin();
@@ -479,6 +490,7 @@ public sealed partial class PanelWindow : Window
         LogoGlowMotion.Stop();
         _diskScreen?.SetWindowOpen(false);
         _updateScreen?.SetWindowOpen(false);
+        _weekScreen?.SetWindowOpen(false);
         _memoryTimer.Stop();
         // "Updated to X.Y.Z" is said for one opening only.
         if (_installFollowUp != InstallFollowUp.None)
@@ -527,6 +539,7 @@ public sealed partial class PanelWindow : Window
         _showingWorkScreen = false;
         _presenter.IsAlwaysOnTop = true;
         SettingsButton.Visibility = Visibility.Visible;
+        WeekButton.Visibility = Visibility.Visible;
         foreach (UserControl screen in LoadedScreens())
         {
             screen.Visibility = Visibility.Collapsed;
@@ -557,6 +570,7 @@ public sealed partial class PanelWindow : Window
                 _showingWorkScreen = true;
                 _presenter.IsAlwaysOnTop = false;
                 SettingsButton.Visibility = Visibility.Collapsed;
+                WeekButton.Visibility = Visibility.Collapsed;
                 VoidCanvas.Paused = true;
                 VoidCanvas.Visibility = Visibility.Collapsed;
                 CardsScroller.Visibility = Visibility.Collapsed;
@@ -680,7 +694,9 @@ public sealed partial class PanelWindow : Window
 
         var windows = AddScreen(new WindowsView());
         windows.Initialize(
-            _localizer, _runner, _recycleBin, ElevatedLauncher.NextToThisApp(), WindowsLocations.ForThisMachine(), _animationsEnabled);
+            _localizer, _runner, _recycleBin, ElevatedLauncher.NextToThisApp(),
+            _tempProbe is null ? WindowsLocations.ForThisMachine() : WindowsLocations.ForThisMachine() with { UserTemp = _tempProbe },
+            _animationsEnabled);
         windows.BackRequested += (_, _) => ReturnToCards();
         windows.JournalRequested += (_, _) => ShowJournal(windows);
         return _windowsScreen = windows;
@@ -790,6 +806,36 @@ public sealed partial class PanelWindow : Window
         journal.BackRequested += (_, _) => BackFromJournal();
         journal.Restored += (_, _) => _restoredSinceJournalOpened = true;
         return _journalScreen = journal;
+    }
+
+    private WeekView EnsureWeekScreen()
+    {
+        if (_weekScreen is not null)
+        {
+            return _weekScreen;
+        }
+
+        var week = AddScreen(new WeekView());
+        week.Initialize(_localizer, _animationsEnabled);
+        week.SetWindowOpen(_isOpen);
+        week.BackRequested += (_, _) => ReturnToCards();
+        return _weekScreen = week;
+    }
+
+    // Read fresh each time: something may have been put back from the Journal since.
+    private void ShowWeekScreen()
+    {
+        WeekView week = EnsureWeekScreen();
+        try
+        {
+            week.Show(WeekSummary.From(_journal.ReadAll(), DateTimeOffset.Now));
+        }
+        catch (JournalCorruptException exception)
+        {
+            week.ShowMessage(_localizer.Format("JournalReadErrorFormat", exception.Message));
+        }
+
+        ShowWorkScreen(week);
     }
 
     private UpdateView EnsureUpdateScreen()
@@ -903,7 +949,7 @@ public sealed partial class PanelWindow : Window
 
     // Screens not created yet are skipped.
     private UserControl[] LoadedScreens() =>
-        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _duplicatesScreen, _uninstallScreen, _journalScreen, _updateScreen }
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _duplicatesScreen, _uninstallScreen, _journalScreen, _updateScreen, _weekScreen }
             .OfType<UserControl>().ToArray();
 
     private void ShowDiskScreen()
@@ -1460,6 +1506,8 @@ public sealed partial class PanelWindow : Window
     private void OnOrganizeInspectClick(object sender, RoutedEventArgs e) => ShowOrganizeScreen();
 
     private void OnSettingsClick(object sender, RoutedEventArgs e) => ShowSettingsScreen();
+
+    private void OnWeekClick(object sender, RoutedEventArgs e) => ShowWeekScreen();
 
     private void OnBatteryInspectClick(object sender, RoutedEventArgs e) => ShowBatteryScreen();
 

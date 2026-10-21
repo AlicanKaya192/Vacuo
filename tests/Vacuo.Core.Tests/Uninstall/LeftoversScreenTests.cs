@@ -96,6 +96,23 @@ public class LeftoversScreenTests
     }
 
     [Fact]
+    public void MoveSelected_ReportsProgressAfterEveryFolder()
+    {
+        using var setup = new Setup();
+        LeftoverFolder roaming = setup.Folder(@"Roaming\Foo Player", 40);
+        LeftoverFolder local = setup.Folder(@"Local\Foo Player", 60);
+        var screen = new LeftoversScreen([roaming, local]);
+        screen.Pick(roaming.Path);
+        screen.Pick(local.Path);
+        var progress = new Disk.DiskScreenTests.RecordingProgress();
+
+        screen.MoveSelected(setup.Runner, setup.Bin, progress);
+
+        Assert.Equal(2, progress.Reports.Count);
+        Assert.Equal(new MoveProgress(2, 2, 100, 100), progress.Reports[^1]);
+    }
+
+    [Fact]
     public void MoveSelected_FolderGone_IsReportedMissing()
     {
         using var setup = new Setup();

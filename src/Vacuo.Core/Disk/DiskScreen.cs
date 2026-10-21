@@ -22,6 +22,31 @@ public sealed record MoveOutcome(IReadOnlyList<JournalEntry> Moved, IReadOnlyLis
     public long FreedBytes => Moved.Sum(entry => entry.SizeBytes);
 }
 
+/// <summary>
+/// How far a move has got, for the progress bar (Alican, 21 October 2026): items handled so far, moved or
+/// not, and their bytes. Reported after every item.
+/// </summary>
+public sealed record MoveProgress(int Done, int Total, long DoneBytes, long TotalBytes)
+{
+    /// <summary>By bytes, so one large folder weighs more than many small files; by count when sizes are unknown.</summary>
+    public double Fraction => TotalBytes > 0 ? (double)DoneBytes / TotalBytes
+        : Total > 0 ? (double)Done / Total
+        : 1.0;
+
+    /// <summary>Walks a list of items, reporting after each; <paramref name="handle"/> moves one.</summary>
+    public static void Track<T>(IReadOnlyList<T> items, Func<T, long> sizeOf, IProgress<MoveProgress>? progress, Action<T> handle)
+    {
+        long totalBytes = items.Sum(sizeOf);
+        long doneBytes = 0;
+        for (int index = 0; index < items.Count; index++)
+        {
+            handle(items[index]);
+            doneBytes += sizeOf(items[index]);
+            progress?.Report(new MoveProgress(index + 1, items.Count, doneBytes, totalBytes));
+        }
+    }
+}
+
 public sealed record DiskBucket(Bucket Bucket, IReadOnlyList<ScanFinding> Items, long TotalBytes);
 
 /// <summary>
@@ -72,17 +97,17 @@ public sealed class DiskScreen(ScanSummary summary)
         .OrderByDescending(finding => finding.Size.Bytes)
         .ToList();
 
-    public MoveOutcome MoveSelected(ActionRunner runner, IRecycleBin recycleBin)
+    public MoveOutcome MoveSelected(ActionRunner runner, IRecycleBin recycleBin, IProgress<MoveProgress>? progress = null)
     {
         var moved = new List<JournalEntry>();
         var failed = new List<MoveFailure>();
 
-        foreach (ScanFinding finding in Preview())
+        MoveProgress.Track(Preview(), finding => finding.Size.Bytes, progress, finding =>
         {
             if (!Path.Exists(finding.Path))
             {
                 failed.Add(new MoveFailure(finding.Path, MoveFailureReason.Missing));
-                continue;
+                return;
             }
 
             try
@@ -95,7 +120,7 @@ public sealed class DiskScreen(ScanSummary summary)
             {
                 failed.Add(new MoveFailure(finding.Path, MoveFailures.ReasonFor(refusal)));
             }
-        }
+        });
 
         return new MoveOutcome(moved, failed);
     }

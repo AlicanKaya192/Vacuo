@@ -62,6 +62,7 @@ public sealed partial class UninstallView : UserControl
         SortPicker.SelectedIndex = 0;
         SortPicker.SelectionChanged += (_, _) => RenderList();
         Confirm.Initialize(animationsEnabled);
+        LeftoverProgress.Initialize(animationsEnabled);
     }
 
     internal void Shutdown() => Confirm.Shutdown();
@@ -362,9 +363,15 @@ public sealed partial class UninstallView : UserControl
 
         SetBusy(true);
         OutcomeList.Children.Clear();
+        LeftoverProgress.ShowFraction(0);
+        var progress = new Progress<MoveProgress>(report =>
+        {
+            LeftoverProgress.ShowFraction(report.Fraction);
+            LeftoverSummary.Text = RemovalTexts.Progress(_localizer, report);
+        });
         try
         {
-            MoveOutcome outcome = await Task.Run(() => leftovers.MoveSelected(_runner, _recycleBin));
+            MoveOutcome outcome = await Task.Run(() => leftovers.MoveSelected(_runner, _recycleBin, progress));
             RenderLeftovers();
             ShowOutcome(outcome);
         }
@@ -376,6 +383,7 @@ public sealed partial class UninstallView : UserControl
         }
         finally
         {
+            LeftoverProgress.Hide();
             SetBusy(false);
         }
     }

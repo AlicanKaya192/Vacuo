@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Vacuo.App.Screens.VoidProgress"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Height="6">
+
+    <!-- Vacuo's own progress bar (vacuo-kurallar 15): a violet fill on the line colour. The fill is scaled,
+         not resized, so a report costs no layout pass. -->
+    <Grid x:Name="Track" CornerRadius="3" Background="{StaticResource LineBrush}" SizeChanged="OnTrackSizeChanged">
+        <Grid.Resources>
+            <Storyboard x:Name="SweepMotion" RepeatBehavior="Forever">
+                <DoubleAnimation Storyboard.TargetName="SweepShift"
+                                 Storyboard.TargetProperty="X"
+                                 Duration="0:0:1.4"
+                                 EnableDependentAnimation="False" />
+            </Storyboard>
+        </Grid.Resources>
+        <Border x:Name="Fill"
+                HorizontalAlignment="Stretch"
+                CornerRadius="3"
+                Background="{StaticResource AccentBrush}"
+                RenderTransformOrigin="0,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform x:Name="FillScale" ScaleX="0" />
+            </Border.RenderTransform>
+        </Border>
+        <!-- No step is known (an administrator run): a short segment sweeps across instead. -->
+        <Border x:Name="Sweep"
+                HorizontalAlignment="Left"
+                CornerRadius="3"
+                Background="{StaticResource AccentBrush}"
+                Visibility="Collapsed">
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="SweepShift" />
+            </Border.RenderTransform>
+        </Border>
+    </Grid>
+</UserControl>

@@ -60,7 +60,10 @@
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                     <StackPanel x:Name="TempList" Spacing="4" Padding="0,0,12,0" />
                 </ScrollViewer>
-                <StackPanel x:Name="TempResult" Grid.Row="3" Spacing="2" />
+                <StackPanel Grid.Row="3" Spacing="6">
+                    <local:VoidProgress x:Name="TempProgress" />
+                    <StackPanel x:Name="TempResult" Spacing="2" />
+                </StackPanel>
                 <Grid Grid.Row="4"
                       ColumnSpacing="12"
                       BorderBrush="{StaticResource LineBrush}"
@@ -117,9 +120,12 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock x:Name="AdminSummary"
-                               TextWrapping="Wrap"
-                               Foreground="{StaticResource InkSecondaryBrush}" />
+                    <StackPanel Spacing="6">
+                        <local:VoidProgress x:Name="AdminProgress" />
+                        <TextBlock x:Name="AdminSummary"
+                                   TextWrapping="Wrap"
+                                   Foreground="{StaticResource InkSecondaryBrush}" />
+                    </StackPanel>
                     <Button x:Name="AdminRunButton"
                             Grid.Row="1"
                             HorizontalAlignment="Stretch"

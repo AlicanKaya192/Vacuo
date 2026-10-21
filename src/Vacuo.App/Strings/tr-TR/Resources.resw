@@ -15,6 +15,48 @@
   <data name="AppTagline" xml:space="preserve">
     <value>Fazlalığı çeker, gerekene dokunmaz.</value>
   </data>
+  <data name="WeekTitle" xml:space="preserve">
+    <value>Bu hafta neler boşaldı</value>
+  </data>
+  <data name="WeekTotalFormat" xml:space="preserve">
+    <value>Son 7 günde {0} Geri Dönüşüm Kutusu'na gitti; yer, kutu boşaltılınca açılır. Geri alınanlar sayılmaz.</value>
+  </data>
+  <data name="WeekDeletedFormat" xml:space="preserve">
+    <value>{0} Windows kalıntısı hemen silindi; o yer çoktan açıldı.</value>
+  </data>
+  <data name="WeekEmpty" xml:space="preserve">
+    <value>Son 7 günde Vacuo bir şey taşımadı.</value>
+  </data>
+  <data name="WeekItemsFormat" xml:space="preserve">
+    <value>{0} öğe · son {1}</value>
+  </data>
+  <data name="WeekOrganizedFormat" xml:space="preserve">
+    <value>{0} dosya yerleşti</value>
+  </data>
+  <data name="WeekPrevious" xml:space="preserve">
+    <value>Önceki</value>
+  </data>
+  <data name="WeekNext" xml:space="preserve">
+    <value>Sonraki</value>
+  </data>
+  <data name="WeekSource_Disk" xml:space="preserve">
+    <value>Disk</value>
+  </data>
+  <data name="WeekSource_Windows" xml:space="preserve">
+    <value>Windows kalıntıları</value>
+  </data>
+  <data name="WeekSource_Duplicates" xml:space="preserve">
+    <value>Kopya dosyalar</value>
+  </data>
+  <data name="WeekSource_Uninstall" xml:space="preserve">
+    <value>Program kalıntıları</value>
+  </data>
+  <data name="WeekSource_Maintenance" xml:space="preserve">
+    <value>Otomatik Bakım</value>
+  </data>
+  <data name="WeekSource_Organize" xml:space="preserve">
+    <value>Düzen</value>
+  </data>
   <data name="TrayTooltip" xml:space="preserve">
     <value>Vacuo</value>
   </data>
@@ -158,6 +200,9 @@
   </data>
   <data name="DiskMoving" xml:space="preserve">
     <value>Taşınıyor…</value>
+  </data>
+  <data name="RemovalProgressFormat" xml:space="preserve">
+    <value>Taşınıyor… {0} / {1} · %{2}</value>
   </data>
   <data name="DiskMovedFormat" xml:space="preserve">
     <value>{0} Geri Dönüşüm Kutusu'na taşındı</value>

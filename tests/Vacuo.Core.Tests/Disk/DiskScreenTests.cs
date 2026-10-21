@@ -204,6 +204,39 @@ public class DiskScreenTests
         Assert.Equal(0, setup.Bin.ItemCount);
     }
 
+    // The progress bar follows every item, the ones that could not move too, and ends full.
+    [Fact]
+    public void MoveSelected_ReportsProgressAfterEveryItem()
+    {
+        using var setup = new Setup();
+        ScanFinding pip = setup.Finding(@"pip\entry", Pip, 300);
+        ScanFinding shot = setup.Finding(@"Screenshots\a.png", Screenshots, 100);
+        DiskScreen screen = ScreenOf(pip, shot);
+        screen.Select(pip.Path);
+        screen.Select(shot.Path);
+        File.Move(shot.Path, setup.Tree.PathOf("moved-by-user"));
+        var progress = new RecordingProgress();
+
+        screen.MoveSelected(setup.Runner, setup.Bin, progress);
+
+        Assert.Equal([new MoveProgress(1, 2, 300, 400), new MoveProgress(2, 2, 400, 400)], progress.Reports);
+        Assert.Equal(1.0, progress.Reports[^1].Fraction);
+    }
+
+    [Fact]
+    public void MoveProgress_OfNothing_IsDone()
+    {
+        Assert.Equal(1.0, new MoveProgress(0, 0, 0, 0).Fraction);
+    }
+
+    /// <summary>Records on the calling thread, unlike <see cref="Progress{T}"/>.</summary>
+    internal sealed class RecordingProgress : IProgress<MoveProgress>
+    {
+        public List<MoveProgress> Reports { get; } = [];
+
+        public void Report(MoveProgress value) => Reports.Add(value);
+    }
+
     [Fact]
     public void MoveSelected_ItemTheBinCannotTake_IsReportedNotRecyclable()
     {
