@@ -46,6 +46,10 @@ public sealed partial class PanelWindow : Window
     // Two card columns side by side (B-137); the screens use the same window.
     private const int PanelWidth = 720;
     private const int NarrowProbeWidth = 400;
+    // The battery card's row in the right column; the tools card takes it on a desktop.
+    private const int BatteryCardRow = 2;
+    private const double ToolsSideBySideSpacing = 16;
+    private const double ToolsStackedSpacing = 10;
     // The panel is as tall as its cards (vacuo-kurallar 13), never shorter than this.
     private const int MinPanelHeight = 640;
     private const double VoidHeight = 200;
@@ -57,6 +61,7 @@ public sealed partial class PanelWindow : Window
     private const float ScreenStartScale = 0.96f;
     // The flyout's border sits outside the measured content.
     private const int FrameAllowance = 4;
+    private const int RoundingAllowance = 1;
     private const int MaxMeasureShortfall = 48;
     private const int ScreenMargin = 12;
     private const int ParticleCount = 2000;
@@ -118,6 +123,7 @@ public sealed partial class PanelWindow : Window
     // Shown in the header during the first opening after an update.
     private InstallFollowUp _installFollowUp;
     private string _trayTooltip = string.Empty;
+    private bool _pretendNoBattery;
 
     internal PanelWindow(Localizer localizer, MeasurementLog? measurement, bool forceReducedMotion, IReadOnlySet<string> probes)
     {
@@ -225,6 +231,9 @@ public sealed partial class PanelWindow : Window
         {
             _panelWidth = NarrowProbeWidth;
         }
+
+        // Shows a desktop's panel on a laptop: the cards as if there were no battery.
+        _pretendNoBattery = probes.Contains("no-battery");
     }
 
     // For MeasurementScript only: the same paths a click takes.
@@ -976,14 +985,15 @@ public sealed partial class PanelWindow : Window
         ShowWorkScreen(battery);
     }
 
-    // The drivers answer at once, but off the UI thread all the same; only reads. Without a battery
-    // the card stays hidden, and the panel is measured again whenever the card comes or goes.
+    // The drivers answer at once, but off the UI thread all the same; only reads. Without a laptop battery
+    // (a desktop, a UPS included) the card stays hidden, and the panel is laid out and measured again
+    // whenever the card comes or goes. A failed reading is shown only where Windows knows of a battery.
     private async Task LoadBatteryAsync()
     {
         bool wasShown = BatteryCard.Visibility == Visibility.Visible;
         try
         {
-            BatterySummary? summary = BatterySummary.From(await Task.Run(BatteryReader.Read));
+            BatterySummary? summary = _pretendNoBattery ? null : BatterySummary.From(await Task.Run(BatteryReader.Read));
             BatteryCard.Visibility = summary is null ? Visibility.Collapsed : Visibility.Visible;
             if (summary is not null)
             {
@@ -996,16 +1006,41 @@ public sealed partial class PanelWindow : Window
         catch (Exception exception)
         {
             string message = _localizer.Format("BatteryReadFailedFormat", exception.Message);
-            BatteryCard.Visibility = Visibility.Visible;
+            BatteryCard.Visibility = BatteryReader.WindowsReportsBattery() ? Visibility.Visible : Visibility.Collapsed;
             BatteryHealthText.Text = string.Empty;
             BatteryBody.Text = message;
             _batteryScreen?.ShowMessage(message);
         }
 
-        if (wasShown != (BatteryCard.Visibility == Visibility.Visible))
+        bool shown = BatteryCard.Visibility == Visibility.Visible;
+        PlaceToolsCard(shown);
+        if (wasShown != shown)
         {
             FitCardPanel();
         }
+    }
+
+    // With a battery the tools card spans both columns below them, buttons beside the text. Without one the
+    // right column would end a battery card short and stretch Organize into a gap, so the tools card takes the
+    // battery's place there, buttons below the text, and both columns end level (Alican, 21 October 2026).
+    private void PlaceToolsCard(bool batteryShown)
+    {
+        // FrameworkElement.Parent is null here, so the card is looked for in the panel it would leave.
+        Panel home = batteryShown ? Cards : RightColumn;
+        Panel away = batteryShown ? RightColumn : Cards;
+        if (!away.Children.Remove(ToolsCard))
+        {
+            return;
+        }
+
+        Grid.SetRow(ToolsCard, batteryShown ? 1 : BatteryCardRow);
+        Grid.SetColumnSpan(ToolsCard, batteryShown ? 2 : 1);
+        home.Children.Add(ToolsCard);
+
+        Grid.SetColumn(ToolsButtons, batteryShown ? 1 : 0);
+        Grid.SetRow(ToolsButtons, batteryShown ? 0 : 1);
+        ToolsLayout.ColumnSpacing = batteryShown ? ToolsSideBySideSpacing : 0;
+        ToolsLayout.RowSpacing = batteryShown ? 0 : ToolsStackedSpacing;
     }
 
     // The screen is filled before it appears, so it never opens on "Reading…".
@@ -1293,13 +1328,15 @@ public sealed partial class PanelWindow : Window
 
     // The measurement fell a little short of the real window (the cards scrolled by a few pixels
     // with room left on the screen, B-177). What still scrolls once laid out is learned and added,
-    // so the cards fit without a scroll bar (vacuo-kurallar 13). On a screen that is simply too
-    // short the panel is already as tall as it may be, and nothing is learned.
+    // so the cards fit without a scroll bar (vacuo-kurallar 13). When the panel is already as tall as the
+    // screen allows, the learned pixels come out of the void above the cards instead (as in CardPanelHeight);
+    // only once the void is down to its least is nothing more learned.
     private void OnCardsSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        int shortBy = (int)Math.Ceiling(CardsScroller.ScrollableHeight);
-        if (!_isOpen || _showingWorkScreen || shortBy <= 0 || _measureShortfall >= MaxMeasureShortfall
-            || _cardPanelHeight >= AvailableLogicalHeight())
+        // A fraction of a pixel scrolls too (0.8 at 150 %, 21 October 2026); one more covers the rounding.
+        int shortBy = CardsScroller.ScrollableHeight > 0 ? (int)Math.Ceiling(CardsScroller.ScrollableHeight) + RoundingAllowance : 0;
+        bool nothingLeftToGive = _cardPanelHeight >= AvailableLogicalHeight() && VoidRow.Height.Value <= MinVoidHeight;
+        if (!_isOpen || _showingWorkScreen || shortBy <= 0 || _measureShortfall >= MaxMeasureShortfall || nothingLeftToGive)
         {
             return;
         }
@@ -1337,7 +1374,8 @@ public sealed partial class PanelWindow : Window
         int width = (int)(logicalWidth * scale);
         int margin = (int)(ScreenMargin * scale);
         // On a short screen (or at a large scale) the panel never reaches above the work area.
-        int height = Math.Min((int)(logicalHeight * scale), workArea.Height - 2 * margin);
+        // Rounded up: at a fractional scale (150 %) rounding down lost part of a pixel, and the cards scrolled by it.
+        int height = Math.Min((int)Math.Ceiling(logicalHeight * scale), workArea.Height - 2 * margin);
         AppWindow.MoveAndResize(new RectInt32(
             workArea.X + workArea.Width - width - margin,
             workArea.Y + workArea.Height - height - margin,

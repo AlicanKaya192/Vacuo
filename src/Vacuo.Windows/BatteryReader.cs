@@ -26,14 +26,17 @@ public static class BatteryReader
     private const uint IoctlBatteryQueryStatus = 0x29404C;
 
     private const int BatteryInformationLevel = 0;
-    private const uint SystemBattery = 0x80000000;
     private const uint CapacityRelative = 0x40000000;
     private const uint PowerOnLine = 0x1;
     private const uint PowerCharging = 0x4;
     private const uint UnknownCapacity = 0xFFFFFFFF;
     private const int UnknownRate = int.MinValue;
 
-    /// <summary>The machine's system batteries; empty on a desktop without one.</summary>
+    /// <summary>Whether Windows itself knows of a system battery; a reading that fails is only worth showing then.</summary>
+    public static bool WindowsReportsBattery() =>
+        GetSystemPowerStatus(out SystemPowerStatus status) && BatteryKind.WindowsReportsBattery(status.BatteryFlag);
+
+    /// <summary>The laptop batteries that power the machine; empty on a desktop, a UPS included.</summary>
     public static IReadOnlyList<BatteryReading> Read()
     {
         var readings = new List<BatteryReading>();
@@ -80,7 +83,7 @@ public static class BatteryReader
         var query = new BatteryQueryInformation { BatteryTag = tag, InformationLevel = BatteryInformationLevel };
         if (!DeviceIoControl(battery, IoctlBatteryQueryInformation, ref query, Marshal.SizeOf<BatteryQueryInformation>(),
                 out BatteryInformation information, Marshal.SizeOf<BatteryInformation>(), out _, 0)
-            || (information.Capabilities & SystemBattery) == 0)
+            || !BatteryKind.IsLaptopBattery(information.Capabilities))
         {
             return null;
         }
@@ -216,4 +219,19 @@ public static class BatteryReader
     private static extern bool DeviceIoControl(
         SafeFileHandle device, uint code, ref BatteryWaitStatus input, int inputSize,
         out BatteryStatus output, int outputSize, out int returned, nint overlapped);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SystemPowerStatus
+    {
+        public byte ACLineStatus;
+        public byte BatteryFlag;
+        public byte BatteryLifePercent;
+        public byte SystemStatusFlag;
+        public uint BatteryLifeTime;
+        public uint BatteryFullLifeTime;
+    }
+
+    [DllImport("kernel32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetSystemPowerStatus(out SystemPowerStatus status);
 }
