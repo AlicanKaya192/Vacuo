@@ -2,6 +2,7 @@ using System.Numerics;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Geometry;
 using Microsoft.UI;
+using Vacuo.App.Visuals;
 using Vacuo.Core.Disk;
 using Vacuo.Core.Scanning;
 using Windows.UI;
@@ -20,7 +21,8 @@ internal static class DiskRing
 
     private static readonly Color RestColor = ColorHelper.FromArgb(0xFF, 0x2C, 0x24, 0x41);
 
-    public static Color ColorOf(Bucket bucket) => bucket switch
+    // In a contrast theme every bucket takes the theme's highlight, so the legend squares and row edges follow it too (Aşama 3f).
+    public static Color ColorOf(Bucket bucket) => ContrastMode.IsOn ? ContrastMode.Highlight : bucket switch
     {
         Bucket.RebuildsItself => ColorHelper.FromArgb(0xFF, 0x9D, 0x7C, 0xFF),
         Bucket.Yours => ColorHelper.FromArgb(0xFF, 0xD4, 0xC6, 0xFF),
@@ -33,7 +35,9 @@ internal static class DiskRing
     {
         var center = size / 2;
         float radius = MathF.Min(size.X, size.Y) / 2 - StrokeWidth;
-        session.DrawCircle(center, radius, RestColor, StrokeWidth);
+        // In a contrast theme (Aşama 3f): a thin ring in the theme's text colour; the buckets take its highlight (ColorOf).
+        bool contrast = ContrastMode.IsOn;
+        session.DrawCircle(center, radius, contrast ? ContrastMode.Text : RestColor, contrast ? 2f : StrokeWidth);
         if (overview is null)
         {
             return;

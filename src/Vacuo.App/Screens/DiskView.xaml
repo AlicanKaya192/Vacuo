@@ -24,11 +24,12 @@
             <Button x:Name="BackButton" Click="OnBackClick" />
             <Button x:Name="JournalButton" Grid.Column="2" Click="OnJournalClick" />
             <TextBlock x:Name="ScreenTitle"
+                       AutomationProperties.HeadingLevel="Level1"
                        Grid.Column="1"
                        VerticalAlignment="Center"
                        FontSize="20"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource InkBrush}" />
+                       Foreground="{ThemeResource InkBrush}" />
             <Button x:Name="RescanButton" Grid.Column="3" Click="OnRescanClick" />
         </Grid>
 
@@ -42,7 +43,7 @@
                        FontWeight="SemiBold"
                        TextWrapping="Wrap"
                        TextAlignment="Center"
-                       Foreground="{StaticResource AccentBrush}" />
+                       Foreground="{ThemeResource AccentBrush}" />
             <TextBlock x:Name="MovedNote"
                        HorizontalAlignment="Center"
                        TextWrapping="Wrap"
@@ -74,7 +75,7 @@
 
         <Grid Grid.Row="3"
               ColumnSpacing="12"
-              BorderBrush="{StaticResource LineBrush}"
+              BorderBrush="{ThemeResource LineBrush}"
               BorderThickness="0,1,0,0"
               Padding="0,12,0,0">
             <Grid.ColumnDefinitions>
@@ -84,7 +85,7 @@
             <TextBlock x:Name="SelectionSummary"
                        VerticalAlignment="Center"
                        TextWrapping="Wrap"
-                       Foreground="{StaticResource InkSecondaryBrush}" />
+                       Foreground="{ThemeResource InkSecondaryBrush}" />
             <Button x:Name="MoveButton"
                     Grid.Column="1"
                     IsEnabled="False"
@@ -95,6 +96,7 @@
         <local:ConfirmCard x:Name="Confirm" Grid.RowSpan="4" />
 
         <canvas:CanvasAnimatedControl x:Name="BurstCanvas"
+                                      AutomationProperties.AccessibilityView="Raw"
                                       Grid.RowSpan="4"
                                       ClearColor="#00000000"
                                       IsHitTestVisible="False"

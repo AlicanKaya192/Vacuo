@@ -479,7 +479,8 @@ public sealed partial class DuplicatesView : UserControl
 
     private async Task PlayBurstAsync(IReadOnlyList<PulledItem> items)
     {
-        if (!_animationsEnabled || items.Count == 0)
+        // A contrast theme skips it like animations off: the burst is drawn in fixed VOID colours (Aşama 3f).
+        if (!_animationsEnabled || ContrastMode.IsOn || items.Count == 0)
         {
             return;
         }
@@ -517,6 +518,7 @@ public sealed partial class DuplicatesView : UserControl
         }
 
         ResultPanel.Visibility = Visibility.Visible;
+        Announcer.Say(ScreenTitle, DiskTexts.Outcome(_localizer, outcome));
     }
 
     private void ShowError(string message)
@@ -528,6 +530,7 @@ public sealed partial class DuplicatesView : UserControl
         error.Foreground = (Brush)Application.Current.Resources["WarningBrush"];
         FailureList.Children.Add(error);
         ResultPanel.Visibility = Visibility.Visible;
+        Announcer.Say(ScreenTitle, message);
     }
 
     // The counter climbs to the moved size; with animations off it shows the number at once.

@@ -1,5 +1,6 @@
 using System.Numerics;
 using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.Geometry;
 using Windows.Foundation;
 using Microsoft.Graphics.Canvas.Text;
 using Windows.UI;
@@ -10,9 +11,9 @@ namespace Vacuo.App.Visuals;
 internal sealed record PulledItem(Vector2 Start, string Label);
 
 /// <summary>
-/// What a move looks like: the screen dims, the VOID black hole opens in the middle and the moved
-/// items, one after another, leave their rows, circle the hole in the plane of its disk and fall
-/// in. Built on the UI thread, then advanced and drawn on the Win2D game-loop thread only.
+/// What a move looks like: the screen dims, the black hole (the panel's <see cref="BlackHoleScene"/>)
+/// opens in the middle and the moved items, one after another, leave their rows, circle the hole in
+/// the plane of its disk and fall in, each dragging a ribbon of light that heats up as it falls. Built on the UI thread, then advanced and drawn on the Win2D game-loop thread only.
 /// </summary>
 internal sealed class PullBurst
 {
@@ -22,12 +23,11 @@ internal sealed class PullBurst
     private const float MaximumStaggerSeconds = 0.35f;
     private const float AllStaggersSeconds = 1.4f;
     private const float Turns = 1.25f;
-    // The hole's disk is seen at an angle; items settle into that plane as they fall.
-    private const float DiskTilt = 0.42f;
     private const float HoleBoxSize = 260f;
-    private const int HoleParticles = 700;
-    private const int TrailParticlesPerItem = 50;
-    private const float MaximumTrailLagSeconds = 0.3f;
+    private const float HolePull = 2.5f;
+    private const int TrailSegments = 18;
+    // How far behind its chip a ribbon reaches, in progress along the fall.
+    private const float TrailLength = 0.22f;
     private const float BackdropOpacity = 0.78f;
     private const float ChipHeight = 26f;
     private const float ChipCharacterWidth = 7.2f;
@@ -36,8 +36,9 @@ internal sealed class PullBurst
     private static readonly Color Void = Color.FromArgb(0xFF, 0x0A, 0x08, 0x11);
     private static readonly Color Surface = Color.FromArgb(0xFF, 0x1D, 0x17, 0x2A);
     private static readonly Color Accent = Color.FromArgb(0xFF, 0x9D, 0x7C, 0xFF);
-    private static readonly Color AccentLight = Color.FromArgb(0xFF, 0xD4, 0xC6, 0xFF);
     private static readonly Color Ink = Color.FromArgb(0xFF, 0xEC, 0xE7, 0xF5);
+    private static readonly Color Hot = Color.FromArgb(0xFF, 0xF4, 0xEE, 0xFF);
+    private static readonly CanvasStrokeStyle RoundEnds = new() { StartCap = CanvasCapStyle.Round, EndCap = CanvasCapStyle.Round };
 
     private static readonly CanvasTextFormat LabelFormat = new()
     {
@@ -47,9 +48,8 @@ internal sealed class PullBurst
         WordWrapping = CanvasWordWrapping.NoWrap,
     };
 
-    private readonly VoidField _hole = new(HoleParticles);
+    private readonly BlackHoleScene _hole = new() { PullStrength = HolePull };
     private readonly Item[] _items;
-    private readonly Trail[] _trail;
     private readonly Vector2 _center;
     private readonly Vector2 _size;
     private readonly float _stagger;
@@ -65,19 +65,6 @@ internal sealed class PullBurst
             Vector2 offset = item.Start - _center;
             return new Item(item.Label, offset.Length(), MathF.Atan2(offset.Y, offset.X));
         }).ToArray();
-
-        _trail = new Trail[_items.Length * TrailParticlesPerItem];
-        for (int i = 0; i < _trail.Length; i++)
-        {
-            _trail[i] = new Trail
-            {
-                ItemIndex = i / TrailParticlesPerItem,
-                Lag = Random.Shared.NextSingle() * MaximumTrailLagSeconds,
-                Scatter = new Vector2(Spread(14), Spread(6)),
-                Size = Random.Shared.NextSingle() < 0.15f ? 2f : 1.2f,
-                IsLight = Random.Shared.NextSingle() < 0.35f,
-            };
-        }
     }
 
     public TimeSpan Duration => TimeSpan.FromSeconds(
@@ -109,19 +96,32 @@ internal sealed class PullBurst
         }
     }
 
+    // The ribbon thickens toward the chip and fades toward its tail; it whitens as the item nears the hole.
     private void DrawTrail(CanvasDrawingSession session)
     {
-        foreach (Trail particle in _trail)
+        for (int i = 0; i < _items.Length; i++)
         {
-            float progress = Progress(particle.ItemIndex, particle.Lag);
-            if (progress <= 0f || progress >= 1f)
+            float head = Progress(i, lag: 0);
+            if (head <= 0f || head >= 1f)
             {
                 continue;
             }
 
-            Vector2 position = PositionOf(_items[particle.ItemIndex], progress) + particle.Scatter * (1 - progress);
-            Color color = particle.IsLight ? AccentLight : Accent;
-            session.FillRectangle(position.X, position.Y, particle.Size, particle.Size, WithAlpha(color, 0.9f * (1 - progress)));
+            float vanish = MathF.Min(1f, (1f - head) / 0.25f);
+            Vector2 previous = PositionOf(_items[i], MathF.Max(0f, head - TrailLength));
+            for (int step = 1; step <= TrailSegments; step++)
+            {
+                float along = step / (float)TrailSegments;
+                float progress = MathF.Max(0f, head - TrailLength * (1 - along));
+                Vector2 point = PositionOf(_items[i], progress);
+                float fall = Fall(progress);
+                float width = (1f + 3f * along) * (1f - 0.6f * fall);
+                Color color = Blend(Accent, Hot, fall);
+                float alpha = along * vanish;
+                session.DrawLine(previous, point, WithAlpha(color, 0.18f * alpha), width * 2.6f + 3f, RoundEnds);
+                session.DrawLine(previous, point, WithAlpha(color, 0.8f * alpha), width, RoundEnds);
+                previous = point;
+            }
         }
     }
 
@@ -158,23 +158,19 @@ internal sealed class PullBurst
         float fall = Fall(progress);
         float radius = item.Radius * (1 - fall);
         float angle = item.Angle + fall * Turns * MathF.Tau;
-        float tilt = 1 - (1 - DiskTilt) * MathF.Min(1, fall * 2);
+        // The hole's disk is seen at an angle; items settle into that plane as they fall.
+        float tilt = 1 - (1 - BlackHoleScene.Tilt) * MathF.Min(1, fall * 2);
         return _center + new Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius * tilt);
     }
 
     private static Color WithAlpha(Color color, float opacity) =>
         Color.FromArgb((byte)(255 * Math.Clamp(opacity, 0f, 1f)), color.R, color.G, color.B);
 
-    private static float Spread(float half) => (Random.Shared.NextSingle() * 2 - 1) * half;
+    private static Color Blend(Color from, Color to, float t) => Color.FromArgb(
+        0xFF,
+        (byte)(from.R + (to.R - from.R) * t),
+        (byte)(from.G + (to.G - from.G) * t),
+        (byte)(from.B + (to.B - from.B) * t));
 
     private sealed record Item(string Label, float Radius, float Angle);
-
-    private struct Trail
-    {
-        public int ItemIndex;
-        public float Lag;
-        public Vector2 Scatter;
-        public float Size;
-        public bool IsLight;
-    }
 }

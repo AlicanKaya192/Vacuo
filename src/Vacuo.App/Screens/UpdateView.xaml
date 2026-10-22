@@ -18,11 +18,12 @@
             </Grid.ColumnDefinitions>
             <Button x:Name="BackButton" Click="OnBackClick" />
             <TextBlock x:Name="ScreenTitle"
+                       AutomationProperties.HeadingLevel="Level1"
                        Grid.Column="1"
                        VerticalAlignment="Center"
                        FontSize="20"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource InkBrush}" />
+                       Foreground="{ThemeResource InkBrush}" />
         </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -35,6 +36,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <canvas:CanvasAnimatedControl x:Name="HoleCanvas"
+                                                      AutomationProperties.AccessibilityView="Raw"
                                                       Height="170"
                                                       ClearColor="#00000000"
                                                       IsHitTestVisible="False"
@@ -47,23 +49,23 @@
                                        FontSize="22"
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"
-                                       Foreground="{StaticResource InkBrush}" />
+                                       Foreground="{ThemeResource InkBrush}" />
                             <TextBlock x:Name="DetailText" Style="{StaticResource CardBodyStyle}" />
                             <!-- A plain bar as well: the only progress shown when animations are off (vacuo-kurallar 9). -->
                             <Grid x:Name="ProgressTrack"
                                   Height="6"
                                   CornerRadius="3"
-                                  Background="{StaticResource LineBrush}"
+                                  Background="{ThemeResource LineBrush}"
                                   SizeChanged="OnTrackSizeChanged">
                                 <Border x:Name="ProgressFill"
                                         Width="0"
                                         HorizontalAlignment="Left"
                                         CornerRadius="3"
-                                        Background="{StaticResource AccentBrush}" />
+                                        Background="{ThemeResource AccentBrush}" />
                             </Grid>
                             <TextBlock x:Name="MessageText"
                                        Style="{StaticResource CardBodyStyle}"
-                                       Foreground="{StaticResource WarningBrush}"
+                                       Foreground="{ThemeResource WarningBrush}"
                                        Visibility="Collapsed" />
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Button x:Name="PrimaryButton" Style="{StaticResource VoidPrimaryButtonStyle}" Click="OnPrimaryClick" />

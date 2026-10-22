@@ -405,6 +405,15 @@
   <data name="MemoryReadFailedFormat" xml:space="preserve">
     <value>Memory could not be read: {0}</value>
   </data>
+  <data name="GpuTemperatureValueFormat" xml:space="preserve">
+    <value>{0} °C</value>
+  </data>
+  <data name="GpuTemperatureLabel" xml:space="preserve">
+    <value>Graphics card</value>
+  </data>
+  <data name="GpuTemperatureNotReported" xml:space="preserve">
+    <value>Graphics card temperature: not reported by this computer</value>
+  </data>
   <data name="Pressure_Comfortable" xml:space="preserve">
     <value>Comfortable</value>
   </data>
@@ -1057,7 +1066,7 @@ In the %LOCALAPPDATA%\Vacuo folder: your settings (language and update choice), 
 The results of the disk scan, the duplicate search and the list of installed programs, and, for the Memory screen, when each program was last in front. None of this is written to disk; it is gone when Vacuo closes.
 
 # What is read
-Vacuo reads the names, sizes and dates of files; to compare contents in the duplicate search it computes a digest (SHA-256). It only reads the installed programs from the registry. It reads battery information from the driver; the battery's name and serial number are never asked for.</value>
+Vacuo reads the names, sizes and dates of files; to compare contents in the duplicate search it computes a digest (SHA-256). It only reads the installed programs from the registry. It reads battery information from the driver; the battery's name and serial number are never asked for. While the panel is open, it reads the graphics card's temperature from Windows; it is not stored.</value>
   </data>
   <data name="Info_License_Title" xml:space="preserve">
     <value>License and open source</value>

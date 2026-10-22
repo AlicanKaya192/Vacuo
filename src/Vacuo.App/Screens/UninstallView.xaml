@@ -22,11 +22,12 @@
             </Grid.ColumnDefinitions>
             <Button x:Name="BackButton" Click="OnBackClick" />
             <TextBlock x:Name="ScreenTitle"
+                       AutomationProperties.HeadingLevel="Level1"
                        Grid.Column="1"
                        VerticalAlignment="Center"
                        FontSize="20"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource InkBrush}" />
+                       Foreground="{ThemeResource InkBrush}" />
             <Button x:Name="JournalButton" Grid.Column="2" Click="OnJournalClick" />
             <Button x:Name="RefreshButton" Grid.Column="3" Click="OnRefreshClick" />
         </Grid>
@@ -49,7 +50,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="StatusText" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{StaticResource InkBrush}" />
+                    <TextBlock x:Name="StatusText" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{ThemeResource InkBrush}" />
                     <Button x:Name="RecheckButton"
                             Grid.Column="1"
                             VerticalAlignment="Center"
@@ -65,7 +66,7 @@
                     <TextBlock x:Name="LeftoverSummary"
                                VerticalAlignment="Center"
                                TextWrapping="Wrap"
-                               Foreground="{StaticResource InkSecondaryBrush}" />
+                               Foreground="{ThemeResource InkSecondaryBrush}" />
                     <Button x:Name="MoveLeftoversButton"
                             Grid.Column="1"
                             IsEnabled="False"

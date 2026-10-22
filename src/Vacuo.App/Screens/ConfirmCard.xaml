@@ -7,28 +7,15 @@
     Visibility="Collapsed">
 
     <!-- The confirm step: a card with the VOID black hole above what is about to go. -->
-    <Grid Background="#D90A0811" KeyDown="OnKeyDown">
+    <Grid Background="{ThemeResource ScrimBrush}" KeyDown="OnKeyDown">
         <Border Width="540"
                 MaxHeight="600"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 CornerRadius="22"
-                BorderThickness="1.5">
-            <!-- The rim catches the black hole's light at the top and fades into the void below. -->
-            <Border.BorderBrush>
-                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                    <GradientStop Color="#CC9D7CFF" Offset="0" />
-                    <GradientStop Color="#409D7CFF" Offset="0.45" />
-                    <GradientStop Color="#142C2441" Offset="1" />
-                </LinearGradientBrush>
-            </Border.BorderBrush>
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                    <GradientStop Color="#FF1B1430" Offset="0" />
-                    <GradientStop Color="#FF0E0B18" Offset="0.4" />
-                    <GradientStop Color="#FF0A0811" Offset="1" />
-                </LinearGradientBrush>
-            </Border.Background>
+                BorderThickness="1.5"
+                BorderBrush="{ThemeResource ConfirmRimBrush}"
+                Background="{ThemeResource ConfirmCardBrush}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="150" />
@@ -37,6 +24,7 @@
                 </Grid.RowDefinitions>
 
                 <canvas:CanvasAnimatedControl x:Name="Hole"
+                                              AutomationProperties.AccessibilityView="Raw"
                                               ClearColor="#00000000"
                                               Paused="True"
                                               IsFixedTimeStep="False"
@@ -51,12 +39,12 @@
                                    TextWrapping="Wrap"
                                    FontSize="20"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource InkBrush}" />
+                                   Foreground="{ThemeResource InkBrush}" />
                         <TextBlock x:Name="SummaryText"
                                    HorizontalAlignment="Center"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap"
-                                   Foreground="{StaticResource InkSecondaryBrush}" />
+                                   Foreground="{ThemeResource InkSecondaryBrush}" />
                         <StackPanel x:Name="Items" Spacing="12" />
                     </StackPanel>
                 </ScrollViewer>

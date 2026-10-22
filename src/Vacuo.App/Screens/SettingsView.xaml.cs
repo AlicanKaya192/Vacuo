@@ -244,6 +244,8 @@ public sealed partial class SettingsView : UserControl
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 HorizontalContentAlignment = HorizontalAlignment.Stretch,
             };
+            // The content is a grid, not text, so a screen reader would find no name in it.
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(row, _localizer.Get($"Info_{page}_Title"));
             row.Click += (_, _) => ShowInfo(page);
             if (InfoRows.RowDefinitions.Count <= index / InfoColumns)
             {

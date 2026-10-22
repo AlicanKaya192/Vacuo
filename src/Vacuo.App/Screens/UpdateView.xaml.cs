@@ -25,6 +25,7 @@ public sealed partial class UpdateView : UserControl
     private UpdateSession _updates = null!;
     private bool _animationsEnabled;
     private bool _windowOpen;
+    private (UpdatePhase, UpdateProblem)? _announced;
 
     public UpdateView()
     {
@@ -91,6 +92,14 @@ public sealed partial class UpdateView : UserControl
         MessageText.Text = problem ?? string.Empty;
         MessageText.Visibility = problem is null ? Visibility.Collapsed : Visibility.Visible;
 
+        // Said once per step (checking, downloading, installing, a problem), not at every percent.
+        (UpdatePhase, UpdateProblem) step = (_updates.Phase, _updates.Problem);
+        if (_announced != step && _windowOpen && Visibility == Visibility.Visible)
+        {
+            _announced = step;
+            Announcer.Say(ScreenTitle, problem ?? StatusText.Text);
+        }
+
         bool idle = _updates.Phase == UpdatePhase.Idle;
         PrimaryButton.Content = _localizer.Get(_updates.Problem == UpdateProblem.None ? "UpdateStartButton" : "UpdateRetryButton");
         PrimaryButton.Visibility = idle && offer is not null ? Visibility.Visible : Visibility.Collapsed;
@@ -132,8 +141,14 @@ public sealed partial class UpdateView : UserControl
 
     private void OnHoleUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) => _hole.Advance(args.Timing.ElapsedTime);
 
-    private void OnHoleDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) =>
-        _hole.Draw(args.DrawingSession, sender.Size.ToVector2());
+    // In a contrast theme the hole is not drawn (Aşama 3f): its colours are fixed VOID ones.
+    private void OnHoleDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
+    {
+        if (!ContrastMode.IsOn)
+        {
+            _hole.Draw(args.DrawingSession, sender.Size.ToVector2());
+        }
+    }
 
     private void OnBackClick(object sender, RoutedEventArgs e) => BackRequested?.Invoke(this, EventArgs.Empty);
 

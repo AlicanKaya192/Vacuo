@@ -178,8 +178,13 @@ public sealed partial class OrganizeView : UserControl
             return;
         }
 
+        // The canvas is only drawn; a screen reader reads the same folders and counts from its name.
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            FlowCanvas,
+            $"{FolderLabel()}: {string.Join(", ", targets.Select(target => target.Label))}");
         _flow = new FlowMap(FolderLabel(), targets, new System.Numerics.Vector2((float)FlowCanvas.ActualWidth, (float)FlowCanvas.ActualHeight));
-        FlowCanvas.Visibility = Visibility.Visible;
+        // In a contrast theme the drawn flow steps aside; the groups below say the same in text (Aşama 3f).
+        FlowCanvas.Visibility = ContrastMode.IsOn ? Visibility.Collapsed : Visibility.Visible;
         UpdateFlowRunning();
     }
 
@@ -357,6 +362,7 @@ public sealed partial class OrganizeView : UserControl
         }
 
         OutcomeCard.Visibility = Visibility.Visible;
+        Announcer.SayLines(ScreenTitle, OutcomePanel);
     }
 
     private async void ChooseFolder(string folder)

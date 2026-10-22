@@ -18,16 +18,17 @@
             </Grid.ColumnDefinitions>
             <Button x:Name="BackButton" Click="OnBackClick" />
             <TextBlock x:Name="ScreenTitle"
+                       AutomationProperties.HeadingLevel="Level1"
                        Grid.Column="1"
                        VerticalAlignment="Center"
                        FontSize="20"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource InkBrush}" />
+                       Foreground="{ThemeResource InkBrush}" />
         </Grid>
 
         <!-- The week in one or two sentences: what went to the Recycle Bin and what was freed at once. -->
         <StackPanel Grid.Row="1" Spacing="2">
-            <TextBlock x:Name="TotalText" Style="{StaticResource CardBodyStyle}" Foreground="{StaticResource InkBrush}" />
+            <TextBlock x:Name="TotalText" Style="{StaticResource CardBodyStyle}" Foreground="{ThemeResource InkBrush}" />
             <TextBlock x:Name="DeletedText" Style="{StaticResource CardBodyStyle}" Visibility="Collapsed" />
         </StackPanel>
 

@@ -303,6 +303,7 @@ public sealed partial class UninstallView : UserControl
         LeftoverFooter.Visibility = Visibility.Collapsed;
         OutcomeList.Children.Clear();
         StatusCard.Visibility = Visibility.Visible;
+        Announcer.Say(ScreenTitle, text);
     }
 
     private void ShowLeftovers(InstalledProgram program, IReadOnlyList<LeftoverFolder> found)
@@ -421,6 +422,8 @@ public sealed partial class UninstallView : UserControl
                 OutcomeList.Children.Add(BodyText($"{DiskTexts.FailureReason(_localizer, failure.Reason)} · {failure.Path}"));
             }
         }
+
+        Announcer.Say(ScreenTitle, DiskTexts.Outcome(_localizer, outcome));
     }
 
     private static TextBlock Warning(string text)

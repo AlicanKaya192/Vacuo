@@ -402,6 +402,7 @@ public sealed partial class MemoryView : UserControl
         }
 
         OutcomeCard.Visibility = Visibility.Visible;
+        Announcer.SayLines(ScreenTitle, OutcomePanel);
     }
 
     private static TextBlock Text(string text, string brushKey, double fontSize = 14) => new()

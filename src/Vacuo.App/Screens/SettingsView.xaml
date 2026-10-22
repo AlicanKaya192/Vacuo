@@ -18,11 +18,12 @@
             </Grid.ColumnDefinitions>
             <Button x:Name="BackButton" Click="OnBackClick" />
             <TextBlock x:Name="ScreenTitle"
+                       AutomationProperties.HeadingLevel="Level1"
                        Grid.Column="1"
                        VerticalAlignment="Center"
                        FontSize="20"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource InkBrush}" />
+                       Foreground="{ThemeResource InkBrush}" />
         </Grid>
 
         <ScrollViewer x:Name="SettingsPage" Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -54,7 +55,7 @@
                             <TextBlock x:Name="StartupHint" Style="{StaticResource CardBodyStyle}" />
                             <TextBlock x:Name="StartupNote"
                                        Style="{StaticResource CardBodyStyle}"
-                                       Foreground="{StaticResource AccentBrush}"
+                                       Foreground="{ThemeResource AccentBrush}"
                                        Visibility="Collapsed" />
                         </StackPanel>
                         <CheckBox x:Name="StartupBox"
@@ -93,7 +94,7 @@
                                        Style="{StaticResource CardBodyStyle}"
                                        Margin="0"
                                        VerticalAlignment="Center"
-                                       Foreground="{StaticResource InkBrush}" />
+                                       Foreground="{ThemeResource InkBrush}" />
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                                 <Button x:Name="CheckNowButton" Click="OnCheckNowClick" />
                                 <Button x:Name="UpdateNowButton"
@@ -116,7 +117,7 @@
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock x:Name="MaintenanceTitle" Style="{StaticResource CardTitleStyle}" />
                                 <TextBlock x:Name="MaintenanceHint" Style="{StaticResource CardBodyStyle}" />
-                                <TextBlock x:Name="MaintenanceLastRun" Style="{StaticResource CardBodyStyle}" Foreground="{StaticResource InkBrush}" />
+                                <TextBlock x:Name="MaintenanceLastRun" Style="{StaticResource CardBodyStyle}" Foreground="{ThemeResource InkBrush}" />
                             </StackPanel>
                             <CheckBox x:Name="MaintenanceBox"
                                       Grid.Column="1"

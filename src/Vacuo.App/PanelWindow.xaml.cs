@@ -7,8 +7,11 @@ using Microsoft.UI.Composition;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation.Peers;
+using Microsoft.UI.Xaml.Automation.Provider;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Vacuo.App.Localization;
 using Vacuo.App.Measurement;
@@ -22,6 +25,7 @@ using Vacuo.Core.Battery;
 using Vacuo.Core.Formatting;
 using Vacuo.Core.Organize;
 using Vacuo.Core.Ram;
+using Vacuo.Core.Thermals;
 using Vacuo.Core.Settings;
 using Vacuo.Core.Scanning;
 using Vacuo.Core.Updates;
@@ -31,6 +35,7 @@ using Windows.Graphics;
 using Windows.UI;
 using Windows.UI.ViewManagement;
 using WinRT.Interop;
+using VirtualKey = Windows.System.VirtualKey;
 using static Vacuo.App.Tray.NativeMethods;
 
 namespace Vacuo.App;
@@ -64,7 +69,6 @@ public sealed partial class PanelWindow : Window
     private const int RoundingAllowance = 1;
     private const int MaxMeasureShortfall = 48;
     private const int ScreenMargin = 12;
-    private const int ParticleCount = 2000;
     private const double DefaultDpi = 96;
     // A tray click first deactivates the open panel; ignore the click that follows it.
     private static readonly TimeSpan ReopenGuard = TimeSpan.FromMilliseconds(250);
@@ -80,7 +84,9 @@ public sealed partial class PanelWindow : Window
 
     private Localizer _localizer;
     private readonly MeasurementLog? _measurement;
-    private readonly VoidField _voidField = new(ParticleCount);
+    // Left of centre, so the sun has room on the right.
+    private readonly BlackHoleScene _blackHole = new(centerShare: 0.44f, widthShare: 0.3f);
+    private readonly SunHeat _sun = new();
     private readonly bool _animationsEnabled;
     private readonly DiskScanCache _diskScans = new(TimeProvider.System);
     private readonly OverlappedPresenter _presenter = OverlappedPresenter.Create();
@@ -96,6 +102,8 @@ public sealed partial class PanelWindow : Window
     private volatile bool _markNextVoidFrame;
     // The Disk or Windows screen is open: an ordinary window, not the card panel.
     private bool _showingWorkScreen;
+    // The control that opened the current screen; focus returns to it on the way back.
+    private Control? _openedFrom;
     private int _cardPanelHeight;
     private int _measureShortfall;
     private UserControl _journalOpenedFrom = null!;
@@ -160,6 +168,14 @@ public sealed partial class PanelWindow : Window
         ShowUpdateBadge();
 
         Activated += OnActivated;
+        Root.KeyDown += OnRootKeyDown;
+        // The XAML follows a contrast theme by itself; the two canvases are drawn again in their new colours.
+        ContrastMode.Changed += (_, _) => DispatcherQueue.TryEnqueue(() =>
+        {
+            MatchVoidCanvasToBackground();
+            VoidCanvas.Invalidate();
+            DiskRingCanvas.Invalidate();
+        });
         AppWindow.Closing += OnClosing;
     }
 
@@ -418,6 +434,8 @@ public sealed partial class PanelWindow : Window
     private void Open()
     {
         _measurement?.MarkPanelRequested();
+        ContrastMode.Refresh();
+        MatchVoidCanvasToBackground();
         MarkEvent("open");
         if (!_showingWorkScreen)
         {
@@ -459,9 +477,11 @@ public sealed partial class PanelWindow : Window
 
         if (_showingWorkScreen)
         {
+            FocusFirstIn(LoadedScreens().FirstOrDefault(screen => screen.Visibility == Visibility.Visible));
             return;
         }
 
+        DiskInspectButton.Focus(FocusState.Programmatic);
         VoidCanvas.Paused = !_animationsEnabled;
         if (_animationsEnabled)
         {
@@ -522,6 +542,9 @@ public sealed partial class PanelWindow : Window
             {
                 ShowCardsNow();
                 FitCardPanel();
+                // Focus goes back to what opened the screen, so a keyboard user carries on where they were.
+                (_openedFrom ?? DiskInspectButton).Focus(FocusState.Programmatic);
+                _openedFrom = null;
                 if (_animationsEnabled)
                 {
                     // The cards were collapsed; their size is needed for the tilt's pivot.
@@ -546,6 +569,7 @@ public sealed partial class PanelWindow : Window
         }
 
         VoidCanvas.Visibility = Visibility.Visible;
+        GpuTemperaturePanel.Visibility = Visibility.Visible;
         CardsScroller.Visibility = Visibility.Visible;
         VoidCanvas.Paused = !_isOpen || !_animationsEnabled;
         if (_isOpen && !_animationsEnabled)
@@ -563,8 +587,9 @@ public sealed partial class PanelWindow : Window
             return;
         }
 
+        _openedFrom = FocusManager.GetFocusedElement(Root.XamlRoot) as Control;
         SwitchContent(
-            [CardsScroller, VoidCanvas],
+            [CardsScroller, VoidCanvas, GpuTemperaturePanel],
             () =>
             {
                 _showingWorkScreen = true;
@@ -573,6 +598,7 @@ public sealed partial class PanelWindow : Window
                 WeekButton.Visibility = Visibility.Collapsed;
                 VoidCanvas.Paused = true;
                 VoidCanvas.Visibility = Visibility.Collapsed;
+                GpuTemperaturePanel.Visibility = Visibility.Collapsed;
                 CardsScroller.Visibility = Visibility.Collapsed;
                 foreach (UserControl loaded in LoadedScreens())
                 {
@@ -580,8 +606,51 @@ public sealed partial class PanelWindow : Window
                 }
 
                 EmergeFromVoid(screen);
+                FocusFirstIn(screen);
             },
             shownPhase);
+    }
+
+    // The void scene is cleared to the window's own background, the VOID colour or a contrast theme's window colour.
+    private void MatchVoidCanvasToBackground()
+    {
+        if (Root.Background is SolidColorBrush background)
+        {
+            VoidCanvas.ClearColor = background.Color;
+        }
+    }
+
+    private static void FocusFirstIn(UIElement? screen)
+    {
+        if (screen is not null && FocusManager.FindFirstFocusableElement(screen) is Control first)
+        {
+            first.Focus(FocusState.Programmatic);
+        }
+    }
+
+    // Esc (Aşama 3f): on a screen it does what that screen's own Back does, so a screen with steps of its own
+    // (Settings' info pages) goes back one step; on the cards it hides the panel. A confirm card answers Esc
+    // itself first and marks it handled, so it never reaches here.
+    private void OnRootKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key != VirtualKey.Escape)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        if (!_showingWorkScreen)
+        {
+            Hide("escape");
+            return;
+        }
+
+        UserControl? screen = LoadedScreens().FirstOrDefault(loaded => loaded.Visibility == Visibility.Visible);
+        if (screen?.FindName("BackButton") is Button { IsEnabled: true } back
+            && FrameworkElementAutomationPeer.CreatePeerForElement(back)?.GetPattern(PatternInterface.Invoke) is IInvokeProvider invoke)
+        {
+            invoke.Invoke();
+        }
     }
 
     // What leaves shrinks and fades into the dark; once it is gone, <paramref name="swap"/> puts
@@ -1135,7 +1204,9 @@ public sealed partial class PanelWindow : Window
         _readingMemory = true;
         try
         {
-            MemorySnapshot snapshot = await Task.Run(() => MemoryCounters.Read(PagingWindow));
+            (MemorySnapshot snapshot, GpuTemperature? gpu) = await Task.Run(() =>
+                (MemoryCounters.Read(PagingWindow), GpuTemperatureRule.Hottest(GpuTemperatureReader.Read())));
+            ShowGpuTemperature(gpu);
             UpdateMemoryCard(snapshot);
             if (_memoryScreen is { Visibility: Visibility.Visible } memory)
             {
@@ -1151,6 +1222,16 @@ public sealed partial class PanelWindow : Window
         {
             _readingMemory = false;
         }
+    }
+
+    // Only the graphics card: the processor's temperature needs a kernel driver (Alican, 22 October 2026).
+    // It shows as a sun beside the black hole, not as a line on the Memory card (Alican: "burada durmasın").
+    private void ShowGpuTemperature(GpuTemperature? gpu)
+    {
+        _sun.Level = gpu is null ? null : HeatLevel.From(gpu.Celsius);
+        GpuTemperatureValue.Visibility = gpu is null ? Visibility.Collapsed : Visibility.Visible;
+        GpuTemperatureValue.Text = gpu is null ? string.Empty : _localizer.Format("GpuTemperatureValueFormat", (int)Math.Round(gpu.Celsius));
+        GpuTemperatureLabel.Text = _localizer.Get(gpu is null ? "GpuTemperatureNotReported" : "GpuTemperatureLabel");
     }
 
     private void UpdateMemoryCard(MemorySnapshot snapshot)
@@ -1455,19 +1536,29 @@ public sealed partial class PanelWindow : Window
 
     private void OnVoidUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args)
     {
-        _voidField.Advance(args.Timing.ElapsedTime);
+        _blackHole.Advance(args.Timing.ElapsedTime);
+        _sun.Advance(args.Timing.ElapsedTime);
     }
 
     private void OnVoidDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
     {
-        _voidField.Draw(args.DrawingSession, sender.Size.ToVector2());
+        // In a contrast theme the scene is not drawn (Aşama 3f); the temperature stays as text.
+        if (ContrastMode.IsOn)
+        {
+            return;
+        }
+
+        Vector2 size = sender.Size.ToVector2();
+        _sun.DrawBehind(args.DrawingSession, size, _blackHole);
+        _blackHole.Draw(args.DrawingSession, size);
+        _sun.DrawFront(args.DrawingSession);
         if (_markNextVoidFrame)
         {
             _markNextVoidFrame = false;
             MarkTransition("void-frame");
         }
 
-        _measurement?.RecordFrame(_voidField.Count);
+        _measurement?.RecordFrame(_blackHole.Count);
     }
 
     private void OnActivated(object sender, WindowActivatedEventArgs args)

@@ -22,11 +22,10 @@ internal sealed record ConfirmRequest(string Title, string Summary, string Confi
 /// </summary>
 public sealed partial class ConfirmCard : UserControl
 {
-    private const int HoleParticles = 900;
     private const string WarningGlyph = "";
     private const string NoteGlyph = "";
 
-    private readonly VoidField _hole = new(HoleParticles);
+    private readonly BlackHoleScene _hole = new();
     private bool _animationsEnabled;
     private TaskCompletionSource<bool>? _answer;
 
@@ -173,6 +172,12 @@ public sealed partial class ConfirmCard : UserControl
     private void OnHoleUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) =>
         _hole.Advance(args.Timing.ElapsedTime);
 
-    private void OnHoleDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) =>
-        _hole.Draw(args.DrawingSession, sender.Size.ToVector2());
+    // In a contrast theme the hole is not drawn (Aşama 3f): its colours are fixed VOID ones.
+    private void OnHoleDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
+    {
+        if (!ContrastMode.IsOn)
+        {
+            _hole.Draw(args.DrawingSession, sender.Size.ToVector2());
+        }
+    }
 }

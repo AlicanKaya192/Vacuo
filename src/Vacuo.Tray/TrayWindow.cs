@@ -28,6 +28,7 @@ internal sealed class TrayWindow : IDisposable
     private readonly uint _panelHiddenMessage = RegisterWindowMessage(PanelProtocol.PanelHiddenMessage);
     private readonly uint _foregroundRequestMessage = RegisterWindowMessage(PanelProtocol.ForegroundRequestMessage);
     private readonly nint _icon;
+    private readonly TrayIconInput _iconInput = new();
     private readonly string _defaultTooltip;
     private string _tooltip;
     private bool _iconAdded;
@@ -146,13 +147,18 @@ internal sealed class TrayWindow : IDisposable
     private void AddIcon()
     {
         var data = CreateIconData();
-        data.uFlags = NifMessage | NifIcon | NifTip;
+        data.uFlags = NifMessage | NifIcon | NifTip | NifShowTip;
         if (!Shell_NotifyIcon(NimAdd, ref data))
         {
             throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not add the tray icon.");
         }
 
         _iconAdded = true;
+
+        // Version 4 sends the keyboard's select (NIN_KEYSELECT), so the panel opens without a mouse too.
+        // If Windows refuses, the icon keeps working by mouse as before (TrayIconInput reads both forms).
+        data.uVersion = NotifyIconVersion4;
+        Shell_NotifyIcon(NimSetVersion, ref data);
     }
 
     /// <summary>A Windows notification from the tray icon; failing to show it changes nothing else.</summary>
@@ -176,7 +182,7 @@ internal sealed class TrayWindow : IDisposable
         }
 
         var data = CreateIconData();
-        data.uFlags = NifTip;
+        data.uFlags = NifTip | NifShowTip;
         Shell_NotifyIcon(NimModify, ref data);
     }
 
@@ -209,8 +215,7 @@ internal sealed class TrayWindow : IDisposable
         switch (message)
         {
             case IconMessage:
-                uint mouse = (uint)lParam;
-                if (mouse is WmLButtonUp or WmRButtonUp)
+                if (_iconInput.Toggles(lParam, TimeSpan.FromMilliseconds(Environment.TickCount64)))
                 {
                     IconClicked?.Invoke();
                 }

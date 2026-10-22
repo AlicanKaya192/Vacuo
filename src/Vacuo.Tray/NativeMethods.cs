@@ -6,8 +6,6 @@ internal static class NativeMethods
 {
     public const uint WmApp = 0x8000;
     public const uint WmClose = 0x0010;
-    public const uint WmLButtonUp = 0x0202;
-    public const uint WmRButtonUp = 0x0205;
     public const uint WmTimer = 0x0113;
     public const byte AcOnline = 1;
 
@@ -66,9 +64,13 @@ internal static class NativeMethods
     public const uint NimAdd = 0x0;
     public const uint NimModify = 0x1;
     public const uint NimDelete = 0x2;
+    public const uint NimSetVersion = 0x4;
+    public const uint NotifyIconVersion4 = 4;
     public const uint NifMessage = 0x1;
     public const uint NifIcon = 0x2;
     public const uint NifTip = 0x4;
+    /// <summary>With NOTIFYICON_VERSION_4 the standard tooltip shows only with this flag.</summary>
+    public const uint NifShowTip = 0x80;
     public const uint NifInfo = 0x10;
     public const uint NiifWarning = 0x2;
     public const ushort TurkishPrimaryLanguage = 0x1F;

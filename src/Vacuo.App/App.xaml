@@ -8,43 +8,195 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <!-- Check boxes, text boxes and scroll bars keep their Windows templates but wear VOID colours
+                     (lightweight styling). Merged after XamlControlsResources, so it is searched first; only the
+                     Dark theme is overridden, so a contrast theme gets Windows' own look (Aşama 3f). -->
+                <ResourceDictionary>
+                    <ResourceDictionary.ThemeDictionaries>
+                        <ResourceDictionary x:Key="Dark">
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUnchecked" Color="#0DFFFFFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPointerOver" Color="#1A9D7CFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPressed" Color="#269D7CFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedDisabled" Color="Transparent" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUnchecked" Color="#809D7CFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPointerOver" Color="#FF9D7CFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPressed" Color="#FF9D7CFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedDisabled" Color="#FF2C2441" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#FF9D7CFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#FFB39BFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#FF7A5CE6" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedDisabled" Color="#4D9D7CFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked" Color="Transparent" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" Color="Transparent" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed" Color="Transparent" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedDisabled" Color="Transparent" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminate" Color="#FF9D7CFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminatePointerOver" Color="#FFB39BFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminatePressed" Color="#FF7A5CE6" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminateDisabled" Color="#4D9D7CFF" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeIndeterminate" Color="Transparent" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeIndeterminatePointerOver" Color="Transparent" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeIndeterminatePressed" Color="Transparent" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#FF0A0811" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FF0A0811" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="#FF0A0811" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminate" Color="#FF0A0811" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminatePointerOver" Color="#FF0A0811" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminatePressed" Color="#FF0A0811" />
+                            <SolidColorBrush x:Key="TextControlBackground" Color="#0DFFFFFF" />
+                            <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#1A9D7CFF" />
+                            <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF14101D" />
+                            <SolidColorBrush x:Key="TextControlBorderBrush" Color="#4D9D7CFF" />
+                            <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#999D7CFF" />
+                            <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#FF9D7CFF" />
+                            <SolidColorBrush x:Key="TextControlElevationBorderBrush" Color="#4D9D7CFF" />
+                            <SolidColorBrush x:Key="TextControlElevationBorderFocusedBrush" Color="#FF9D7CFF" />
+                            <SolidColorBrush x:Key="TextControlForeground" Color="#FFECE7F5" />
+                            <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#FFECE7F5" />
+                            <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#FFECE7F5" />
+                            <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#FFABA1BF" />
+                            <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#FFABA1BF" />
+                            <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#99ABA1BF" />
+                            <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#809D7CFF" />
+                            <SolidColorBrush x:Key="TextControlButtonForeground" Color="#FFABA1BF" />
+                            <SolidColorBrush x:Key="TextControlButtonForegroundPointerOver" Color="#FFECE7F5" />
+                            <SolidColorBrush x:Key="TextControlButtonBackgroundPointerOver" Color="#1A9D7CFF" />
+                            <SolidColorBrush x:Key="ScrollBarThumbFill" Color="#669D7CFF" />
+                            <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="#999D7CFF" />
+                            <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#FF9D7CFF" />
+                            <SolidColorBrush x:Key="ScrollBarTrackFill" Color="Transparent" />
+                            <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver" Color="#0DFFFFFF" />
+                        </ResourceDictionary>
+                    </ResourceDictionary.ThemeDictionaries>
+                </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- VOID palette A (Ametist), chosen 2026-10-19 -->
-            <Color x:Key="VoidColor">#FF0A0811</Color>
-            <Color x:Key="SurfaceColor">#FF14101D</Color>
-            <Color x:Key="SurfaceRaisedColor">#FF1D172A</Color>
-            <Color x:Key="LineColor">#FF2C2441</Color>
-            <Color x:Key="InkColor">#FFECE7F5</Color>
-            <Color x:Key="InkSecondaryColor">#FFABA1BF</Color>
-            <Color x:Key="AccentColor">#FF9D7CFF</Color>
-            <Color x:Key="WarningColor">#FFE9B964</Color>
-            <Color x:Key="WarningTintColor">#1FE9B964</Color>
+            <!-- Aşama 3f: every colour lives here. Dark is the VOID look as it was; HighContrast takes Windows'
+                 contrast-theme colours, so text and edges keep the contrast the user chose. Brushes are bound with
+                 ThemeResource, so a theme change repaints at once. The key is "Dark", not "Default": the app is
+                 always dark, and WinUI's own "Dark" dictionary would otherwise win over a "Default" here. -->
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Dark">
+                    <!-- VOID palette A (Ametist), chosen 2026-10-19 -->
+                    <Color x:Key="VoidColor">#FF0A0811</Color>
+                    <Color x:Key="SurfaceColor">#FF14101D</Color>
+                    <Color x:Key="SurfaceRaisedColor">#FF1D172A</Color>
+                    <Color x:Key="LineColor">#FF2C2441</Color>
+                    <Color x:Key="InkColor">#FFECE7F5</Color>
+                    <Color x:Key="InkSecondaryColor">#FFABA1BF</Color>
+                    <Color x:Key="AccentColor">#FF9D7CFF</Color>
+                    <Color x:Key="WarningColor">#FFE9B964</Color>
+                    <Color x:Key="WarningTintColor">#1FE9B964</Color>
 
-            <SolidColorBrush x:Key="VoidBrush" Color="{StaticResource VoidColor}" />
-            <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
-            <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="{StaticResource SurfaceRaisedColor}" />
-            <SolidColorBrush x:Key="LineBrush" Color="{StaticResource LineColor}" />
-            <SolidColorBrush x:Key="InkBrush" Color="{StaticResource InkColor}" />
-            <SolidColorBrush x:Key="InkSecondaryBrush" Color="{StaticResource InkSecondaryColor}" />
-            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
-            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+                    <SolidColorBrush x:Key="VoidBrush" Color="#FF0A0811" />
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="#FF14101D" />
+                    <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="#FF1D172A" />
+                    <SolidColorBrush x:Key="LineBrush" Color="#FF2C2441" />
+                    <SolidColorBrush x:Key="InkBrush" Color="#FFECE7F5" />
+                    <SolidColorBrush x:Key="InkSecondaryBrush" Color="#FFABA1BF" />
+                    <SolidColorBrush x:Key="AccentBrush" Color="#FF9D7CFF" />
+                    <SolidColorBrush x:Key="WarningBrush" Color="#FFE9B964" />
+
+                    <!-- Buttons, the picker, the confirm card, the logo and the temperature. -->
+                    <SolidColorBrush x:Key="OnAccentBrush" Color="#FF0A0811" />
+                    <LinearGradientBrush x:Key="PrimaryFillBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FFB39BFF" Offset="0" />
+                        <GradientStop Color="#FF9D7CFF" Offset="0.5" />
+                        <GradientStop Color="#FF7A5CE6" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="WarningFillBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FFF3CD86" Offset="0" />
+                        <GradientStop Color="#FFE9B964" Offset="0.5" />
+                        <GradientStop Color="#FFC9963F" Offset="1" />
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="ShineBrush" Color="#33FFFFFF" />
+                    <SolidColorBrush x:Key="GhostFillBrush" Color="#0DFFFFFF" />
+                    <SolidColorBrush x:Key="GhostBorderBrush" Color="#4D9D7CFF" />
+                    <SolidColorBrush x:Key="HoverFillBrush" Color="#1A9D7CFF" />
+                    <SolidColorBrush x:Key="HoverBorderBrush" Color="#999D7CFF" />
+                    <SolidColorBrush x:Key="PressedFillBrush" Color="#269D7CFF" />
+                    <SolidColorBrush x:Key="StrongPressedFillBrush" Color="#339D7CFF" />
+                    <SolidColorBrush x:Key="TemperatureBrush" Color="#FFFFC27A" />
+                    <SolidColorBrush x:Key="ScrimBrush" Color="#D90A0811" />
+                    <!-- The confirm card's rim catches the black hole's light at the top and fades into the void below. -->
+                    <LinearGradientBrush x:Key="ConfirmRimBrush" StartPoint="0.5,0" EndPoint="0.5,1">
+                        <GradientStop Color="#CC9D7CFF" Offset="0" />
+                        <GradientStop Color="#409D7CFF" Offset="0.45" />
+                        <GradientStop Color="#142C2441" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="ConfirmCardBrush" StartPoint="0.5,0" EndPoint="0.5,1">
+                        <GradientStop Color="#FF1B1430" Offset="0" />
+                        <GradientStop Color="#FF0E0B18" Offset="0.4" />
+                        <GradientStop Color="#FF0A0811" Offset="1" />
+                    </LinearGradientBrush>
+                    <RadialGradientBrush x:Key="LogoGlowBrush">
+                        <GradientStop Color="#009D7CFF" Offset="0.45" />
+                        <GradientStop Color="#999D7CFF" Offset="0.72" />
+                        <GradientStop Color="#009D7CFF" Offset="1" />
+                    </RadialGradientBrush>
+                    <LinearGradientBrush x:Key="LogoRingBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FFD4C6FF" Offset="0" />
+                        <GradientStop Color="#FF9D7CFF" Offset="0.45" />
+                        <GradientStop Color="#339D7CFF" Offset="1" />
+                    </LinearGradientBrush>
+
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="HighContrast">
+                    <StaticResource x:Key="VoidColor" ResourceKey="SystemColorWindowColor" />
+                    <StaticResource x:Key="SurfaceColor" ResourceKey="SystemColorWindowColor" />
+                    <StaticResource x:Key="SurfaceRaisedColor" ResourceKey="SystemColorWindowColor" />
+                    <StaticResource x:Key="LineColor" ResourceKey="SystemColorWindowTextColor" />
+                    <StaticResource x:Key="InkColor" ResourceKey="SystemColorWindowTextColor" />
+                    <StaticResource x:Key="InkSecondaryColor" ResourceKey="SystemColorWindowTextColor" />
+                    <StaticResource x:Key="AccentColor" ResourceKey="SystemColorHighlightColor" />
+                    <StaticResource x:Key="WarningColor" ResourceKey="SystemColorWindowTextColor" />
+                    <StaticResource x:Key="WarningTintColor" ResourceKey="SystemColorWindowColor" />
+
+                    <SolidColorBrush x:Key="VoidBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="LineBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush x:Key="InkBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush x:Key="InkSecondaryBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush x:Key="AccentBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+                    <SolidColorBrush x:Key="WarningBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+
+                    <SolidColorBrush x:Key="OnAccentBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
+                    <SolidColorBrush x:Key="PrimaryFillBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+                    <SolidColorBrush x:Key="WarningFillBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+                    <SolidColorBrush x:Key="ShineBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="GhostFillBrush" Color="{ThemeResource SystemColorButtonFaceColor}" />
+                    <SolidColorBrush x:Key="GhostBorderBrush" Color="{ThemeResource SystemColorButtonTextColor}" />
+                    <SolidColorBrush x:Key="HoverFillBrush" Color="{ThemeResource SystemColorButtonFaceColor}" />
+                    <SolidColorBrush x:Key="HoverBorderBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+                    <SolidColorBrush x:Key="PressedFillBrush" Color="{ThemeResource SystemColorButtonFaceColor}" />
+                    <SolidColorBrush x:Key="StrongPressedFillBrush" Color="{ThemeResource SystemColorButtonFaceColor}" />
+                    <SolidColorBrush x:Key="TemperatureBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush x:Key="ScrimBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="ConfirmRimBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush x:Key="ConfirmCardBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="LogoGlowBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="LogoRingBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
 
             <Style x:Key="CardStyle" TargetType="Border">
-                <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+                <Setter Property="Background" Value="{ThemeResource SurfaceRaisedBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource LineBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
                 <Setter Property="CornerRadius" Value="4" />
                 <Setter Property="Padding" Value="12" />
             </Style>
             <Style x:Key="CardTitleStyle" TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+                <!-- A screen reader jumps from card to card by these headings (Aşama 3f). -->
+                <Setter Property="AutomationProperties.HeadingLevel" Value="Level2" />
+                <Setter Property="Foreground" Value="{ThemeResource InkBrush}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="FontSize" Value="14" />
             </Style>
             <!-- VOID buttons: own templates, so none of the stock Windows chrome shows through. -->
             <Style x:Key="VoidPrimaryButtonStyle" TargetType="Button">
-                <Setter Property="Foreground" Value="{StaticResource VoidBrush}" />
+                <Setter Property="Foreground" Value="{ThemeResource OnAccentBrush}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="FontSize" Value="14" />
                 <Setter Property="Padding" Value="16,11" />
@@ -53,15 +205,8 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Grid x:Name="Root" CornerRadius="12">
-                                <Grid.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#FFB39BFF" Offset="0" />
-                                        <GradientStop Color="#FF9D7CFF" Offset="0.5" />
-                                        <GradientStop Color="#FF7A5CE6" Offset="1" />
-                                    </LinearGradientBrush>
-                                </Grid.Background>
-                                <Border x:Name="Shine" CornerRadius="12" Background="#33FFFFFF" Opacity="0" />
+                            <Grid x:Name="Root" CornerRadius="12" Background="{ThemeResource PrimaryFillBrush}">
+                                <Border x:Name="Shine" CornerRadius="12" Background="{ThemeResource ShineBrush}" Opacity="0" />
                                 <ContentPresenter Padding="{TemplateBinding Padding}"
                                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                   VerticalAlignment="Center"
@@ -93,7 +238,7 @@
                 </Setter>
             </Style>
             <Style x:Key="VoidGhostButtonStyle" TargetType="Button">
-                <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+                <Setter Property="Foreground" Value="{ThemeResource InkBrush}" />
                 <Setter Property="FontSize" Value="14" />
                 <Setter Property="Padding" Value="16,11" />
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -103,9 +248,9 @@
                         <ControlTemplate TargetType="Button">
                             <Grid x:Name="Root"
                                   CornerRadius="12"
-                                  Background="#0DFFFFFF"
+                                  Background="{ThemeResource GhostFillBrush}"
                                   BorderThickness="1"
-                                  BorderBrush="#4D9D7CFF">
+                                  BorderBrush="{ThemeResource GhostBorderBrush}">
                                 <ContentPresenter Padding="{TemplateBinding Padding}"
                                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                   VerticalAlignment="Center"
@@ -116,13 +261,13 @@
                                         <VisualState x:Name="Normal" />
                                         <VisualState x:Name="PointerOver">
                                             <VisualState.Setters>
-                                                <Setter Target="Root.Background" Value="#1A9D7CFF" />
-                                                <Setter Target="Root.BorderBrush" Value="#999D7CFF" />
+                                                <Setter Target="Root.Background" Value="{ThemeResource HoverFillBrush}" />
+                                                <Setter Target="Root.BorderBrush" Value="{ThemeResource HoverBorderBrush}" />
                                             </VisualState.Setters>
                                         </VisualState>
                                         <VisualState x:Name="Pressed">
                                             <VisualState.Setters>
-                                                <Setter Target="Root.Background" Value="#269D7CFF" />
+                                                <Setter Target="Root.Background" Value="{ThemeResource PressedFillBrush}" />
                                             </VisualState.Setters>
                                         </VisualState>
                                         <VisualState x:Name="Disabled">
@@ -142,15 +287,8 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Grid x:Name="Root" CornerRadius="12">
-                                <Grid.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#FFF3CD86" Offset="0" />
-                                        <GradientStop Color="#FFE9B964" Offset="0.5" />
-                                        <GradientStop Color="#FFC9963F" Offset="1" />
-                                    </LinearGradientBrush>
-                                </Grid.Background>
-                                <Border x:Name="Shine" CornerRadius="12" Background="#33FFFFFF" Opacity="0" />
+                            <Grid x:Name="Root" CornerRadius="12" Background="{ThemeResource WarningFillBrush}">
+                                <Border x:Name="Shine" CornerRadius="12" Background="{ThemeResource ShineBrush}" Opacity="0" />
                                 <ContentPresenter Padding="{TemplateBinding Padding}"
                                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                   VerticalAlignment="Center"
@@ -183,7 +321,7 @@
             </Style>
             <!-- A bare glyph, like the header's hide button: no frame until the pointer comes. -->
             <Style x:Key="VoidIconButtonStyle" TargetType="Button">
-                <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}" />
+                <Setter Property="Foreground" Value="{ThemeResource InkSecondaryBrush}" />
                 <Setter Property="Padding" Value="10,6" />
                 <Setter Property="Template">
                     <Setter.Value>
@@ -199,12 +337,12 @@
                                         <VisualState x:Name="Normal" />
                                         <VisualState x:Name="PointerOver">
                                             <VisualState.Setters>
-                                                <Setter Target="Root.Background" Value="#1A9D7CFF" />
+                                                <Setter Target="Root.Background" Value="{ThemeResource HoverFillBrush}" />
                                             </VisualState.Setters>
                                         </VisualState>
                                         <VisualState x:Name="Pressed">
                                             <VisualState.Setters>
-                                                <Setter Target="Root.Background" Value="#339D7CFF" />
+                                                <Setter Target="Root.Background" Value="{ThemeResource StrongPressedFillBrush}" />
                                             </VisualState.Setters>
                                         </VisualState>
                                         <VisualState x:Name="Disabled">
@@ -225,80 +363,23 @@
                 <Setter Property="HorizontalAlignment" Value="Left" />
             </Style>
 
-            <!-- Check boxes, text boxes and scroll bars keep their Windows templates but wear VOID colours:
-                 the brushes below replace the theme's own (lightweight styling). -->
             <Style TargetType="CheckBox">
                 <Setter Property="CornerRadius" Value="6" />
-                <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+                <Setter Property="Foreground" Value="{ThemeResource InkBrush}" />
             </Style>
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUnchecked" Color="#0DFFFFFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPointerOver" Color="#1A9D7CFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPressed" Color="#269D7CFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedDisabled" Color="Transparent" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUnchecked" Color="#809D7CFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPointerOver" Color="#FF9D7CFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPressed" Color="#FF9D7CFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedDisabled" Color="#FF2C2441" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#FF9D7CFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#FFB39BFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#FF7A5CE6" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedDisabled" Color="#4D9D7CFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked" Color="Transparent" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" Color="Transparent" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed" Color="Transparent" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedDisabled" Color="Transparent" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminate" Color="#FF9D7CFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminatePointerOver" Color="#FFB39BFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminatePressed" Color="#FF7A5CE6" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillIndeterminateDisabled" Color="#4D9D7CFF" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeIndeterminate" Color="Transparent" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeIndeterminatePointerOver" Color="Transparent" />
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeIndeterminatePressed" Color="Transparent" />
-            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#FF0A0811" />
-            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FF0A0811" />
-            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="#FF0A0811" />
-            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminate" Color="#FF0A0811" />
-            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminatePointerOver" Color="#FF0A0811" />
-            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminatePressed" Color="#FF0A0811" />
-
             <Style TargetType="TextBox">
                 <Setter Property="CornerRadius" Value="12" />
                 <Setter Property="Padding" Value="12,7,8,7" />
             </Style>
-            <SolidColorBrush x:Key="TextControlBackground" Color="#0DFFFFFF" />
-            <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#1A9D7CFF" />
-            <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF14101D" />
-            <SolidColorBrush x:Key="TextControlBorderBrush" Color="#4D9D7CFF" />
-            <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#999D7CFF" />
-            <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#FF9D7CFF" />
-            <SolidColorBrush x:Key="TextControlElevationBorderBrush" Color="#4D9D7CFF" />
-            <SolidColorBrush x:Key="TextControlElevationBorderFocusedBrush" Color="#FF9D7CFF" />
             <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
-            <SolidColorBrush x:Key="TextControlForeground" Color="#FFECE7F5" />
-            <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#FFECE7F5" />
-            <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#FFECE7F5" />
-            <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#FFABA1BF" />
-            <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#FFABA1BF" />
-            <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#99ABA1BF" />
-            <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#809D7CFF" />
-            <SolidColorBrush x:Key="TextControlButtonForeground" Color="#FFABA1BF" />
-            <SolidColorBrush x:Key="TextControlButtonForegroundPointerOver" Color="#FFECE7F5" />
-            <SolidColorBrush x:Key="TextControlButtonBackgroundPointerOver" Color="#1A9D7CFF" />
-
-            <SolidColorBrush x:Key="ScrollBarThumbFill" Color="#669D7CFF" />
-            <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="#999D7CFF" />
-            <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#FF9D7CFF" />
-            <SolidColorBrush x:Key="ScrollBarTrackFill" Color="Transparent" />
-            <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver" Color="#0DFFFFFF" />
-
             <!-- VOID picker (vacuo-kurallar 15): our own drop-down instead of the stock ComboBox. -->
             <Style x:Key="VoidPickerTriggerStyle" TargetType="Button" BasedOn="{StaticResource VoidGhostButtonStyle}">
                 <Setter Property="Padding" Value="14,9" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             </Style>
             <Style x:Key="VoidFlyoutPresenterStyle" TargetType="FlyoutPresenter">
-                <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
-                <Setter Property="BorderBrush" Value="#4D9D7CFF" />
+                <Setter Property="Background" Value="{ThemeResource SurfaceRaisedBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource GhostBorderBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
                 <Setter Property="CornerRadius" Value="14" />
                 <Setter Property="Padding" Value="6" />
@@ -307,7 +388,7 @@
             </Style>
             <!-- One option: a lit edge and a violet tint when chosen, like the rows on every screen. -->
             <Style x:Key="VoidPickerItemStyle" TargetType="Button">
-                <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}" />
+                <Setter Property="Foreground" Value="{ThemeResource InkSecondaryBrush}" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="FontSize" Value="14" />
@@ -333,12 +414,12 @@
                                         <VisualState x:Name="Normal" />
                                         <VisualState x:Name="PointerOver">
                                             <VisualState.Setters>
-                                                <Setter Target="Root.Background" Value="#1A9D7CFF" />
+                                                <Setter Target="Root.Background" Value="{ThemeResource HoverFillBrush}" />
                                             </VisualState.Setters>
                                         </VisualState>
                                         <VisualState x:Name="Pressed">
                                             <VisualState.Setters>
-                                                <Setter Target="Root.Background" Value="#339D7CFF" />
+                                                <Setter Target="Root.Background" Value="{ThemeResource StrongPressedFillBrush}" />
                                             </VisualState.Setters>
                                         </VisualState>
                                         <VisualState x:Name="Disabled">
@@ -354,13 +435,13 @@
                 </Setter>
             </Style>
             <Style x:Key="VoidPickerSelectedItemStyle" TargetType="Button" BasedOn="{StaticResource VoidPickerItemStyle}">
-                <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
-                <Setter Property="Background" Value="#269D7CFF" />
-                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                <Setter Property="Foreground" Value="{ThemeResource InkBrush}" />
+                <Setter Property="Background" Value="{ThemeResource PressedFillBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource AccentBrush}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
             </Style>
             <Style x:Key="CardBodyStyle" TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}" />
+                <Setter Property="Foreground" Value="{ThemeResource InkSecondaryBrush}" />
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="TextWrapping" Value="Wrap" />
                 <Setter Property="Margin" Value="0,4,0,0" />

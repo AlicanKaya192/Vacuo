@@ -181,6 +181,9 @@ public sealed partial class WindowsView : UserControl
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
         var check = new CheckBox { Tag = finding.Path, MinWidth = 0, IsChecked = _temp!.IsSelected(finding.Path), IsEnabled = !_busy };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            check,
+            DiskTexts.RowName(Path.GetFileName(finding.Path), DiskTexts.Size(_localizer, finding.Size.Bytes)));
         check.Checked += OnTempRowChecked;
         check.Unchecked += OnTempRowUnchecked;
         row.Children.Add(check);
@@ -221,6 +224,8 @@ public sealed partial class WindowsView : UserControl
                 IsChecked = _admin.IsSelected(leftover.Id),
                 IsEnabled = !_busy,
             };
+            // The content is a panel of two lines, so a screen reader would find no name in it.
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(check, DiskTexts.RowName(LeftoverName(leftover), LeftoverDetail(leftover)));
             check.Checked += (_, _) => { _admin?.Select(leftover.Id); UpdateSummaries(); };
             check.Unchecked += (_, _) => { _admin?.Deselect(leftover.Id); UpdateSummaries(); };
             AdminList.Children.Add(check);
@@ -379,6 +384,7 @@ public sealed partial class WindowsView : UserControl
             // Unexpected (e.g. the journal could not be written): say so and show what is left.
             RenderTemp();
             TempResult.Children.Add(Text(_localizer.Format("DiskMoveErrorFormat", exception.Message), "WarningBrush"));
+            Announcer.SayLines(ScreenTitle, TempResult);
         }
         finally
         {
@@ -419,6 +425,8 @@ public sealed partial class WindowsView : UserControl
                     $"{DiskTexts.FailureReason(_localizer, reason.Key)} · {reason.Count()}", "InkSecondaryBrush", fontSize: 12));
             }
         }
+
+        Announcer.Say(ScreenTitle, DiskTexts.Outcome(_localizer, outcome));
     }
 
     private async void OnAdminRunClick(object sender, RoutedEventArgs e)
@@ -441,10 +449,12 @@ public sealed partial class WindowsView : UserControl
         catch (ElevationDeclinedException)
         {
             AdminResult.Children.Add(Text(_localizer.Get("WindowsAdminDeclined"), "InkSecondaryBrush", fontSize: 12));
+            Announcer.SayLines(ScreenTitle, AdminResult);
         }
         catch (Exception exception)
         {
             AdminResult.Children.Add(Text(_localizer.Format("WindowsAdminErrorFormat", exception.Message), "WarningBrush", fontSize: 12));
+            Announcer.SayLines(ScreenTitle, AdminResult);
         }
         finally
         {
@@ -493,6 +503,8 @@ public sealed partial class WindowsView : UserControl
 
             AdminResult.Children.Add(Text(done, "InkBrush", fontSize: 12));
         }
+
+        Announcer.SayLines(ScreenTitle, AdminResult);
     }
 
     private void OnOpenDiskCleanupClick(object sender, RoutedEventArgs e)

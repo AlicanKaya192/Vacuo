@@ -7,7 +7,7 @@
 
     <!-- Vacuo's own progress bar (vacuo-kurallar 15): a violet fill on the line colour. The fill is scaled,
          not resized, so a report costs no layout pass. -->
-    <Grid x:Name="Track" CornerRadius="3" Background="{StaticResource LineBrush}" SizeChanged="OnTrackSizeChanged">
+    <Grid x:Name="Track" CornerRadius="3" Background="{ThemeResource LineBrush}" SizeChanged="OnTrackSizeChanged">
         <Grid.Resources>
             <Storyboard x:Name="SweepMotion" RepeatBehavior="Forever">
                 <DoubleAnimation Storyboard.TargetName="SweepShift"
@@ -19,7 +19,7 @@
         <Border x:Name="Fill"
                 HorizontalAlignment="Stretch"
                 CornerRadius="3"
-                Background="{StaticResource AccentBrush}"
+                Background="{ThemeResource AccentBrush}"
                 RenderTransformOrigin="0,0.5">
             <Border.RenderTransform>
                 <ScaleTransform x:Name="FillScale" ScaleX="0" />
@@ -29,7 +29,7 @@
         <Border x:Name="Sweep"
                 HorizontalAlignment="Left"
                 CornerRadius="3"
-                Background="{StaticResource AccentBrush}"
+                Background="{ThemeResource AccentBrush}"
                 Visibility="Collapsed">
             <Border.RenderTransform>
                 <TranslateTransform x:Name="SweepShift" />

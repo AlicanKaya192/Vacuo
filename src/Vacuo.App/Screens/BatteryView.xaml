@@ -18,11 +18,12 @@
             </Grid.ColumnDefinitions>
             <Button x:Name="BackButton" Click="OnBackClick" />
             <TextBlock x:Name="ScreenTitle"
+                       AutomationProperties.HeadingLevel="Level1"
                        Grid.Column="1"
                        VerticalAlignment="Center"
                        FontSize="20"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource InkBrush}" />
+                       Foreground="{ThemeResource InkBrush}" />
             <Button x:Name="RefreshButton" Grid.Column="2" Click="OnRefreshClick" />
         </Grid>
 
@@ -36,7 +37,7 @@
                         <TextBlock x:Name="CappedNote" Style="{StaticResource CardBodyStyle}" Visibility="Collapsed" />
                         <TextBlock x:Name="FailureText"
                                    Style="{StaticResource CardBodyStyle}"
-                                   Foreground="{StaticResource WarningBrush}"
+                                   Foreground="{ThemeResource WarningBrush}"
                                    Visibility="Collapsed" />
                     </StackPanel>
                 </Border>

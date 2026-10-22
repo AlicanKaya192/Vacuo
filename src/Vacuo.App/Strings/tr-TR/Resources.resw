@@ -405,6 +405,15 @@
   <data name="MemoryReadFailedFormat" xml:space="preserve">
     <value>Bellek okunamadı: {0}</value>
   </data>
+  <data name="GpuTemperatureValueFormat" xml:space="preserve">
+    <value>{0} °C</value>
+  </data>
+  <data name="GpuTemperatureLabel" xml:space="preserve">
+    <value>Ekran kartı</value>
+  </data>
+  <data name="GpuTemperatureNotReported" xml:space="preserve">
+    <value>Ekran kartı sıcaklığı: bu bilgisayar bildirmiyor</value>
+  </data>
   <data name="Pressure_Comfortable" xml:space="preserve">
     <value>Rahat</value>
   </data>
@@ -1057,7 +1066,7 @@ Vacuo'nun tek ağ bağlantısı güncelleme denetimidir. Panel açılınca, en �
 Disk taramasının, kopya aramasının ve kurulu programlar listesinin sonuçları; Bellek ekranı için hangi programın en son ne zaman öne geldiği. Bunlar diske yazılmaz, Vacuo kapanınca silinir.
 
 # Okunanlar
-Vacuo dosyaların adını, boyutunu ve tarihini okur; kopya aramada içerikleri karşılaştırmak için özet (SHA-256) hesaplar. Kurulu programları kayıt defterinden yalnızca okur. Pil bilgisini sürücüden okur; pilin adı ve seri numarası sorulmaz.</value>
+Vacuo dosyaların adını, boyutunu ve tarihini okur; kopya aramada içerikleri karşılaştırmak için özet (SHA-256) hesaplar. Kurulu programları kayıt defterinden yalnızca okur. Pil bilgisini sürücüden okur; pilin adı ve seri numarası sorulmaz. Panel açıkken ekran kartının sıcaklığını Windows'tan okur; kaydetmez.</value>
   </data>
   <data name="Info_License_Title" xml:space="preserve">
     <value>Lisans ve açık kaynak</value>

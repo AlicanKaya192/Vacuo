@@ -203,6 +203,9 @@ public sealed partial class DiskView : UserControl
             IsEnabled = _screen!.IsSelectable(finding.Path),
             IsChecked = _screen.IsSelected(finding.Path),
         };
+        AutomationProperties.SetName(
+            check,
+            DiskTexts.RowName(DiskTexts.RuleName(_localizer, finding.Rule), finding.Path, DiskTexts.Size(_localizer, finding.Size.Bytes)));
         check.Checked += OnRowChecked;
         check.Unchecked += OnRowUnchecked;
         row.Children.Add(check);
@@ -343,7 +346,8 @@ public sealed partial class DiskView : UserControl
 
     private async Task PlayBurstAsync(IReadOnlyList<PulledItem> items)
     {
-        if (!_animationsEnabled || items.Count == 0)
+        // A contrast theme skips it like animations off: the burst is drawn in fixed VOID colours (Aşama 3f).
+        if (!_animationsEnabled || ContrastMode.IsOn || items.Count == 0)
         {
             return;
         }
@@ -381,6 +385,7 @@ public sealed partial class DiskView : UserControl
         }
 
         ResultPanel.Visibility = Visibility.Visible;
+        Announcer.Say(ScreenTitle, DiskTexts.Outcome(_localizer, outcome));
     }
 
     private void ShowError(string message)
@@ -392,6 +397,7 @@ public sealed partial class DiskView : UserControl
         error.Foreground = (Brush)Application.Current.Resources["WarningBrush"];
         FailureList.Children.Add(error);
         ResultPanel.Visibility = Visibility.Visible;
+        Announcer.Say(ScreenTitle, message);
     }
 
     // The counter climbs to the moved size; with animations off it shows the number at once.
@@ -475,7 +481,8 @@ public sealed partial class DiskView : UserControl
         // The canvas is only drawn; a screen reader reads the same chips from its name.
         AutomationProperties.SetName(FlowCanvas, string.Join(", ", sources.Concat(sinks).Select(chip => chip.Label)));
         _flowMap = new DiskFlowMap(sources, sinks, streams, new Vector2((float)FlowCanvas.ActualWidth, (float)FlowCanvas.ActualHeight));
-        FlowCanvas.Visibility = Visibility.Visible;
+        // In a contrast theme the drawn flow steps aside; the lists below say the same in text (Aşama 3f).
+        FlowCanvas.Visibility = ContrastMode.IsOn ? Visibility.Collapsed : Visibility.Visible;
         UpdateFlowRunning();
     }
 

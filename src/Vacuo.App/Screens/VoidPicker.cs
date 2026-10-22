@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 
@@ -17,7 +18,8 @@ public sealed class VoidPicker : UserControl
     private readonly TextBlock _label;
     private readonly FontIcon _chevron;
     private readonly Flyout _flyout;
-    private readonly StackPanel _list = new() { Spacing = 2 };
+    // The arrow keys move between the rows, as in the stock ComboBox (Aşama 3f).
+    private readonly StackPanel _list = new() { Spacing = 2, XYFocusKeyboardNavigation = XYFocusKeyboardNavigationMode.Enabled };
     private readonly List<(string Text, object Value)> _items = [];
     private int _selectedIndex = -1;
 
@@ -46,6 +48,7 @@ public sealed class VoidPicker : UserControl
             FlyoutPresenterStyle = Resource<Style>("VoidFlyoutPresenterStyle"),
         };
         _flyout.Opening += (_, _) => OnOpening();
+        _flyout.Opened += (_, _) => FocusChosenRow();
         _flyout.Closed += (_, _) => Turn(0);
         _trigger = new Button { Content = face, Style = Resource<Style>("VoidPickerTriggerStyle"), Flyout = _flyout };
         Content = _trigger;
@@ -92,6 +95,15 @@ public sealed class VoidPicker : UserControl
         }
 
         Turn(180);
+    }
+
+    // The list opens on the current choice, so Enter alone keeps it.
+    private void FocusChosenRow()
+    {
+        if (_selectedIndex >= 0 && _selectedIndex < _list.Children.Count && _list.Children[_selectedIndex] is Button row)
+        {
+            row.Focus(FocusState.Programmatic);
+        }
     }
 
     private void Choose(int index)
