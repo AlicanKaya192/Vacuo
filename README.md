@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/media/overview.gif" alt="The Vacuo panel: the black hole drawing in particles above the Disk, Windows, Memory, Organize and Battery cards" width="600">
+  <img src="docs/media/overview.gif" alt="The Vacuo panel: the black hole pulling a stream from the sun that shows the graphics card temperature, above the Disk, Windows, Memory, Organize and Battery cards" width="600">
 </p>
 
 Vacuo is a maintenance tool for Windows 11 that lives in the system tray. Click its icon and one panel shows your disk, the leftovers Windows keeps, your memory and your messiest folders, with a clear answer to *what can go, what it will cost, and how to get it back*.
@@ -41,7 +41,7 @@ It is built around one rule: **measure honestly, change nothing without you.** C
 **Freed this week.** The history icon in the header turns the last seven days into a slowly turning carousel: how much each part of Vacuo freed, how many items, and when. With animations off in Windows, it is a plain list.
 
 <p align="center">
-  <img src="docs/media/freed-this-week.gif" alt="The Freed this week carousel turning between Disk, Windows leftovers and Automatic maintenance" width="600">
+  <img src="docs/media/freed-this-week.gif" alt="The Freed this week carousel turning between Disk, Windows leftovers, Automatic maintenance and Organize" width="600">
 </p>
 
 **Memory** shows pressure instead of a "% used" number, lists apps that have been idle for hours, closes the ones you pick with a normal close request (so an app with unsaved work can still ask you), and measures the real difference afterwards.

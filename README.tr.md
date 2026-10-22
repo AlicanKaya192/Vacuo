@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/media/overview.gif" alt="Vacuo paneli: Disk, Windows, Bellek, Düzen ve Pil kartlarının üstünde parçacıkları çeken kara delik" width="600">
+  <img src="docs/media/overview.gif" alt="Vacuo paneli: Disk, Windows, Bellek, Düzen ve Pil kartlarının üstünde, ekran kartı sıcaklığını gösteren güneşten akış çeken kara delik" width="600">
 </p>
 
 Vacuo, sistem tepsisinde duran bir Windows 11 bakım aracı. Simgesine tıklayınca açılan tek panel diskini, Windows'un biriktirdiği kalıntıları, belleğini ve en dağınık klasörlerini gösterir; *ne gidebilir, bedeli ne, nasıl geri gelir* sorularına açık cevap verir.
@@ -41,7 +41,7 @@ Tek bir kurala göre yapıldı: **dürüst ölç, sana sormadan hiçbir şeyi de
 **Bu hafta neler boşaldı.** Başlıktaki geçmiş simgesi son yedi günü yavaşça dönen bir karusele çevirir: Vacuo'nun her bölümünün ne kadar yer açtığı, kaç öğe ve ne zaman. Windows'ta animasyonlar kapalıysa düz bir listedir.
 
 <p align="center">
-  <img src="docs/media/freed-this-week.gif" alt="Disk, Windows kalıntıları ve Otomatik Bakım kartları arasında dönen Bu hafta karuseli" width="600">
+  <img src="docs/media/freed-this-week.gif" alt="Disk, Windows kalıntıları, Otomatik Bakım ve Düzen kartları arasında dönen Bu hafta karuseli" width="600">
 </p>
 
 **Bellek** "% kullanılan" yerine baskıyı gösterir, saatlerdir boşta duran uygulamaları listeler, seçtiklerini normal bir kapatma isteğiyle kapatır (kaydedilmemiş işi olan uygulama yine sana sorabilir) ve ardından gerçek farkı ölçer.
