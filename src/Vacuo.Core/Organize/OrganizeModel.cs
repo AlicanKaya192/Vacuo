@@ -41,8 +41,15 @@ public sealed record OrganizeTarget(OrganizeRule Rule, string Key);
 
 public sealed record PlannedMove(string Source, string Destination);
 
-/// <summary>What organizing a folder would do; nothing has moved yet.</summary>
-public sealed record OrganizePlan(string Folder, IReadOnlyList<PlannedMove> Moves, IReadOnlyList<string> FoldersToCreate);
+/// <summary>
+/// What organizing a folder would do; nothing has moved yet. <paramref name="FolderTargets"/> tells which
+/// target each folder to create is for, so it can get that target's icon.
+/// </summary>
+public sealed record OrganizePlan(
+    string Folder,
+    IReadOnlyList<PlannedMove> Moves,
+    IReadOnlyList<string> FoldersToCreate,
+    IReadOnlyDictionary<string, OrganizeTarget>? FolderTargets = null);
 
 /// <summary>How the planner sees the disk, so plans can be tested without one.</summary>
 public sealed record PathProbe(Func<string, bool> FileExists, Func<string, bool> FolderExists)

@@ -45,6 +45,16 @@ public class OrganizePlannerTests
     }
 
     [Fact]
+    public void FoldersToCreate_EachKnowTheirTarget()
+    {
+        OrganizePlan plan = Plan(["a.pdf", "b.pdf", "c.png"], folders: [Under("Images folder")]);
+
+        Assert.Equal(
+            new Dictionary<string, OrganizeTarget> { [Under("Documents folder")] = new(OrganizeRule.ByType, "Documents") },
+            plan.FolderTargets);
+    }
+
+    [Fact]
     public void FileWithoutATarget_IsLeftOut()
     {
         Assert.Empty(Plan(["notes.unknownext"]).Moves);

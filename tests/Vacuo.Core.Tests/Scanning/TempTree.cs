@@ -107,6 +107,12 @@ internal sealed class TempTree : IDisposable
             Directory.Delete(link);
         }
 
+        // A folder icon leaves its folder read-only, which a recursive delete refuses (.NET 10).
+        foreach (DirectoryInfo directory in new DirectoryInfo(Root).EnumerateDirectories("*", new EnumerationOptions { RecurseSubdirectories = true, AttributesToSkip = 0 }))
+        {
+            directory.Attributes &= ~FileAttributes.ReadOnly;
+        }
+
         Directory.Delete(Root, recursive: true);
     }
 

@@ -22,9 +22,9 @@ public sealed class ActionRunner(ActionJournal journal, IRecycleBin recycleBin, 
     }
 
     /// <summary>Logs a folder Düzen made, so undoing the batch can remove it again while it is empty.</summary>
-    public JournalEntry RecordCreatedFolder(string path, Guid batchId)
+    public JournalEntry RecordCreatedFolder(string path, Guid batchId, FolderIcon? icon = null)
     {
-        var entry = new JournalEntry(Guid.NewGuid(), time.GetUtcNow(), SizeBytes: 0, new CreatedFolder(path), UndoneAt: null, batchId);
+        var entry = new JournalEntry(Guid.NewGuid(), time.GetUtcNow(), SizeBytes: 0, new CreatedFolder(path, icon), UndoneAt: null, batchId);
         journal.Append(entry);
         return entry;
     }
@@ -69,27 +69,39 @@ public sealed class ActionRunner(ActionJournal journal, IRecycleBin recycleBin, 
             case DeletedForGood deleted:
                 throw new ActionRefusedException($"'{deleted.OriginalPath}' was deleted for good and cannot be put back.");
             case CreatedFolder created:
-                RemoveIfEmpty(created.OriginalPath);
+                RemoveIfEmpty(created);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(undo), undo, "Unknown kind of undo record.");
         }
     }
 
-    // Only the folder Vacuo made, and only while nothing is inside; anything put there since stays (B-161).
-    private static void RemoveIfEmpty(string folder)
+    // Only the folder Vacuo made, and only while nothing is inside but its own unchanged icon files;
+    // anything put there since, a changed icon file too, keeps the whole folder as it is (B-161, Aşama 3h).
+    private static void RemoveIfEmpty(CreatedFolder created)
     {
+        string folder = created.OriginalPath;
         if (!Directory.Exists(folder))
         {
             return;
         }
 
-        if (Directory.EnumerateFileSystemEntries(folder).Any())
+        IReadOnlyList<string> iconFiles = created.Icon?.UnchangedFilesIn(folder) ?? [];
+        if (Directory.EnumerateFileSystemEntries(folder).Except(iconFiles, StringComparer.OrdinalIgnoreCase).Any())
         {
             throw new FolderNotEmptyException(folder);
         }
 
-        Directory.Delete(folder, recursive: false);
+        foreach (string iconFile in iconFiles)
+        {
+            File.SetAttributes(iconFile, FileAttributes.Normal);
+            File.Delete(iconFile);
+        }
+
+        // The icon marked the folder read-only, which is how the shell knows to read its desktop.ini.
+        var directory = new DirectoryInfo(folder);
+        directory.Attributes &= ~FileAttributes.ReadOnly;
+        directory.Delete(recursive: false);
     }
 
     private static long MeasureBytes(string path) =>

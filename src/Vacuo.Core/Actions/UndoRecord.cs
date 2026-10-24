@@ -25,5 +25,8 @@ public sealed record RecycledItem(string OriginalPath, DateTimeOffset DeletedAt,
 /// <summary>Removed for good by the administrator helper (ADR-003); it is in the journal only so it is not forgotten.</summary>
 public sealed record DeletedForGood(string OriginalPath) : UndoRecord(OriginalPath);
 
-/// <summary>A folder Düzen made for its moves; undo removes it only while it is empty (B-161).</summary>
-public sealed record CreatedFolder(string OriginalPath) : UndoRecord(OriginalPath);
+/// <summary>
+/// A folder Düzen made for its moves; undo removes it only while it is empty (B-161), not counting the
+/// icon files Vacuo put there itself while they are unchanged (Aşama 3h).
+/// </summary>
+public sealed record CreatedFolder(string OriginalPath, FolderIcon? Icon = null) : UndoRecord(OriginalPath);

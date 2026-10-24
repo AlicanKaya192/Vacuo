@@ -10,9 +10,10 @@ public sealed record OrganizeOutcome(Guid BatchId, IReadOnlyList<JournalEntry> M
 /// <summary>
 /// Carries out a Düzen plan as one batch in the journal, so <see cref="JournalScreen.UndoBatch"/> puts
 /// everything back at once. Each file moves on its own: one that is open or gone stays, the rest still
-/// move. Folders it made and left empty are removed straight away; the others are logged for undo.
+/// move. Folders it made and left empty are removed straight away; the others get their icon, when
+/// <paramref name="icons"/> is given, and are logged for undo.
 /// </summary>
-public sealed class FolderOrganizer(ActionRunner runner)
+public sealed class FolderOrganizer(ActionRunner runner, FolderIcons? icons = null)
 {
     // Same code as UnauthorizedAccessException.
     private const int AccessDenied = unchecked((int)0x8007_0005);
@@ -48,7 +49,7 @@ public sealed class FolderOrganizer(ActionRunner runner)
 
         foreach (string folder in plan.FoldersToCreate)
         {
-            KeepOrRemove(folder, batchId);
+            KeepOrRemove(folder, batchId, plan.FolderTargets?.GetValueOrDefault(folder));
         }
 
         return new OrganizeOutcome(batchId, moved, failed);
@@ -61,11 +62,12 @@ public sealed class FolderOrganizer(ActionRunner runner)
         _ => MoveFailureReason.Refused,
     };
 
-    private void KeepOrRemove(string folder, Guid batchId)
+    private void KeepOrRemove(string folder, Guid batchId, OrganizeTarget? target)
     {
         if (Directory.EnumerateFileSystemEntries(folder).Any())
         {
-            runner.RecordCreatedFolder(folder, batchId);
+            FolderIcon? icon = icons is not null && target is not null ? icons.Stamp(folder, target) : null;
+            runner.RecordCreatedFolder(folder, batchId, icon);
         }
         else
         {

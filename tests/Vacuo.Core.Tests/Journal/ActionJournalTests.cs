@@ -68,6 +68,33 @@ public class ActionJournalTests
     }
 
     [Fact]
+    public void Append_CreatedFolderWithItsIcon_IsReadBack()
+    {
+        using var tree = new TempTree();
+        string file = tree.PathOf("journal.jsonl");
+        var entry = new JournalEntry(
+            Guid.NewGuid(), Morning, 0, new CreatedFolder(@"C:\Users\x\Desktop\Pictures", new FolderIcon("AB12", null)), UndoneAt: null);
+
+        new ActionJournal(file).Append(entry);
+
+        Assert.Equal([entry], new ActionJournal(file).ReadAll());
+    }
+
+    [Fact]
+    public void ReadAll_CreatedFolderWrittenBeforeIconsExisted_HasNoIcon()
+    {
+        using var tree = new TempTree();
+        string file = tree.PathOf("journal.jsonl");
+        var entry = new JournalEntry(Guid.NewGuid(), Morning, 0, new CreatedFolder(@"C:\Users\x\Desktop\Pictures"), UndoneAt: null);
+        new ActionJournal(file).Append(entry);
+        string line = File.ReadAllText(file);
+        Assert.Contains(",\"Icon\":null", line);
+        File.WriteAllText(file, line.Replace(",\"Icon\":null", string.Empty));
+
+        Assert.Equal([entry], new ActionJournal(file).ReadAll());
+    }
+
+    [Fact]
     public void MarkUndone_IsReadBackAsTheUndoTime()
     {
         using var tree = new TempTree();

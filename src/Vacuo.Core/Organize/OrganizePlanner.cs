@@ -16,6 +16,7 @@ public static class OrganizePlanner
     {
         var moves = new List<PlannedMove>();
         var foldersToCreate = new List<string>();
+        var folderTargets = new Dictionary<string, OrganizeTarget>(StringComparer.OrdinalIgnoreCase);
         var plannedDestinations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (FolderItem item in items.OrderBy(item => item.Name, StringComparer.OrdinalIgnoreCase))
@@ -31,7 +32,7 @@ public static class OrganizePlanner
                 continue;
             }
 
-            if (!probe.FolderExists(targetFolder) && !foldersToCreate.Contains(targetFolder, StringComparer.OrdinalIgnoreCase))
+            if (!probe.FolderExists(targetFolder) && folderTargets.TryAdd(targetFolder, target))
             {
                 foldersToCreate.Add(targetFolder);
             }
@@ -41,7 +42,7 @@ public static class OrganizePlanner
             moves.Add(new PlannedMove(Path.Combine(folder, item.Name), destination));
         }
 
-        return new OrganizePlan(folder, moves, foldersToCreate);
+        return new OrganizePlan(folder, moves, foldersToCreate, folderTargets);
     }
 
     private static string FreeName(string targetFolder, string name, PathProbe probe, HashSet<string> planned)
