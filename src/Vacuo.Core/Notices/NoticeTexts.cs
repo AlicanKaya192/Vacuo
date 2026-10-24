@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Vacuo.Core.Formatting;
 using Vacuo.Core.Maintenance;
 using Vacuo.Core.Organize;
