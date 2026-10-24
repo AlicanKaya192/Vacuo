@@ -11,6 +11,7 @@ internal static class NativeMethods
     public const uint WmTimer = 0x0113;
     public const uint WmLButtonUp = 0x0202;
     public const int MouseActivateNoActivate = 3;
+    public const int AllowAnyProcess = -1;
 
     public const uint WsPopup = 0x80000000;
     public const uint WsExTopmost = 0x00000008;
@@ -41,9 +42,7 @@ internal static class NativeMethods
     public const uint DrawTextEndEllipsis = 0x8000;
     public const int SolidPen = 0;
     public const int NullBrush = 5;
-    public const uint ImageIcon = 1;
-    public const uint LoadFromFile = 0x10;
-    public const uint DrawIconNormal = 0x3;
+    public const uint SourceCopy = 0x00CC0020;
 
     public const uint SoundAsync = 0x0001;
     public const uint SoundNoDefault = 0x0002;
@@ -185,16 +184,16 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     public static extern int FillRect(nint hdc, ref Rect rect, nint brush);
 
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    public static extern nint LoadImage(nint instance, string name, uint type, int width, int height, uint load);
-
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    public static extern bool DrawIconEx(nint hdc, int x, int y, nint icon, int width, int height, uint step, nint brush, uint flags);
+    public static extern bool InvalidateRect(nint hWnd, nint rect, [MarshalAs(UnmanagedType.Bool)] bool erase);
 
-    [DllImport("user32.dll")]
+    [DllImport("gdi32.dll")]
+    public static extern nint CreateCompatibleBitmap(nint hdc, int width, int height);
+
+    [DllImport("gdi32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    public static extern bool DestroyIcon(nint icon);
+    public static extern bool BitBlt(nint destination, int x, int y, int width, int height, nint source, int sourceX, int sourceY, uint operation);
 
     [DllImport("gdi32.dll")]
     public static extern nint CreateRoundRectRgn(int left, int top, int right, int bottom, int widthEllipse, int heightEllipse);
@@ -243,4 +242,18 @@ internal static class NativeMethods
     [DllImport("winmm.dll", EntryPoint = "PlaySoundW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool PlaySound(nint sound, nint module, uint flags);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern nint FindWindow(string className, string? windowName);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern uint RegisterWindowMessage(string name);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool PostMessage(nint hWnd, uint message, nint wParam, nint lParam);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool AllowSetForegroundWindow(int processId);
 }

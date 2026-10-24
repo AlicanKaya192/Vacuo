@@ -699,6 +699,12 @@
   <data name="SettingsStartupHint" xml:space="preserve">
     <value>Vacuo starts quietly in the notification area when you sign in. No administrator rights needed.</value>
   </data>
+  <data name="SettingsLowDisk" xml:space="preserve">
+    <value>Tell me when the disk is almost full</value>
+  </data>
+  <data name="SettingsLowDiskHint" xml:space="preserve">
+    <value>When free space on the system drive falls below a tenth of the drive or 10 GB, Vacuo shows its notice, at most once a day. It never goes online.</value>
+  </data>
   <data name="SettingsStartupFailed" xml:space="preserve">
     <value>Could not change it: Windows did not allow it.</value>
   </data>
@@ -1069,7 +1075,7 @@ The results of the disk scan, the duplicate search and the list of installed pro
 Vacuo reads the names, sizes and dates of files; to compare contents in the duplicate search it computes a digest (SHA-256). It only reads the installed programs from the registry. It reads battery information from the driver; the battery's name and serial number are never asked for. While the panel is open, it reads the graphics card's temperature from Windows; it is not stored.</value>
   </data>
   <data name="Info_License_Title" xml:space="preserve">
-    <value>License and open source</value>
+    <value>Licenses</value>
   </data>
   <data name="Info_License_Body" xml:space="preserve">
     <value># Vacuo

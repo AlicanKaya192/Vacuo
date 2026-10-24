@@ -1,5 +1,6 @@
 using System.Globalization;
 using Vacuo.Core.Actions;
+using Vacuo.Core.Hosting;
 using Vacuo.Core.Journal;
 using Vacuo.Core.Maintenance;
 using Vacuo.Core.Notices;
@@ -24,7 +25,7 @@ internal static class Program
 {
     private const string SingleHelperName = @"Local\Vacuo.Maintenance";
     private const string MemorySwitch = "--memory";
-    private const string IconFile = @"Assets\vacuo.ico";
+    private const string DiskSwitch = "--disk";
     private const int Done = 0;
     private const int NotDue = 1;
     private const int AlreadyRunning = 2;
@@ -41,6 +42,17 @@ internal static class Program
         if (args.Contains(MemorySwitch))
         {
             Tell(NoticeTexts.ForTightMemory(language), settings.Sound);
+            return Done;
+        }
+
+        if (args.Contains(DiskSwitch))
+        {
+            // Read again here: the tray's reading may be a few seconds old.
+            if (SystemDrive.Read() is { } drive)
+            {
+                Tell(NoticeTexts.ForLowDisk(drive.AvailableFreeSpace, SystemDrive.NameOf(drive), language), settings.Sound, OpenDiskInPanel);
+            }
+
             return Done;
         }
 
@@ -137,13 +149,27 @@ internal static class Program
     }
 
     // Silent during full screen, presentations and quiet time (vacuo-kurallar 16); the Journal still has it all.
-    private static void Tell(NoticeText notice, bool sound)
+    // A click closes the notice; <paramref name="clicked"/> also runs then.
+    private static void Tell(NoticeText notice, bool sound, Action? clicked = null)
     {
         if (!NoticeGate.MayShow(UserPresence.NotificationState()))
         {
             return;
         }
 
-        NoticeWindow.Show(notice, sound ? NoticeTone.Wave() : null, Path.Combine(AppContext.BaseDirectory, IconFile));
+        NoticeWindow.Show(notice, sound ? NoticeTone.Wave() : null, clicked);
+    }
+
+    // The user clicked, so this process may hand the foreground on; the tray opens the panel on Disk.
+    private static void OpenDiskInPanel()
+    {
+        nint tray = NativeMethods.FindWindow(PanelProtocol.TrayWindowClass, null);
+        if (tray == 0)
+        {
+            return;
+        }
+
+        _ = NativeMethods.AllowSetForegroundWindow(NativeMethods.AllowAnyProcess);
+        _ = NativeMethods.PostMessage(tray, NativeMethods.RegisterWindowMessage(PanelProtocol.OpenDiskMessage), 0, 0);
     }
 }

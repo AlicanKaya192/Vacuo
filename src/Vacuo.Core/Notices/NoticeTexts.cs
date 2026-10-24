@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Vacuo.Core.Formatting;
 using Vacuo.Core.Maintenance;
 using Vacuo.Core.Organize;
@@ -25,6 +25,8 @@ public static class NoticeTexts
         Stopped: "Sen dönünce durdu; kalanı bir sonraki bakımda.",
         MemoryTitle: "Bellek sıkışık",
         MemoryBody: "Programlar yavaşlayabilir. Kullanmadığın programları kapatmak bellek açar; Vacuo hiçbir şeyi kendiliğinden kapatmaz.",
+        DiskTitle: "Disk dolmak üzere",
+        DiskBody: "{0} sürücüsünde {1} boş yer kaldı. Tıkla, neyin yer kapladığını Disk ekranında gör.",
         Kinds: new Dictionary<FileKind, string>
         {
             [FileKind.Documents] = "Belgeler",
@@ -45,6 +47,8 @@ public static class NoticeTexts
         Stopped: "It stopped when you came back; the rest waits for the next run.",
         MemoryTitle: "Memory is tight",
         MemoryBody: "Programs may slow down. Closing the ones you are not using frees memory; Vacuo never closes anything by itself.",
+        DiskTitle: "The disk is almost full",
+        DiskBody: "{1} free is left on {0}. Click to see on the Disk screen what takes up the space.",
         Kinds: new Dictionary<FileKind, string>
         {
             [FileKind.Documents] = "Documents",
@@ -92,6 +96,13 @@ public static class NoticeTexts
         return new NoticeText(words.MemoryTitle, words.MemoryBody);
     }
 
+    public static NoticeText ForLowDisk(long freeBytes, string drive, string language)
+    {
+        Words words = WordsFor(language);
+        CultureInfo culture = CultureInfo.GetCultureInfo(language);
+        return new NoticeText(words.DiskTitle, string.Format(culture, words.DiskBody, drive, ByteSizeFormatter.Format(freeBytes, culture)));
+    }
+
     public static string DesktopFolderName(FileKind kind, string language) => WordsFor(language).Kinds[kind];
 
     private static Words WordsFor(string language) => LanguageRule.IsTurkish(language) ? Turkish : English;
@@ -105,5 +116,7 @@ public static class NoticeTexts
         string Stopped,
         string MemoryTitle,
         string MemoryBody,
+        string DiskTitle,
+        string DiskBody,
         IReadOnlyDictionary<FileKind, string> Kinds);
 }

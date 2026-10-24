@@ -59,4 +59,53 @@ public class NoticeRulesTests
     {
         Assert.True(MemoryNoticePolicy.ShouldNotify(MemoryPressure.Tight, wasTight: false, lastNotice: Now.AddDays(1), Now));
     }
+
+    private const long Gigabyte = 1L << 30;
+
+    // Low below a tenth of the disk or below 10 GB, whichever comes first as the disk fills.
+    [Theory]
+    [InlineData(1000, 99, true)]
+    [InlineData(1000, 100, false)]
+    [InlineData(64, 9, true)]
+    [InlineData(64, 10, false)]
+    public void DiskSpace_IsLowBelowATenthOrTenGigabytes(long totalGigabytes, long freeGigabytes, bool low)
+    {
+        Assert.Equal(low, DiskSpaceNoticePolicy.IsLow(freeGigabytes * Gigabyte, totalGigabytes * Gigabyte));
+    }
+
+    [Fact]
+    public void LowDisk_NeverToldBefore_IsTold()
+    {
+        Assert.True(DiskSpaceNoticePolicy.ShouldNotify(isLow: true, wasLow: false, lastNotice: null, Now));
+    }
+
+    [Fact]
+    public void DiskNotLow_IsNotTold()
+    {
+        Assert.False(DiskSpaceNoticePolicy.ShouldNotify(isLow: false, wasLow: false, lastNotice: null, Now));
+    }
+
+    [Fact]
+    public void DiskStillLow_IsToldOnlyOnce()
+    {
+        Assert.False(DiskSpaceNoticePolicy.ShouldNotify(isLow: true, wasLow: true, lastNotice: Now.AddDays(-3), Now));
+    }
+
+    [Theory]
+    [InlineData(12, false)]
+    [InlineData(23, false)]
+    [InlineData(24, true)]
+    [InlineData(72, true)]
+    public void DiskLowAgain_IsToldAtMostOnceADay(int hoursSinceLastNotice, bool told)
+    {
+        DateTimeOffset lastNotice = Now.AddHours(-hoursSinceLastNotice);
+
+        Assert.Equal(told, DiskSpaceNoticePolicy.ShouldNotify(isLow: true, wasLow: false, lastNotice, Now));
+    }
+
+    [Fact]
+    public void LastDiskNoticeInTheFuture_ClockWasSetBack_IsTold()
+    {
+        Assert.True(DiskSpaceNoticePolicy.ShouldNotify(isLow: true, wasLow: false, lastNotice: Now.AddDays(1), Now));
+    }
 }

@@ -8,9 +8,10 @@ namespace Vacuo.Maintenance;
 
 /// <summary>
 /// Vacuo's own notification (vacuo-kurallar 16, ADR-004): a small VOID card at the bottom right, above the
-/// tray, without opening the panel and without taking the focus. It slides up and fades in, stays for
-/// <see cref="Visible"/>, then fades out; a click closes it sooner. With Windows animations off it simply
-/// appears and disappears (vacuo-kurallar 9). Plain Win32 and GDI, so the helper needs no UI framework.
+/// tray, without opening the panel and without taking the focus, with the panel's black hole turning at its left
+/// (<see cref="NoticeHole"/>). It slides up and fades in, stays for <see cref="Visible"/>, then fades out; a click
+/// closes it sooner and runs what the notice offers, if anything. With Windows animations off it simply appears and
+/// disappears and the hole stands still (vacuo-kurallar 9). Plain Win32, GDI and GDI+, so the helper needs no UI framework.
 /// </summary>
 internal sealed class NoticeWindow
 {
@@ -22,8 +23,9 @@ internal sealed class NoticeWindow
     // Sizes in device-independent pixels.
     private const int WidthDip = 360;
     private const int PaddingDip = 16;
-    private const int IconDip = 32;
-    private const int IconGapDip = 12;
+    private const int HoleWidthDip = 76;
+    private const int HoleHeightDip = 56;
+    private const int HoleGapDip = 10;
     private const int TitleGapDip = 4;
     private const int ScreenMarginDip = 12;
     private const int CornerDip = 12;
@@ -47,12 +49,14 @@ internal sealed class NoticeWindow
     private static NoticeWindow? _current;
 
     private readonly NoticeText _text;
+    private readonly Action? _clicked;
     private readonly bool _animate;
     private readonly Stopwatch _clock = new();
+    private readonly NoticeHole _hole = new();
+    private TimeSpan _lastFrame;
     private nint _window;
     private nint _titleFont;
     private nint _bodyFont;
-    private nint _icon;
     private double _scale;
     private int _width;
     private int _height;
@@ -62,22 +66,27 @@ internal sealed class NoticeWindow
     private Rect _bodyRect;
     private TimeSpan? _closingAt;
 
-    private NoticeWindow(NoticeText text)
+    private NoticeWindow(NoticeText text, Action? clicked)
     {
         _text = text;
+        _clicked = clicked;
         _animate = !SystemParametersInfo(SpiGetClientAreaAnimation, 0, out bool animations, 0) || animations;
     }
 
-    /// <summary>Shows the notice and returns when it has gone. <paramref name="sound"/> is a .wav file, or null for silence.</summary>
-    public static void Show(NoticeText text, byte[]? sound, string iconPath)
+    /// <summary>
+    /// Shows the notice and returns when it has gone. <paramref name="sound"/> is a .wav file, or null for silence;
+    /// <paramref name="clicked"/> runs when the user clicks it.
+    /// </summary>
+    public static void Show(NoticeText text, byte[]? sound, Action? clicked = null)
     {
         _ = SetProcessDpiAwarenessContext(PerMonitorAwareV2);
-        var notice = new NoticeWindow(text);
+        var notice = new NoticeWindow(text, clicked);
         _current = notice;
+        nint gdiPlus = GdiPlus.Start();
         GCHandle pinned = sound is null ? default : GCHandle.Alloc(sound, GCHandleType.Pinned);
         try
         {
-            notice.Create(iconPath);
+            notice.Create();
             if (sound is not null)
             {
                 // Played from memory in the background; the buffer stays pinned until the notice is gone.
@@ -95,11 +104,12 @@ internal sealed class NoticeWindow
             }
 
             notice.Release();
+            GdiPlus.Stop(gdiPlus);
             _current = null;
         }
     }
 
-    private void Create(string iconPath)
+    private void Create()
     {
         Rect work = default;
         _ = SystemParametersInfo(SpiGetWorkArea, 0, ref work, 0);
@@ -108,7 +118,6 @@ internal sealed class NoticeWindow
 
         _titleFont = CreateFont(-Px(TitleFontDip), 0, 0, 0, FontWeightSemiBold, 0, 0, 0, DefaultCharset, 0, 0, ClearTypeQuality, 0, FontFace);
         _bodyFont = CreateFont(-Px(BodyFontDip), 0, 0, 0, FontWeightNormal, 0, 0, 0, DefaultCharset, 0, 0, ClearTypeQuality, 0, FontFace);
-        _icon = File.Exists(iconPath) ? LoadImage(0, iconPath, ImageIcon, Px(IconDip), Px(IconDip), LoadFromFile) : 0;
         Layout(work);
 
         nint instance = GetModuleHandle(null);
@@ -142,7 +151,7 @@ internal sealed class NoticeWindow
     {
         int padding = Px(PaddingDip);
         _width = Px(WidthDip);
-        int textLeft = padding + (_icon != 0 ? Px(IconDip) + Px(IconGapDip) : 0);
+        int textLeft = padding + Px(HoleWidthDip) + Px(HoleGapDip);
         int textRight = _width - padding;
 
         nint measuring = CreateCompatibleDC(0);
@@ -156,7 +165,7 @@ internal sealed class NoticeWindow
             _ = DeleteDC(measuring);
         }
 
-        _height = Math.Max(_bodyRect.Bottom, padding + Px(IconDip)) + padding;
+        _height = Math.Max(_bodyRect.Bottom, padding + Px(HoleHeightDip)) + padding;
         _x = work.Right - Px(ScreenMarginDip) - _width;
         _y = work.Bottom - Px(ScreenMarginDip) - _height;
     }
@@ -171,9 +180,13 @@ internal sealed class NoticeWindow
         return rect;
     }
 
+    // Drawn whole into memory first and copied at once, so the turning hole does not flicker.
     private void Paint()
     {
-        nint hdc = BeginPaint(_window, out PaintStruct paint);
+        nint screen = BeginPaint(_window, out PaintStruct paint);
+        nint hdc = CreateCompatibleDC(screen);
+        nint bitmap = CreateCompatibleBitmap(screen, _width, _height);
+        nint previousBitmap = SelectObject(hdc, bitmap);
         try
         {
             var all = new Rect { Right = _width, Bottom = _height };
@@ -190,17 +203,19 @@ internal sealed class NoticeWindow
             _ = SelectObject(hdc, previousPen);
             _ = DeleteObject(pen);
 
-            if (_icon != 0)
-            {
-                _ = DrawIconEx(hdc, Px(PaddingDip), Px(PaddingDip), _icon, Px(IconDip), Px(IconDip), 0, 0, DrawIconNormal);
-            }
+            float holeWidth = Px(HoleWidthDip);
+            _hole.Draw(hdc, Px(PaddingDip) + holeWidth / 2, _height / 2f, holeWidth / 2 * 0.94f);
 
             _ = SetBkMode(hdc, Transparent);
             DrawLine(hdc, _titleFont, Ink, _text.Title, _titleRect, DrawTextSingleLine | DrawTextEndEllipsis);
             DrawLine(hdc, _bodyFont, InkSecondary, _text.Body, _bodyRect, DrawTextWordBreak);
+            _ = BitBlt(screen, 0, 0, _width, _height, hdc, 0, 0, SourceCopy);
         }
         finally
         {
+            _ = SelectObject(hdc, previousBitmap);
+            _ = DeleteObject(bitmap);
+            _ = DeleteDC(hdc);
             _ = EndPaint(_window, ref paint);
         }
     }
@@ -216,6 +231,13 @@ internal sealed class NoticeWindow
     private void Tick()
     {
         TimeSpan now = _clock.Elapsed;
+        if (_animate)
+        {
+            _hole.Advance(now - _lastFrame);
+            _lastFrame = now;
+            _ = InvalidateRect(_window, 0, erase: false);
+        }
+
         if (_closingAt is null && now >= FadeIn + Visible)
         {
             _closingAt = now;
@@ -245,6 +267,17 @@ internal sealed class NoticeWindow
 
     private void Close() => _closingAt ??= _clock.Elapsed;
 
+    // Only the first click acts; the notice is already fading out after it.
+    private void Click()
+    {
+        if (_closingAt is null)
+        {
+            _clicked?.Invoke();
+        }
+
+        Close();
+    }
+
     private void Release()
     {
         foreach (nint font in new[] { _titleFont, _bodyFont }.Where(font => font != 0))
@@ -252,10 +285,6 @@ internal sealed class NoticeWindow
             _ = DeleteObject(font);
         }
 
-        if (_icon != 0)
-        {
-            _ = DestroyIcon(_icon);
-        }
     }
 
     private int Px(int dip) => (int)Math.Round(dip * _scale);
@@ -285,7 +314,7 @@ internal sealed class NoticeWindow
             case WmMouseActivate:
                 return MouseActivateNoActivate;
             case WmLButtonUp when notice is not null:
-                notice.Close();
+                notice.Click();
                 return 0;
             case WmDestroy:
                 PostQuitMessage(0);

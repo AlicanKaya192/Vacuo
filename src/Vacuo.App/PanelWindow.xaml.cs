@@ -227,6 +227,26 @@ public sealed partial class PanelWindow : Window
         Activate();
     }
 
+    /// <summary>The low-disk notice was clicked: the panel shows, on the Disk screen.</summary>
+    internal void RevealOnDisk()
+    {
+        Reveal();
+        if (Root.XamlRoot is null)
+        {
+            // Started on Disk: the content loads after the first Open, and a screen switch needs its XamlRoot.
+            Root.Loaded += ShowDiskOnceLoaded;
+            return;
+        }
+
+        ShowDiskScreen();
+    }
+
+    private void ShowDiskOnceLoaded(object sender, RoutedEventArgs e)
+    {
+        Root.Loaded -= ShowDiskOnceLoaded;
+        ShowDiskScreen();
+    }
+
     // Measurement only (--probe): leaves one graphics part out so its share of memory shows.
     // The parts are taken out before the window is first drawn, so they never create anything.
     private void ApplyMeasurementProbes(IReadOnlySet<string> probes)

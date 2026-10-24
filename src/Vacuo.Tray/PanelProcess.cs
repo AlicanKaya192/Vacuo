@@ -20,6 +20,7 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
     private const uint CopyDataTimeoutMs = 2000;
 
     private readonly uint _showMessage = RegisterWindowMessage(PanelProtocol.ShowPanelMessage);
+    private readonly uint _showDiskMessage = RegisterWindowMessage(PanelProtocol.ShowDiskMessage);
     private readonly uint _quitMessage = RegisterWindowMessage(PanelProtocol.QuitPanelMessage);
     private readonly List<double> _launchesMs = [];
     private Process? _process;
@@ -70,7 +71,25 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
             return;
         }
 
-        if (!TryLaunch())
+        if (!TryLaunch(onDisk: false))
+        {
+            _panelVisible = false;
+            LaunchFailed?.Invoke();
+        }
+    }
+
+    /// <summary>Shows the panel on the Disk screen, open or not (the low-disk notice was clicked).</summary>
+    public void OpenOnDisk()
+    {
+        AllowSetForegroundWindow(AllowAnyProcess);
+        _panelVisible = true;
+        if (IsRunning)
+        {
+            PostToPanel(_showDiskMessage);
+            return;
+        }
+
+        if (!TryLaunch(onDisk: true))
         {
             _panelVisible = false;
             LaunchFailed?.Invoke();
@@ -123,11 +142,11 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
     }
 
     // A missing or blocked Vacuo.exe used to end the tray itself (B-165).
-    private bool TryLaunch()
+    private bool TryLaunch(bool onDisk)
     {
         try
         {
-            Launch();
+            Launch(onDisk);
             return true;
         }
         catch (Exception exception) when (exception is Win32Exception or InvalidOperationException)
@@ -137,12 +156,16 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
         }
     }
 
-    private void Launch()
+    private void Launch(bool onDisk)
     {
         var start = new ProcessStartInfo(panelPath) { UseShellExecute = false };
         start.ArgumentList.Add(PanelProtocol.PanelOnlySwitch);
         start.ArgumentList.Add(PanelProtocol.TrayWindowSwitch);
         start.ArgumentList.Add(((long)trayWindow).ToString(CultureInfo.InvariantCulture));
+        if (onDisk)
+        {
+            start.ArgumentList.Add(PanelProtocol.ShowDiskSwitch);
+        }
         foreach (string argument in panelArguments)
         {
             start.ArgumentList.Add(argument);

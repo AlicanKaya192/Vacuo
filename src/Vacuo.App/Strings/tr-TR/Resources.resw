@@ -699,6 +699,12 @@
   <data name="SettingsStartupHint" xml:space="preserve">
     <value>Vacuo oturum açınca tepside sessizce başlar. Yönetici izni gerekmez.</value>
   </data>
+  <data name="SettingsLowDisk" xml:space="preserve">
+    <value>Disk dolunca haber ver</value>
+  </data>
+  <data name="SettingsLowDiskHint" xml:space="preserve">
+    <value>Sistem sürücüsünde boş yer diskin onda birinin ya da 10 GB'ın altına inince Vacuo'nun bildirimi gelir; en çok günde bir. İnternete çıkmaz.</value>
+  </data>
   <data name="SettingsStartupFailed" xml:space="preserve">
     <value>Değiştirilemedi: Windows izin vermedi.</value>
   </data>
@@ -1069,7 +1075,7 @@ Disk taramasının, kopya aramasının ve kurulu programlar listesinin sonuçlar
 Vacuo dosyaların adını, boyutunu ve tarihini okur; kopya aramada içerikleri karşılaştırmak için özet (SHA-256) hesaplar. Kurulu programları kayıt defterinden yalnızca okur. Pil bilgisini sürücüden okur; pilin adı ve seri numarası sorulmaz. Panel açıkken ekran kartının sıcaklığını Windows'tan okur; kaydetmez.</value>
   </data>
   <data name="Info_License_Title" xml:space="preserve">
-    <value>Lisans ve açık kaynak</value>
+    <value>Lisanslar</value>
   </data>
   <data name="Info_License_Body" xml:space="preserve">
     <value># Vacuo

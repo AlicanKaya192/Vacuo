@@ -48,6 +48,7 @@ internal static class Program
         panel.LaunchFailed += () => window.ShowWarning(texts.PanelFailedTitle, texts.PanelFailed);
         window.IconClicked += panel.Toggle;
         window.OpenPanelRequested += panel.Open;
+        window.OpenDiskRequested += panel.OpenOnDisk;
         window.ClosePanelRequested += panel.Close;
         window.PanelHidden += panel.HandleHidden;
         window.ForegroundRequested += asker =>
@@ -79,7 +80,9 @@ internal static class Program
         string helperPath = Path.Combine(AppContext.BaseDirectory, MaintenanceExecutable);
         var maintenance = new MaintenanceScheduler(helperPath);
         var memory = new MemoryNoticeWatcher(helperPath);
+        var disk = new DiskSpaceWatcher(helperPath);
         window.TimerTicked += memory.Check;
+        window.TimerTicked += disk.Check;
         window.TimerTicked += maintenance.Check;
         window.StartTimer(MemoryNoticePolicy.CheckInterval);
 

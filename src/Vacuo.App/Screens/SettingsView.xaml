@@ -43,27 +43,32 @@
                     </Grid>
                 </Border>
 
-                <!-- Start with Windows: only Vacuo's own value in the user's Run key (vacuo-kurallar 5). -->
+                <!-- Start with Windows: only Vacuo's own value in the user's Run key (vacuo-kurallar 5). The low-disk
+                     notice shares the card: both need the tray, so without it the card is hidden. Its detail is in a
+                     tooltip, so Settings still fits without a scroll bar (Alican). -->
                 <Border x:Name="StartupCard" Style="{StaticResource CardStyle}">
-                    <Grid ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Spacing="2" VerticalAlignment="Center">
-                            <TextBlock x:Name="StartupTitle" Style="{StaticResource CardTitleStyle}" />
-                            <TextBlock x:Name="StartupHint" Style="{StaticResource CardBodyStyle}" />
-                            <TextBlock x:Name="StartupNote"
-                                       Style="{StaticResource CardBodyStyle}"
-                                       Foreground="{ThemeResource AccentBrush}"
-                                       Visibility="Collapsed" />
-                        </StackPanel>
-                        <CheckBox x:Name="StartupBox"
-                                  Grid.Column="1"
-                                  MinWidth="0"
-                                  VerticalAlignment="Center"
-                                  Click="OnStartupClick" />
-                    </Grid>
+                    <StackPanel Spacing="6">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock x:Name="StartupTitle" Style="{StaticResource CardTitleStyle}" />
+                                <TextBlock x:Name="StartupHint" Style="{StaticResource CardBodyStyle}" />
+                                <TextBlock x:Name="StartupNote"
+                                           Style="{StaticResource CardBodyStyle}"
+                                           Foreground="{ThemeResource AccentBrush}"
+                                           Visibility="Collapsed" />
+                            </StackPanel>
+                            <CheckBox x:Name="StartupBox"
+                                      Grid.Column="1"
+                                      MinWidth="0"
+                                      VerticalAlignment="Center"
+                                      Click="OnStartupClick" />
+                        </Grid>
+                        <CheckBox x:Name="LowDiskBox" Click="OnLowDiskClick" />
+                    </StackPanel>
                 </Border>
 
                 <!-- Updates (vacuo-kurallar 6): reads GitHub's release list only; turned off, Vacuo never goes online. -->
@@ -151,9 +156,11 @@
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="6">
                         <TextBlock x:Name="InfoTitle" Style="{StaticResource CardTitleStyle}" />
-                        <!-- Two by two (Alican, 21 October 2026): shorter, so the page needs no scroll bar. -->
+                        <!-- One row of four (Alican, 23 October 2026): the low-disk row took the height, so the page needs no scroll bar. -->
                         <Grid x:Name="InfoRows" ColumnSpacing="8" RowSpacing="4">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>

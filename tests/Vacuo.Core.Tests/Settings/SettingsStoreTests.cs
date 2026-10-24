@@ -15,6 +15,18 @@ public class SettingsStoreTests
         Assert.Equal(VacuoSettings.Default, settings);
         Assert.Equal(LanguageChoice.Automatic, settings.Language);
         Assert.True(settings.CheckForUpdates);
+        Assert.True(settings.LowDiskNotice);
+    }
+
+    [Fact]
+    public void LowDiskNoticeTurnedOff_ComesBackOff()
+    {
+        using var tree = new TempTree();
+        var store = new SettingsStore(tree.PathOf("settings.json"));
+
+        store.Save(VacuoSettings.Default with { LowDiskNotice = false });
+
+        Assert.False(store.Load().LowDiskNotice);
     }
 
     [Fact]

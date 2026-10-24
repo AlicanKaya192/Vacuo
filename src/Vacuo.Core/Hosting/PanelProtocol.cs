@@ -14,8 +14,16 @@ public static class PanelProtocol
     /// <summary>Measurement only: a shorter wait than <see cref="LingerAfterHide"/>.</summary>
     public const string LingerSecondsSwitch = "--linger-seconds";
 
+    /// <summary>The window class of the tray's hidden window, which others find to post to it.</summary>
+    public const string TrayWindowClass = "VacuoTrayWindow";
+    /// <summary>The low-disk notice to the tray: open the panel on the Disk screen.</summary>
+    public const string OpenDiskMessage = "Vacuo.OpenDisk";
     /// <summary>Tray to panel: show the panel again.</summary>
     public const string ShowPanelMessage = "Vacuo.ShowPanel";
+    /// <summary>Tray to panel: show the panel again, on the Disk screen.</summary>
+    public const string ShowDiskMessage = "Vacuo.ShowDisk";
+    /// <summary>Tray to a panel it starts: open on the Disk screen.</summary>
+    public const string ShowDiskSwitch = "--show-disk";
     /// <summary>Tray to panel: end the panel process now.</summary>
     public const string QuitPanelMessage = "Vacuo.QuitPanel";
     /// <summary>Panel to tray: the panel was hidden.</summary>

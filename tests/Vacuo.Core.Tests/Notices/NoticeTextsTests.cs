@@ -70,6 +70,18 @@ public class NoticeTextsTests
         Assert.False(string.IsNullOrWhiteSpace(text.Body));
     }
 
+    [Theory]
+    [InlineData("tr-TR", "Disk dolmak üzere", "C: sürücüsünde 8,5 GB boş yer kaldı")]
+    [InlineData("en-US", "The disk is almost full", "8.5 GB free is left on C:")]
+    public void LowDisk_SaysHowMuchIsLeftAndThatAClickOpensDisk(string language, string title, string left)
+    {
+        NoticeText text = NoticeTexts.ForLowDisk(9_126_805_504, "C:", language);
+
+        Assert.Equal(title, text.Title);
+        Assert.Contains(left, text.Body);
+        Assert.Contains(language == "tr-TR" ? "Tıkla" : "Click", text.Body);
+    }
+
     // The helper names the Desktop folders itself; they must be the ones Düzen makes in the panel.
     [Theory]
     [InlineData("tr-TR")]

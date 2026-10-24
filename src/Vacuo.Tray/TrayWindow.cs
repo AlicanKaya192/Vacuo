@@ -11,7 +11,7 @@ namespace Vacuo.Tray;
 /// </summary>
 internal sealed class TrayWindow : IDisposable
 {
-    private const string ClassName = "VacuoTrayWindow";
+    private const string ClassName = PanelProtocol.TrayWindowClass;
     private const uint IconMessage = WmApp + 1;
     private const uint OpenPanelMessage = WmApp + 2;
     private const uint ClosePanelMessage = WmApp + 3;
@@ -27,6 +27,7 @@ internal sealed class TrayWindow : IDisposable
     private readonly uint _taskbarCreatedMessage;
     private readonly uint _panelHiddenMessage = RegisterWindowMessage(PanelProtocol.PanelHiddenMessage);
     private readonly uint _foregroundRequestMessage = RegisterWindowMessage(PanelProtocol.ForegroundRequestMessage);
+    private readonly uint _openDiskMessage = RegisterWindowMessage(PanelProtocol.OpenDiskMessage);
     private readonly nint _icon;
     private readonly TrayIconInput _iconInput = new();
     private readonly string _defaultTooltip;
@@ -66,6 +67,9 @@ internal sealed class TrayWindow : IDisposable
 
     /// <summary>WM_COPYDATA arrived: the sending window, the data's tag and a copy of the data.</summary>
     public event Action<nint, int, byte[]>? DataReceived;
+
+    /// <summary>The low-disk notice was clicked: open the panel on the Disk screen.</summary>
+    public event Action? OpenDiskRequested;
 
     /// <summary>The repeating timer from <see cref="StartTimer"/> fired.</summary>
     public event Action? TimerTicked;
@@ -247,6 +251,12 @@ internal sealed class TrayWindow : IDisposable
         if (message == _foregroundRequestMessage)
         {
             ForegroundRequested?.Invoke(wParam);
+            return 0;
+        }
+
+        if (message == _openDiskMessage)
+        {
+            OpenDiskRequested?.Invoke();
             return 0;
         }
 

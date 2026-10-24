@@ -93,8 +93,19 @@ public partial class App : Application
             linger.Stop();
             panel.Reveal();
         };
+        _channel.ShowDiskRequested += (_, _) =>
+        {
+            linger.Stop();
+            panel.RevealOnDisk();
+        };
         _channel.QuitRequested += (_, _) => Quit(PanelProtocol.PanelClosedExitCode);
         panel.QuitRequested += (_, _) => Quit(PanelProtocol.QuitAllExitCode);
+        if (options.StartOnDisk)
+        {
+            panel.RevealOnDisk();
+            return;
+        }
+
         panel.Toggle();
     }
 

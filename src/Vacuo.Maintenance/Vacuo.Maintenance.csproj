@@ -15,11 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Drawn on the notice. -->
-    <Content Include="..\Vacuo.App\Assets\vacuo.ico" Link="Assets\vacuo.ico" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Vacuo.Core\Vacuo.Core.csproj" />
     <ProjectReference Include="..\Vacuo.Windows\Vacuo.Windows.csproj" />
   </ItemGroup>

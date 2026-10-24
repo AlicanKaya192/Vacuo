@@ -12,7 +12,7 @@ using Windows.System;
 namespace Vacuo.App.Screens;
 
 /// <summary>
-/// The Settings screen (Aşama 3c): the language, starting with Windows, updates and Otomatik Bakım, then the info pages (about,
+/// The Settings screen (Aşama 3c): the language, starting with Windows and the low-disk notice, updates and Otomatik Bakım, then the info pages (about,
 /// privacy, licenses, terms) read in place. Each change is saved at once, and a new language shows at once.
 /// </summary>
 public sealed partial class SettingsView : UserControl
@@ -22,10 +22,9 @@ public sealed partial class SettingsView : UserControl
     // Each page's texts are the resources Info_<page>_Title and Info_<page>_Body.
     private const string AboutPage = "About";
     private static readonly string[] InfoPages = [AboutPage, "Privacy", "License", "Terms"];
-    private const int InfoColumns = 2;
+    private const int InfoColumns = 4;
     private static readonly string[] ParagraphBreak = ["\r\n\r\n", "\n\n"];
     private const string HeadingMark = "# ";
-    private const string ChevronGlyph = "";
     private static readonly Uri RepositoryAddress = new("https://github.com/AlicanKaya192/Vacuo");
 
     private Localizer _localizer = null!;
@@ -63,6 +62,8 @@ public sealed partial class SettingsView : UserControl
         StartupTitle.Text = localizer.Get("SettingsStartup");
         StartupHint.Text = localizer.Get("SettingsStartupHint");
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(StartupBox, StartupTitle.Text);
+        LowDiskBox.Content = localizer.Get("SettingsLowDisk");
+        ToolTipService.SetToolTip(LowDiskBox, localizer.Get("SettingsLowDiskHint"));
         BackButton.Content = localizer.Get("DiskBackButton");
         ScreenTitle.Text = localizer.Get("SettingsTitle");
         LanguageTitle.Text = localizer.Get("SettingsLanguage");
@@ -95,6 +96,7 @@ public sealed partial class SettingsView : UserControl
             StartupBox.IsChecked = _startup.IsOn;
         }
 
+        LowDiskBox.IsChecked = _store.Load().LowDiskNotice;
         ShowUpdates();
         ShowMaintenance();
     }
@@ -177,6 +179,10 @@ public sealed partial class SettingsView : UserControl
         ShowMaintenance();
     }
 
+    // Saved at once; the tray reads the file before each notice.
+    private void OnLowDiskClick(object sender, RoutedEventArgs e) =>
+        _store.Save(_store.Load() with { LowDiskNotice = LowDiskBox.IsChecked == true });
+
     // The Run key is the truth: after a change, or a refused one, the box shows what it now says.
     private void OnStartupClick(object sender, RoutedEventArgs e)
     {
@@ -223,29 +229,24 @@ public sealed partial class SettingsView : UserControl
         LanguageChanged?.Invoke(this, choice);
     }
 
-    // One button per info page, two to a row, drawn like the other VOID buttons (vacuo-kurallar 15) with a chevron at the end.
+    // One button per info page, all four on one row (Alican, 23 October 2026: Settings fits without a scroll bar), drawn
+    // like the other VOID buttons (vacuo-kurallar 15), without the chevron and with short titles so each fits; a title
+    // too long for its button ends in "…" and shows whole in the tooltip.
     private void BuildInfoRows()
     {
         InfoTitle.Text = _localizer.Get("SettingsInfoTitle");
         for (int index = 0; index < InfoPages.Length; index++)
         {
             string page = InfoPages[index];
-            var label = new Grid();
-            label.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            label.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            label.Children.Add(new TextBlock { Text = _localizer.Get($"Info_{page}_Title"), VerticalAlignment = VerticalAlignment.Center });
-            var chevron = new FontIcon { Glyph = ChevronGlyph, FontSize = 12 };
-            Grid.SetColumn(chevron, 1);
-            label.Children.Add(chevron);
-
+            string title = _localizer.Get($"Info_{page}_Title");
             var row = new Button
             {
-                Content = label,
+                Content = new TextBlock { Text = title, TextTrimming = TextTrimming.CharacterEllipsis },
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-                HorizontalContentAlignment = HorizontalAlignment.Stretch,
             };
-            // The content is a grid, not text, so a screen reader would find no name in it.
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(row, _localizer.Get($"Info_{page}_Title"));
+            ToolTipService.SetToolTip(row, title);
+            // The content is a text block, not plain text, so the name is given here for screen readers.
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(row, title);
             row.Click += (_, _) => ShowInfo(page);
             if (InfoRows.RowDefinitions.Count <= index / InfoColumns)
             {

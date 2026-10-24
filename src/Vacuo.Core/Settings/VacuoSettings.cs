@@ -13,14 +13,16 @@ public enum LanguageChoice
 
 /// <summary>
 /// What the user chose in Settings. Checking for updates is on unless turned off (Alican, 20 October
-/// 2026; vacuo-kurallar 6). Starting with Windows is not here: the Run key itself says it
-/// (<see cref="StartupRegistration"/>).
+/// 2026; vacuo-kurallar 6), and so is the low-disk notice (Alican, 22 October 2026: it never goes online).
+/// Starting with Windows is not here: the Run key itself says it (<see cref="StartupRegistration"/>).
 /// </summary>
 public sealed record VacuoSettings(LanguageChoice Language, bool CheckForUpdates)
 {
     public static VacuoSettings Default { get; } = new(LanguageChoice.Automatic, CheckForUpdates: true);
 
     public MaintenanceSettings Maintenance { get; init; } = MaintenanceSettings.Default;
+
+    public bool LowDiskNotice { get; init; } = true;
 }
 
 /// <summary>
@@ -50,6 +52,7 @@ public sealed class SettingsStore(string path)
                     file.CheckForUpdates ?? VacuoSettings.Default.CheckForUpdates)
                 {
                     Maintenance = file.Maintenance?.ToSettings() ?? MaintenanceSettings.Default,
+                    LowDiskNotice = file.LowDiskNotice ?? VacuoSettings.Default.LowDiskNotice,
                 };
         }
         catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
@@ -62,13 +65,13 @@ public sealed class SettingsStore(string path)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
         string temporary = path + ".tmp";
-        var file = new SettingsFile(settings.Language, settings.CheckForUpdates, MaintenanceFile.From(settings.Maintenance));
+        var file = new SettingsFile(settings.Language, settings.CheckForUpdates, MaintenanceFile.From(settings.Maintenance), settings.LowDiskNotice);
         File.WriteAllText(temporary, JsonSerializer.Serialize(file, JsonOptions));
         File.Move(temporary, path, overwrite: true);
     }
 
     // Every field may be missing in an older or hand-edited file.
-    private sealed record SettingsFile(LanguageChoice? Language, bool? CheckForUpdates, MaintenanceFile? Maintenance);
+    private sealed record SettingsFile(LanguageChoice? Language, bool? CheckForUpdates, MaintenanceFile? Maintenance, bool? LowDiskNotice);
 
     private sealed record MaintenanceFile(
         bool? Enabled, bool? TempFiles, bool? DownloadCaches, bool? ProjectLeftovers, bool? OrganizeDesktop, bool? Sound)
