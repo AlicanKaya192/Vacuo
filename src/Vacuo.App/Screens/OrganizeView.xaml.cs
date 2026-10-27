@@ -1,3 +1,4 @@
+using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -27,6 +28,9 @@ public sealed partial class OrganizeView : UserControl
     private const int NamesPerGroup = 6;
     private const double IconSize = 24;
 
+    // The strip never holds the result up for long: if it is rebuilt or stops drawing, the result shows anyway.
+    private static readonly TimeSpan FlowWaitAtMost = TimeSpan.FromSeconds(4);
+
     private Localizer _localizer = null!;
     private FolderIcons _icons = null!;
     private FolderOrganizer _organizer = null!;
@@ -39,6 +43,13 @@ public sealed partial class OrganizeView : UserControl
     private bool _busy;
     private bool _animationsEnabled;
     private volatile FlowMap? _flow;
+    private IReadOnlyList<FlowTarget> _flowTargets = [];
+
+    // While a run or an undo plays, the strip is not rebuilt under it.
+    private bool _flowHeld;
+
+    // The folders and files of the last run, so its undo can send them back along the same lanes.
+    private (string Folder, IReadOnlyList<FlowTarget> Targets)? _undoFlow;
 
     public OrganizeView()
     {
@@ -190,6 +201,11 @@ public sealed partial class OrganizeView : UserControl
     // Rebuilt for every plan and size; an empty plan shows no flow.
     private void BuildFlow()
     {
+        if (_flowHeld)
+        {
+            return;
+        }
+
         if (_plan is not { Moves.Count: > 0 } plan || FlowCanvas.ActualWidth <= 0)
         {
             _flow = null;
@@ -202,23 +218,27 @@ public sealed partial class OrganizeView : UserControl
         List<IGrouping<string, PlannedMove>> groups = Groups(plan).OrderByDescending(group => group.Count()).ToList();
         List<FlowTarget> targets = groups
             .Take(FlowMap.MaximumTargetsShown)
-            .Select(group => new FlowTarget(
-                _localizer.Format("OrganizeGroupFormat", Path.GetFileName(group.Key), group.Count()),
-                group.Count(),
-                plan.FoldersToCreate.Contains(group.Key, StringComparer.OrdinalIgnoreCase)))
+            .Select(group => FlowTargetOf(
+                Path.GetFileName(group.Key),
+                group.Select(move => Path.GetFileName(move.Source)).ToList(),
+                plan.FoldersToCreate.Contains(group.Key, StringComparer.OrdinalIgnoreCase),
+                ContrastMode.IsOn ? null : IconFileOf(plan, group.Key)))
             .ToList();
         List<IGrouping<string, PlannedMove>> rest = groups.Skip(FlowMap.MaximumTargetsShown).ToList();
         if (rest.Count > 0)
         {
+            // The shared chip has no lane of names; its stream only says that more goes there.
             int files = rest.Sum(group => group.Count());
-            targets.Add(new FlowTarget(_localizer.Format("OrganizeMoreFoldersFormat", rest.Count, files), files, IsNew: false));
+            targets.Add(new FlowTarget(string.Empty, _localizer.Format("OrganizeMoreFoldersFormat", rest.Count, files), files, IsNew: false, Files: []));
         }
 
         double height = FlowMap.HeightFor(targets.Count);
         if (Math.Abs(FlowCanvas.Height - height) > 0.5)
         {
-            // The new size comes back through SizeChanged, which builds the flow again.
+            // The new size comes back through SizeChanged, which builds the flow again. A collapsed strip is
+            // never laid out, so it is shown first or that never happens.
             FlowCanvas.Height = height;
+            FlowCanvas.Visibility = Visibility.Visible;
             return;
         }
 
@@ -226,10 +246,90 @@ public sealed partial class OrganizeView : UserControl
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
             FlowCanvas,
             $"{FolderLabel()}: {string.Join(", ", targets.Select(target => target.Label))}");
-        _flow = new FlowMap(FolderLabel(), targets, new System.Numerics.Vector2((float)FlowCanvas.ActualWidth, (float)FlowCanvas.ActualHeight));
+        ShowFlow(FolderLabel(), targets);
         // In a contrast theme the drawn flow steps aside; the groups below say the same in text (Aşama 3f).
         FlowCanvas.Visibility = ContrastMode.IsOn ? Visibility.Collapsed : Visibility.Visible;
         UpdateFlowRunning();
+    }
+
+    private FlowTarget FlowTargetOf(string name, IReadOnlyList<string> files, bool isNew, string? iconFile) =>
+        new(name, _localizer.Format("OrganizeGroupFormat", name, files.Count), files.Count, isNew, files, iconFile);
+
+    private FlowMap ShowFlow(string folder, IReadOnlyList<FlowTarget> targets)
+    {
+        var flow = new FlowMap(
+            folder,
+            _localizer.Format("JournalFilesFormat", targets.Sum(target => target.Count)),
+            targets,
+            new System.Numerics.Vector2((float)FlowCanvas.ActualWidth, (float)FlowCanvas.ActualHeight));
+        _flow = flow;
+        _flowTargets = targets;
+        LoadFlowIcons(flow, targets);
+        return flow;
+    }
+
+    // The chips get the frame drawn for their size from the same file the folder gets; until it loads,
+    // or if it cannot, the chip shows its name alone.
+    private async void LoadFlowIcons(FlowMap flow, IReadOnlyList<FlowTarget> targets)
+    {
+        int pixels = (int)Math.Ceiling(FlowMap.IconSize * (XamlRoot?.RasterizationScale ?? 1));
+        for (int lane = 0; lane < targets.Count; lane++)
+        {
+            if (targets[lane].IconFile is not { } iconFile || !FlowCanvas.ReadyToDraw)
+            {
+                continue;
+            }
+
+            try
+            {
+                if (IconFrames.Png(await File.ReadAllBytesAsync(iconFile), pixels) is { } png)
+                {
+                    flow.SetIcon(lane, await CanvasBitmap.LoadAsync(FlowCanvas, new MemoryStream(png).AsRandomAccessStream()));
+                }
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // The chip keeps its name alone.
+            }
+        }
+    }
+
+    // A run or an undo plays on the strip only where the strip moves at all.
+    private bool FlowCanPlay => _animationsEnabled && !ContrastMode.IsOn && Visibility == Visibility.Visible;
+
+    private static Task Within(Task animation) => Task.WhenAny(animation, Task.Delay(FlowWaitAtMost));
+
+    // The lanes of the last run with only the files that moved, for its undo.
+    private (string, IReadOnlyList<FlowTarget>)? UndoFlowOf(string folder, IReadOnlyList<FlowTarget> targets, OrganizeOutcome outcome)
+    {
+        var failed = outcome.Failed.Select(failure => Path.GetFileName(failure.Path)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        List<FlowTarget> moved = targets
+            .Where(target => target.Files.Count > 0)
+            .Select(target => FlowTargetOf(target.Name, target.Files.Where(file => !failed.Contains(file)).ToList(), target.IsNew, target.IconFile))
+            .Where(target => target.Count > 0)
+            .ToList();
+        return moved.Count == 0 ? null : (folder, moved);
+    }
+
+    // Undo shows the strip again, even when nothing is left to move, so the files can be seen going back.
+    private FlowMap? ShowUndoFlow()
+    {
+        if (_undoFlow is not { } undo || !FlowCanPlay)
+        {
+            return null;
+        }
+
+        FlowCanvas.Height = FlowMap.HeightFor(undo.Targets.Count);
+        FlowCanvas.Visibility = Visibility.Visible;
+        FlowCanvas.UpdateLayout();
+        if (FlowCanvas.ActualWidth <= 0)
+        {
+            return null;
+        }
+
+        FlowMap flow = ShowFlow(undo.Folder, undo.Targets);
+        UpdateFlowRunning();
+        return flow;
     }
 
     // With animation effects off, one still frame is drawn instead of the moving one.
@@ -318,10 +418,23 @@ public sealed partial class OrganizeView : UserControl
         UpdateRunButton();
         UndoButton.Visibility = Visibility.Collapsed;
         ShowOutcome([Text(_localizer.Format("OrganizeMovingFormat", plan.Moves.Count), "InkSecondaryBrush")]);
+        // The hole spins up while the files move; once they have, the strip shows each going to its folder
+        // and the result follows when the last has landed (Aşama 3i).
+        FlowMap? flow = FlowCanPlay ? _flow : null;
+        IReadOnlyList<FlowTarget> played = _flowTargets;
+        string folder = FolderLabel();
+        _flowHeld = flow is not null;
+        flow?.BeginRun();
         try
         {
             OrganizeOutcome outcome = await Task.Run(() => _organizer.Run(plan));
+            if (flow is not null)
+            {
+                await Within(flow.LaunchFiles(outcome.Failed.Select(failure => Path.GetFileName(failure.Path)).ToHashSet(StringComparer.OrdinalIgnoreCase)));
+            }
+
             _lastBatch = outcome.Moved.Count > 0 ? outcome.BatchId : null;
+            _undoFlow = _lastBatch is null ? null : UndoFlowOf(folder, played, outcome);
             ShowOutcome(OutcomeLines(outcome));
             UndoButton.Visibility = _lastBatch is null ? Visibility.Collapsed : Visibility.Visible;
         }
@@ -333,6 +446,7 @@ public sealed partial class OrganizeView : UserControl
         finally
         {
             _busy = false;
+            _flowHeld = false;
             Changed?.Invoke(this, EventArgs.Empty);
             await LoadPreviewAsync();
         }
@@ -384,7 +498,18 @@ public sealed partial class OrganizeView : UserControl
         UpdateRunButton();
         try
         {
-            IReadOnlyList<BatchUndoFailure> failures = await Task.Run(() => _journal.UndoBatch(batch));
+            // The files come back while the strip shows them leaving their folders for the hole.
+            Task<IReadOnlyList<BatchUndoFailure>> undo = Task.Run(() => _journal.UndoBatch(batch));
+            // Held before the strip is resized, so the resize does not rebuild it from the current plan.
+            _flowHeld = true;
+            FlowMap? flow = ShowUndoFlow();
+            _flowHeld = flow is not null;
+            if (flow is not null)
+            {
+                await Within(flow.PlayUndo());
+            }
+
+            IReadOnlyList<BatchUndoFailure> failures = await undo;
             ShowOutcome([failures.Count == 0
                 ? Text(_localizer.Get("OrganizeUndone"), "InkBrush")
                 : Text(
@@ -393,6 +518,7 @@ public sealed partial class OrganizeView : UserControl
             if (failures.Count == 0)
             {
                 _lastBatch = null;
+                _undoFlow = null;
                 UndoButton.Visibility = Visibility.Collapsed;
             }
         }
@@ -403,6 +529,7 @@ public sealed partial class OrganizeView : UserControl
         finally
         {
             _busy = false;
+            _flowHeld = false;
             UndoButton.IsEnabled = true;
             Changed?.Invoke(this, EventArgs.Empty);
             await LoadPreviewAsync();
@@ -426,6 +553,7 @@ public sealed partial class OrganizeView : UserControl
         _folder = folder;
         OutcomeCard.Visibility = Visibility.Collapsed;
         _lastBatch = null;
+        _undoFlow = null;
         await LoadPreviewAsync();
     }
 

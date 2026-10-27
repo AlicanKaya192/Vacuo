@@ -44,7 +44,8 @@
                         </Storyboard>
                     </Grid.Resources>
                     <Ellipse x:Name="LogoGlow" Opacity="0.7" Fill="{ThemeResource LogoGlowBrush}" />
-                    <Image x:Name="LogoImage" Width="22" Height="22" />
+                    <!-- The name beside it says the same, so a screen reader skips the picture. -->
+                    <Image x:Name="LogoImage" Width="22" Height="22" AutomationProperties.AccessibilityView="Raw" />
                     <Grid x:Name="LogoContrastRing" Visibility="Collapsed">
                         <Ellipse Width="17" Height="17" StrokeThickness="2.5" Stroke="{ThemeResource LogoRingBrush}" />
                         <Ellipse Width="11" Height="11" Fill="{ThemeResource VoidBrush}" />
