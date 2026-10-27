@@ -204,6 +204,9 @@
   <data name="RemovalProgressFormat" xml:space="preserve">
     <value>Taşınıyor… {0} / {1} · %{2}</value>
   </data>
+  <data name="CleanupPercentFormat" xml:space="preserve">
+    <value>%{0}</value>
+  </data>
   <data name="DiskMovedFormat" xml:space="preserve">
     <value>{0} Geri Dönüşüm Kutusu'na taşındı</value>
   </data>

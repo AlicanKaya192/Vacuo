@@ -204,6 +204,9 @@
   <data name="RemovalProgressFormat" xml:space="preserve">
     <value>Moving… {0} of {1} · {2}%</value>
   </data>
+  <data name="CleanupPercentFormat" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
   <data name="DiskMovedFormat" xml:space="preserve">
     <value>{0} moved to the Recycle Bin</value>
   </data>

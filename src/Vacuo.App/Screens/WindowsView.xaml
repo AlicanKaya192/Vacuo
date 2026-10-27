@@ -137,6 +137,7 @@
             </Grid>
         </Grid>
 
+        <local:CleanupStage x:Name="Stage" Grid.RowSpan="2" />
         <local:ConfirmCard x:Name="Confirm" Grid.RowSpan="2" />
     </Grid>
 </UserControl>

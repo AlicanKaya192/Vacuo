@@ -56,6 +56,7 @@ public sealed partial class WindowsView : UserControl
         _launcher = launcher;
         _locations = locations;
         Confirm.Initialize(animationsEnabled);
+        Stage.Initialize(localizer, animationsEnabled);
         TempProgress.Initialize(animationsEnabled);
         AdminProgress.Initialize(animationsEnabled);
         ScreenTitle.Text = localizer.Get("WindowsTitle");
@@ -74,7 +75,11 @@ public sealed partial class WindowsView : UserControl
     }
 
     /// <summary>Stops Win2D's game-loop thread before the window goes away.</summary>
-    internal void Shutdown() => Confirm.Shutdown();
+    internal void Shutdown()
+    {
+        Confirm.Shutdown();
+        Stage.Shutdown();
+    }
 
     /// <summary>Scans the temp folder and looks which administrator cleanups apply; only reads.</summary>
     internal async void Refresh()
@@ -367,15 +372,26 @@ public sealed partial class WindowsView : UserControl
         SetBusy(true);
         TempSummary.Text = _localizer.Get("DiskMoving");
         TempProgress.ShowFraction(0);
+        // The black hole eats a planet for every seventh of the work (Aşama 3j); the bar keeps going underneath.
+        bool staged = Stage.Begin(_localizer.Get("DiskMoving"));
         // Reported on the UI thread after every item: the bar fills and the line says how many are left.
         var progress = new Progress<MoveProgress>(report =>
         {
             TempProgress.ShowFraction(report.Fraction);
             TempSummary.Text = RemovalTexts.Progress(_localizer, report);
+            if (staged)
+            {
+                Stage.Report(report);
+            }
         });
         try
         {
             MoveOutcome outcome = await Task.Run(() => temp.MoveSelected(_runner, _recycleBin, progress));
+            if (staged)
+            {
+                await Stage.FinishAsync();
+            }
+
             RenderTemp();
             ShowTempOutcome(outcome);
         }
@@ -388,6 +404,8 @@ public sealed partial class WindowsView : UserControl
         }
         finally
         {
+            // After an error the stage closes at once instead of eating the rest as if all went well.
+            Stage.Close();
             TempProgress.Hide();
             SetBusy(false);
         }
