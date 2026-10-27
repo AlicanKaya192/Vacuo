@@ -589,7 +589,7 @@
     <value>ve {0} dosya daha</value>
   </data>
   <data name="OrganizeNothing" xml:space="preserve">
-    <value>Bu kurala göre taşınacak dosya yok; hepsi yerinde kalır.</value>
+    <value>Taşınacak dosya yok.</value>
   </data>
   <data name="OrganizeConfirmTitle" xml:space="preserve">
     <value>Dosyalar taşınsın mı?</value>

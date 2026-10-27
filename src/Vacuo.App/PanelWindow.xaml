@@ -28,18 +28,13 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                <!-- The logo, a small black hole (Alican, 21 October 2026): its light ring turns and its glow
-                     breathes on the compositor, so it costs the UI thread nothing; it stops while the panel is
-                     hidden and stays still when Windows animations are off (vacuo-kurallar 9). -->
+                <!-- The logo, the same black hole as the app icon (tools\make-app-icon.ps1; Alican, 27 October
+                     2026: "önceden daha gerçekçi karadelik yapmıştık yine öyle yap"). Its glow breathes on the
+                     compositor, so it costs the UI thread nothing; it stops while the panel is hidden and stays
+                     still when Windows animations are off (vacuo-kurallar 9). A contrast theme shows the plain
+                     ring in the theme's colours instead of the picture (Aşama 3f). -->
                 <Grid Width="22" Height="22" VerticalAlignment="Center">
                     <Grid.Resources>
-                        <Storyboard x:Name="LogoMotion" RepeatBehavior="Forever">
-                            <DoubleAnimation Storyboard.TargetName="LogoSpin"
-                                             Storyboard.TargetProperty="Angle"
-                                             From="0"
-                                             To="360"
-                                             Duration="0:0:6" />
-                        </Storyboard>
                         <Storyboard x:Name="LogoGlowMotion" RepeatBehavior="Forever" AutoReverse="True">
                             <DoubleAnimation Storyboard.TargetName="LogoGlow"
                                              Storyboard.TargetProperty="Opacity"
@@ -49,12 +44,11 @@
                         </Storyboard>
                     </Grid.Resources>
                     <Ellipse x:Name="LogoGlow" Opacity="0.7" Fill="{ThemeResource LogoGlowBrush}" />
-                    <Ellipse Width="17" Height="17" StrokeThickness="2.5" RenderTransformOrigin="0.5,0.5" Stroke="{ThemeResource LogoRingBrush}">
-                        <Ellipse.RenderTransform>
-                            <RotateTransform x:Name="LogoSpin" />
-                        </Ellipse.RenderTransform>
-                    </Ellipse>
-                    <Ellipse Width="11" Height="11" Fill="{ThemeResource VoidBrush}" />
+                    <Image x:Name="LogoImage" Width="22" Height="22" />
+                    <Grid x:Name="LogoContrastRing" Visibility="Collapsed">
+                        <Ellipse Width="17" Height="17" StrokeThickness="2.5" Stroke="{ThemeResource LogoRingBrush}" />
+                        <Ellipse Width="11" Height="11" Fill="{ThemeResource VoidBrush}" />
+                    </Grid>
                 </Grid>
                 <TextBlock Text="VACUO"
                            CharacterSpacing="300"

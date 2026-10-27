@@ -589,7 +589,7 @@
     <value>and {0} more files</value>
   </data>
   <data name="OrganizeNothing" xml:space="preserve">
-    <value>No file to move under this rule; everything stays where it is.</value>
+    <value>Nothing to move.</value>
   </data>
   <data name="OrganizeConfirmTitle" xml:space="preserve">
     <value>Move the files?</value>

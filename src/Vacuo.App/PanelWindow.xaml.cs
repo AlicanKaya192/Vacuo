@@ -143,6 +143,8 @@ public sealed partial class PanelWindow : Window
         _animationsEnabled = !forceReducedMotion && new UISettings().AnimationsEnabled;
         InitializeComponent();
         ApplyMeasurementProbes(probes);
+        LogoImage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(Path.Combine(AppContext.BaseDirectory, "Assets", "logo.png")));
+        ShowLogo();
 
         Handle = WindowNative.GetWindowHandle(this);
         _presenter.IsResizable = false;
@@ -172,6 +174,7 @@ public sealed partial class PanelWindow : Window
         // The XAML follows a contrast theme by itself; the two canvases are drawn again in their new colours.
         ContrastMode.Changed += (_, _) => DispatcherQueue.TryEnqueue(() =>
         {
+            ShowLogo();
             MatchVoidCanvasToBackground();
             VoidCanvas.Invalidate();
             DiskRingCanvas.Invalidate();
@@ -485,7 +488,6 @@ public sealed partial class PanelWindow : Window
         _weekScreen?.SetWindowOpen(true);
         if (_animationsEnabled)
         {
-            LogoMotion.Begin();
             LogoGlowMotion.Begin();
         }
 
@@ -526,7 +528,6 @@ public sealed partial class PanelWindow : Window
         _isOpen = false;
         MarkEvent($"hidden-{reason}");
         VoidCanvas.Paused = true;
-        LogoMotion.Stop();
         LogoGlowMotion.Stop();
         _diskScreen?.SetWindowOpen(false);
         _updateScreen?.SetWindowOpen(false);
@@ -1552,6 +1553,13 @@ public sealed partial class PanelWindow : Window
             tilt.DelayBehavior = AnimationDelayBehavior.SetInitialValueBeforeDelay;
             card.StartAnimation(tilt);
         }
+    }
+
+    // The drawn black hole, or in a contrast theme the plain ring in the theme's colours (Aşama 3f).
+    private void ShowLogo()
+    {
+        LogoImage.Visibility = ContrastMode.IsOn ? Visibility.Collapsed : Visibility.Visible;
+        LogoContrastRing.Visibility = ContrastMode.IsOn ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OnVoidUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args)
