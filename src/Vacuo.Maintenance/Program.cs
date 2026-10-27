@@ -120,7 +120,8 @@ internal static class Program
                 OrganizeRule.ByType,
                 target => NoticeTexts.DesktopFolderName(Enum.Parse<FileKind>(target.Key), language),
                 PathProbe.Disk);
-            return new FolderOrganizer(runner).Run(plan).Moved.Count;
+            var icons = new FolderIcons(new FolderIconWriter(), FolderIcons.InstalledFolder);
+            return new FolderOrganizer(runner, icons).Run(plan).Moved.Count;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

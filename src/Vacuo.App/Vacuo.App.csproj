@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Content Include="Assets\vacuo.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\FolderIcons\*.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

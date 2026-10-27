@@ -17,14 +17,23 @@ public interface IFolderIconWriter
 /// </summary>
 public sealed class FolderIcons(IFolderIconWriter writer, string iconFolder)
 {
+    /// <summary>Where the panel and the helper find the icons; the setup puts both in one folder.</summary>
+    public static string InstalledFolder { get; } = Path.Combine(AppContext.BaseDirectory, "Assets", "FolderIcons");
+
     public static string? NameOf(OrganizeTarget target) =>
         target.Rule is OrganizeRule.ByType or OrganizeRule.ByTopic ? target.Key.ToLowerInvariant() : null;
+
+    /// <summary>The icon file for <paramref name="target"/>, or <see langword="null"/> when it has none or the file is missing.</summary>
+    public string? FileFor(OrganizeTarget target)
+    {
+        string? path = NameOf(target) is { } name ? Path.Combine(iconFolder, name + ".ico") : null;
+        return path is not null && File.Exists(path) ? path : null;
+    }
 
     /// <summary>Gives <paramref name="folder"/> its icon and fingerprints what that left inside; a failure leaves the folder plain.</summary>
     public FolderIcon? Stamp(string folder, OrganizeTarget target)
     {
-        string? iconFile = NameOf(target) is { } name ? Path.Combine(iconFolder, name + ".ico") : null;
-        if (iconFile is null || !File.Exists(iconFile) || FolderIcon.Of(folder) is not null)
+        if (FileFor(target) is not { } iconFile || FolderIcon.Of(folder) is not null)
         {
             // An icon file already there is not Vacuo's, so it is neither overwritten nor taken on undo.
             return null;

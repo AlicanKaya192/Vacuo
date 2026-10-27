@@ -2,12 +2,14 @@ using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Vacuo.App.Localization;
 using Vacuo.Core.Actions;
 using Vacuo.Core.Disk;
 using Vacuo.Core.Journal;
 using Vacuo.Core.Organize;
 using Vacuo.App.Visuals;
+using Vacuo.Windows;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI;
@@ -23,8 +25,10 @@ public sealed partial class OrganizeView : UserControl
 {
     // A group shows this many names; the rest are counted, so a big Downloads folder stays readable.
     private const int NamesPerGroup = 6;
+    private const double IconSize = 24;
 
     private Localizer _localizer = null!;
+    private FolderIcons _icons = null!;
     private FolderOrganizer _organizer = null!;
     private JournalScreen _journal = null!;
     private nint _window;
@@ -55,7 +59,8 @@ public sealed partial class OrganizeView : UserControl
     internal void Initialize(Localizer localizer, ActionRunner runner, JournalScreen journal, nint window, bool animationsEnabled)
     {
         _localizer = localizer;
-        _organizer = new FolderOrganizer(runner);
+        _icons = new FolderIcons(new FolderIconWriter(), FolderIcons.InstalledFolder);
+        _organizer = new FolderOrganizer(runner, _icons);
         _journal = journal;
         _window = window;
         BackButton.Content = localizer.Get("DiskBackButton");
@@ -137,9 +142,48 @@ public sealed partial class OrganizeView : UserControl
             return;
         }
 
-        foreach (IGrouping<string, PlannedMove> group in Groups(plan))
+        // Every row keeps the icon column when one row has an icon, so the names stay in line. A contrast
+        // theme drops the pictures, as it does the flow (Aşama 3f).
+        List<IGrouping<string, PlannedMove>> groups = Groups(plan).ToList();
+        bool withIcons = !ContrastMode.IsOn && groups.Any(group => IconFileOf(plan, group.Key) is not null);
+        foreach (IGrouping<string, PlannedMove> group in groups)
         {
-            GroupList.Children.Add(GroupRow(group, isNew: plan.FoldersToCreate.Contains(group.Key, StringComparer.OrdinalIgnoreCase)));
+            bool isNew = plan.FoldersToCreate.Contains(group.Key, StringComparer.OrdinalIgnoreCase);
+            GroupList.Children.Add(GroupRow(group, isNew, withIcons, withIcons ? IconFileOf(plan, group.Key) : null));
+        }
+    }
+
+    // Only the folders Vacuo makes get an icon (B-213, decision 2).
+    private string? IconFileOf(OrganizePlan plan, string folder) =>
+        plan.FolderTargets?.GetValueOrDefault(folder) is { } target ? _icons.FileFor(target) : null;
+
+    // The frame drawn for this size, from the same file the folder gets; the row's text already says which
+    // folder it is, so a screen reader skips the picture.
+    private Image FolderIconImage(string iconFile)
+    {
+        var image = new Image { Width = IconSize, Height = IconSize, VerticalAlignment = VerticalAlignment.Center };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetAccessibilityView(image, Microsoft.UI.Xaml.Automation.Peers.AccessibilityView.Raw);
+        _ = LoadIconAsync(image, iconFile);
+        return image;
+    }
+
+    private async Task LoadIconAsync(Image image, string iconFile)
+    {
+        try
+        {
+            int pixels = (int)Math.Ceiling(IconSize * (XamlRoot?.RasterizationScale ?? 1));
+            if (IconFrames.Png(await File.ReadAllBytesAsync(iconFile), pixels) is not { } png)
+            {
+                return;
+            }
+
+            var bitmap = new BitmapImage();
+            await bitmap.SetSourceAsync(new MemoryStream(png).AsRandomAccessStream());
+            image.Source = bitmap;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // The row stays without a picture; the folder still gets its icon when it is made.
         }
     }
 
@@ -208,8 +252,9 @@ public sealed partial class OrganizeView : UserControl
     private static IEnumerable<IGrouping<string, PlannedMove>> Groups(OrganizePlan plan) =>
         plan.Moves.GroupBy(move => Path.GetDirectoryName(move.Destination)!, StringComparer.OrdinalIgnoreCase);
 
-    // Same rounded row as the other screens; the edge is lit for a folder Vacuo will make.
-    private Grid GroupRow(IGrouping<string, PlannedMove> group, bool isNew)
+    // Same rounded row as the other screens; the edge is lit for a folder Vacuo will make, and the icon
+    // column shows the icon it will get.
+    private Grid GroupRow(IGrouping<string, PlannedMove> group, bool isNew, bool withIcons, string? iconFile)
     {
         var row = new Grid
         {
@@ -219,8 +264,19 @@ public sealed partial class OrganizeView : UserControl
             Background = new SolidColorBrush(Resource<Color>("SurfaceColor")),
         };
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(4) });
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         row.Children.Add(new Border { Background = Resource<Brush>(isNew ? "AccentBrush" : "LineBrush") });
+        if (withIcons)
+        {
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(IconSize) });
+            if (iconFile is not null)
+            {
+                Image icon = FolderIconImage(iconFile);
+                Grid.SetColumn(icon, 1);
+                row.Children.Add(icon);
+            }
+        }
+
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
         List<PlannedMove> moves = group.ToList();
         string title = _localizer.Format("OrganizeGroupFormat", Path.GetFileName(group.Key), moves.Count);
@@ -233,7 +289,7 @@ public sealed partial class OrganizeView : UserControl
         }
 
         details.Children.Add(Text(names, "InkSecondaryBrush", fontSize: 12));
-        Grid.SetColumn(details, 1);
+        Grid.SetColumn(details, row.ColumnDefinitions.Count - 1);
         row.Children.Add(details);
         return row;
     }

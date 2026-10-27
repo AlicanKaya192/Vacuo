@@ -15,6 +15,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- The Desktop sorting here gives its folders the same icons as the panel does. -->
+    <Content Include="..\Vacuo.App\Assets\FolderIcons\*.ico" Link="Assets\FolderIcons\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Vacuo.Core\Vacuo.Core.csproj" />
     <ProjectReference Include="..\Vacuo.Windows\Vacuo.Windows.csproj" />
   </ItemGroup>
