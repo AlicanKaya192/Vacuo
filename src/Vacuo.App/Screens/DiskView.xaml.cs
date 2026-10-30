@@ -50,6 +50,8 @@ public sealed partial class DiskView : UserControl
 
     internal event EventHandler? JournalRequested;
 
+    internal event EventHandler? MapRequested;
+
     /// <summary>Raised after a move with the paths that went to the Recycle Bin.</summary>
     internal event EventHandler<IReadOnlyList<string>>? Moved;
 
@@ -63,6 +65,7 @@ public sealed partial class DiskView : UserControl
         BackButton.Content = localizer.Get("DiskBackButton");
         RescanButton.Content = localizer.Get("DiskRescanButton");
         JournalButton.Content = localizer.Get("DiskJournalButton");
+        MapButton.Content = localizer.Get("DiskMapTitle");
         MoveButton.Content = localizer.Get("DiskMoveButton");
         MovedNote.Text = localizer.Get("DiskMovedNote");
         CategoriesTitle.Text = localizer.Get("DiskCategoriesTitle");
@@ -520,4 +523,6 @@ public sealed partial class DiskView : UserControl
     private void OnRescanClick(object sender, RoutedEventArgs e) => RescanRequested?.Invoke(this, EventArgs.Empty);
 
     private void OnJournalClick(object sender, RoutedEventArgs e) => JournalRequested?.Invoke(this, EventArgs.Empty);
+
+    private void OnMapClick(object sender, RoutedEventArgs e) => MapRequested?.Invoke(this, EventArgs.Empty);
 }

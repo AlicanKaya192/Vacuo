@@ -9,7 +9,7 @@ public class DiskMapLayoutTests
     private const double Width = 688;
     private const double Height = 416;
 
-    private static FolderNode Root(TempTree tree) => new FolderTreeScanner(Kept).Scan(tree.Root, 0).Root;
+    private static FolderNode Root(TempTree tree) => new FolderTreeScanner(Kept).Scan(tree.Root, 0, cancellation: TestContext.Current.CancellationToken).Root;
 
     private static IReadOnlyList<MapBox> Arrange(TempTree tree, long unread = 0) =>
         DiskMapLayout.Arrange(Root(tree), unread, Width, Height);

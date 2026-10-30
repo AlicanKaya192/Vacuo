@@ -8,8 +8,8 @@ public class FolderTreeScannerTests
 {
     private const long Kept = 100;
 
-    private static FolderTreeScan Scan(TempTree tree, long usedBytes = 0, IProgress<double>? progress = null, CancellationToken cancellation = default) =>
-        new FolderTreeScanner(Kept).Scan(tree.Root, usedBytes, progress, cancellation);
+    private static FolderTreeScan Scan(TempTree tree, long usedBytes = 0, IProgress<double>? progress = null) =>
+        new FolderTreeScanner(Kept).Scan(tree.Root, usedBytes, progress, TestContext.Current.CancellationToken);
 
     private static FolderNode Child(FolderNode node, string name) => node.Children.Single(child => child.Name == name);
 
@@ -159,7 +159,7 @@ public class FolderTreeScannerTests
     {
         using var tree = new TempTree();
 
-        FolderTreeScan scan = new FolderTreeScanner(Kept).Scan(tree.PathOf("gone"), 0);
+        FolderTreeScan scan = new FolderTreeScanner(Kept).Scan(tree.PathOf("gone"), 0, cancellation: TestContext.Current.CancellationToken);
 
         Assert.Equal(1, scan.SkippedFolders);
         Assert.Equal(0, scan.Root.Bytes);
@@ -207,6 +207,6 @@ public class FolderTreeScannerTests
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
 
-        Assert.Throws<OperationCanceledException>(() => Scan(tree, cancellation: cancellation.Token));
+        Assert.Throws<OperationCanceledException>(() => new FolderTreeScanner(Kept).Scan(tree.Root, 0, cancellation: cancellation.Token));
     }
 }

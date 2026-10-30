@@ -124,6 +124,7 @@ public sealed partial class PanelWindow : Window
     private SettingsView? _settingsScreen;
     private BatteryView? _batteryScreen;
     private DuplicatesView? _duplicatesScreen;
+    private DiskMapView? _diskMapScreen;
     private UninstallView? _uninstallScreen;
     private JournalView? _journalScreen;
     private WeekView? _weekScreen;
@@ -306,6 +307,7 @@ public sealed partial class PanelWindow : Window
         _memoryScreen?.Shutdown();
         _organizeScreen?.Shutdown();
         _duplicatesScreen?.Shutdown();
+        _diskMapScreen?.Shutdown();
         _uninstallScreen?.Shutdown();
         _updateScreen?.Shutdown();
         _settingsScreen?.Shutdown();
@@ -330,6 +332,7 @@ public sealed partial class PanelWindow : Window
         _settingsScreen = null;
         _batteryScreen = null;
         _duplicatesScreen = null;
+        _diskMapScreen = null;
         _uninstallScreen = null;
         _journalScreen = null;
         _weekScreen = null;
@@ -765,6 +768,7 @@ public sealed partial class PanelWindow : Window
         disk.BackRequested += (_, _) => ReturnToCards();
         disk.RescanRequested += (_, _) => RefreshDisk();
         disk.JournalRequested += (_, _) => ShowJournal(disk);
+        disk.MapRequested += (_, _) => SwitchBetweenDiskScreens(disk, EnsureDiskMapScreen(), "disk-map-shown");
         disk.Moved += (_, paths) =>
         {
             _diskScans.Forget(paths);
@@ -854,6 +858,41 @@ public sealed partial class PanelWindow : Window
         battery.BackRequested += (_, _) => ReturnToCards();
         battery.RefreshRequested += async (_, _) => await LoadBatteryAsync();
         return _batteryScreen = battery;
+    }
+
+    private DiskMapView EnsureDiskMapScreen()
+    {
+        if (_diskMapScreen is not null)
+        {
+            return _diskMapScreen;
+        }
+
+        var map = AddScreen(new DiskMapView());
+        map.Initialize(_localizer, _animationsEnabled);
+        map.BackRequested += (_, _) => SwitchBetweenDiskScreens(map, EnsureDiskScreen(), "disk-map-back-shown");
+        return _diskMapScreen = map;
+    }
+
+    // The map opens from the Disk screen and goes back to it, in the same window.
+    private void SwitchBetweenDiskScreens(UserControl from, UserControl to, string shownPhase)
+    {
+        if (_switching)
+        {
+            return;
+        }
+
+        _transition++;
+        SwitchContent(
+            [from],
+            () =>
+            {
+                from.Visibility = Visibility.Collapsed;
+                to.Visibility = Visibility.Visible;
+                EmergeFromVoid(to);
+                FocusFirstIn(to);
+            },
+            shownPhase);
+        (to as DiskMapView)?.Refresh();
     }
 
     private DuplicatesView EnsureDuplicatesScreen()
@@ -1039,7 +1078,7 @@ public sealed partial class PanelWindow : Window
 
     // Screens not created yet are skipped.
     private UserControl[] LoadedScreens() =>
-        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _duplicatesScreen, _uninstallScreen, _journalScreen, _updateScreen, _weekScreen }
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _duplicatesScreen, _diskMapScreen, _uninstallScreen, _journalScreen, _updateScreen, _weekScreen }
             .OfType<UserControl>().ToArray();
 
     private void ShowDiskScreen()

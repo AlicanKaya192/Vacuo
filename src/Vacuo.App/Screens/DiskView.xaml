@@ -20,9 +20,11 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Button x:Name="BackButton" Click="OnBackClick" />
-            <Button x:Name="JournalButton" Grid.Column="2" Click="OnJournalClick" />
+            <Button x:Name="MapButton" Grid.Column="2" Click="OnMapClick" />
+            <Button x:Name="JournalButton" Grid.Column="3" Click="OnJournalClick" />
             <TextBlock x:Name="ScreenTitle"
                        AutomationProperties.HeadingLevel="Level1"
                        Grid.Column="1"
@@ -30,7 +32,7 @@
                        FontSize="20"
                        FontWeight="SemiBold"
                        Foreground="{ThemeResource InkBrush}" />
-            <Button x:Name="RescanButton" Grid.Column="3" Click="OnRescanClick" />
+            <Button x:Name="RescanButton" Grid.Column="4" Click="OnRescanClick" />
         </Grid>
 
         <StackPanel x:Name="ResultPanel"

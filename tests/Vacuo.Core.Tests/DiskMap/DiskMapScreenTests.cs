@@ -34,7 +34,7 @@ public class DiskMapScreenTests
         {
             var protection = new MapProtection(new MapProtectedPaths(
                 Data, System: [], Programs: [Path.Join(Data, "Locked")], KeepFolders: [Path.Join(Data, "Keep")]));
-            return new DiskMapScreen(new FolderTreeScanner(Kept).Scan(Data, usedBytes), protection);
+            return new DiskMapScreen(new FolderTreeScanner(Kept).Scan(Data, usedBytes, cancellation: TestContext.Current.CancellationToken), protection);
         }
 
         public string Add(string relative, int bytes) => Tree.AddFile(Path.Join("data", relative), bytes);

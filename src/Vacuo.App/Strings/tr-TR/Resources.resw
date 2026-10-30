@@ -834,6 +834,93 @@
   <data name="DiskCategoriesTitle" xml:space="preserve">
     <value>Kullanılan alan nereye gidiyor</value>
   </data>
+  <data name="DiskMapTitle" xml:space="preserve">
+    <value>Disk haritası</value>
+  </data>
+  <data name="DiskMapStop" xml:space="preserve">
+    <value>Taramayı durdur</value>
+  </data>
+  <data name="DiskMapScanning" xml:space="preserve">
+    <value>Disk taranıyor; yalnızca okunuyor</value>
+  </data>
+  <data name="DiskMapStopped" xml:space="preserve">
+    <value>Tarama durduruldu; Yeniden tara ile baştan başlar.</value>
+  </data>
+  <data name="DiskMapHint" xml:space="preserve">
+    <value>Üzerine gel: yol ve boyut burada görünür. Tıklayınca içine girersin.</value>
+  </data>
+  <data name="DiskMapSkippedFormat" xml:space="preserve">
+    <value>{0} klasör okunamadı; onların boyutu "Windows ve okunamayan" kutusunda.</value>
+  </data>
+  <data name="DiskMapFailedFormat" xml:space="preserve">
+    <value>Disk taranamadı: {0}</value>
+  </data>
+  <data name="DiskMapNoDrive" xml:space="preserve">
+    <value>Sistem sürücüsü şu an okunamıyor.</value>
+  </data>
+  <data name="DiskMapEmpty" xml:space="preserve">
+    <value>Bu klasörde gösterilecek bir şey yok.</value>
+  </data>
+  <data name="DiskMapUsedFormat" xml:space="preserve">
+    <value>{0} dolu</value>
+  </data>
+  <data name="DiskMapRampLess" xml:space="preserve">
+    <value>Az yer</value>
+  </data>
+  <data name="DiskMapRampMore" xml:space="preserve">
+    <value>Çok yer</value>
+  </data>
+  <data name="DiskMapPillMap" xml:space="preserve">
+    <value>Harita</value>
+  </data>
+  <data name="DiskMapPillList" xml:space="preserve">
+    <value>Liste</value>
+  </data>
+  <data name="DiskMapRest" xml:space="preserve">
+    <value>Diğer dosyalar</value>
+  </data>
+  <data name="DiskMapUnread" xml:space="preserve">
+    <value>Windows ve okunamayan</value>
+  </data>
+  <data name="DiskMapRestNote" xml:space="preserve">
+    <value>Küçük dosyaların toplamı; tek tek seçilmez.</value>
+  </data>
+  <data name="DiskMapUnreadNote" xml:space="preserve">
+    <value>Vacuo'nun okuyamadığı yerler: Windows'un kendi dosyaları ve diğer kullanıcılar. Taşınamaz.</value>
+  </data>
+  <data name="DiskMapLock_System" xml:space="preserve">
+    <value>Windows'un ya da Vacuo'nun parçası; taşınamaz.</value>
+  </data>
+  <data name="DiskMapLock_Programs" xml:space="preserve">
+    <value>Programlar buradan taşınmaz; Programları kaldır ekranını kullan.</value>
+  </data>
+  <data name="DiskMapLock_KeepFolder" xml:space="preserve">
+    <value>Bu klasörün kendisi taşınamaz; içine girip seçebilirsin.</value>
+  </data>
+  <data name="DiskMapEnterFormat" xml:space="preserve">
+    <value>{0}, {1}, içine gir</value>
+  </data>
+  <data name="DiskMapItemFormat" xml:space="preserve">
+    <value>{0}, {1}</value>
+  </data>
+  <data name="DiskMapHoverFormat" xml:space="preserve">
+    <value>{0}: {1} (görünen alanın %{2})</value>
+  </data>
+  <data name="DiskMapSelectFormat" xml:space="preserve">
+    <value>{0} seç</value>
+  </data>
+  <data name="DiskMapUnselectFormat" xml:space="preserve">
+    <value>{0} seçimini kaldır</value>
+  </data>
+  <data name="DiskMapMoreFormat" xml:space="preserve">
+    <value>+{0} öğe</value>
+  </data>
+  <data name="DiskMapSelectedFormat" xml:space="preserve">
+    <value>Seçilen: {0} öğe, {1}</value>
+  </data>
+  <data name="DiskMapNothingSelected" xml:space="preserve">
+    <value>Henüz bir şey seçmedin.</value>
+  </data>
   <data name="DiskGrowthStarting" xml:space="preserve">
     <value>Disk geçmişi yeni başladı; yarından itibaren burada diskin ne kadar büyüdüğü görünür.</value>
   </data>
