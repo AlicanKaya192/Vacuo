@@ -474,6 +474,7 @@ public sealed partial class PanelWindow : Window
         Activate();
         _isOpen = true;
         _diskScreen?.SetWindowOpen(true);
+        _windowsScreen?.SetWindowOpen(true);
         if (_diskScans.IsStale)
         {
             RefreshDisk();
@@ -533,6 +534,7 @@ public sealed partial class PanelWindow : Window
         VoidCanvas.Paused = true;
         LogoGlowMotion.Stop();
         _diskScreen?.SetWindowOpen(false);
+        _windowsScreen?.SetWindowOpen(false);
         _updateScreen?.SetWindowOpen(false);
         _weekScreen?.SetWindowOpen(false);
         _memoryTimer.Stop();

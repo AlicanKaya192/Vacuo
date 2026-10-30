@@ -81,6 +81,9 @@ public sealed partial class WindowsView : UserControl
         Stage.Shutdown();
     }
 
+    /// <summary>The panel window was shown or hidden to the tray; a long cleanup keeps going, its animation does not.</summary>
+    internal void SetWindowOpen(bool open) => Stage.SetWindowOpen(open);
+
     /// <summary>Scans the temp folder and looks which administrator cleanups apply; only reads.</summary>
     internal async void Refresh()
     {
@@ -461,11 +464,19 @@ public sealed partial class WindowsView : UserControl
 
         AdminResult.Children.Clear();
         SetBusy(true, _localizer.Get("WindowsAdminRunning"));
-        // The administrator helper reports only when it is done, so the bar sweeps instead of filling.
+        // The administrator helper reports only when it is done, so the bar sweeps instead of filling
+        // and the planets creep in with no share under them (Aşama 3j).
         AdminProgress.ShowSweep();
+        Stage.BeginWithoutShare(_localizer.Get("WindowsAdminRunning"));
         try
         {
             IReadOnlyList<ElevatedResult> results = await Task.Run(() => admin.Run(_launcher, _runner));
+            // Nothing was cleaned: the planets do not go in as if it had been.
+            if (results.Any(result => result.Succeeded))
+            {
+                await Stage.FinishAsync();
+            }
+
             RenderAdmin();
             ShowAdminResults(results);
         }
@@ -481,6 +492,7 @@ public sealed partial class WindowsView : UserControl
         }
         finally
         {
+            Stage.Close();
             AdminProgress.Hide();
             SetBusy(false);
         }

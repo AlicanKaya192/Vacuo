@@ -91,6 +91,64 @@ public class CleanupPaceTests
         Assert.True(pace.IsDone);
     }
 
+    [Fact]
+    public void Without_reports_it_creeps_in_slowly()
+    {
+        var pace = new CleanupPace(Planets);
+        pace.ExpectNoReports();
+
+        pace.Advance(30);
+        double early = pace.Shown;
+        pace.Advance(30);
+
+        Assert.InRange(early, 0.1, 0.3);
+        Assert.True(pace.Shown > early);
+    }
+
+    // However long the work takes, the last of it is never shown before it is really over.
+    [Fact]
+    public void Without_reports_it_never_finishes_by_itself()
+    {
+        var pace = new CleanupPace(Planets);
+        pace.ExpectNoReports();
+
+        pace.Advance(1_000_000);
+
+        Assert.False(pace.IsDone);
+        Assert.True(pace.Shown < 6.0 / Planets);
+    }
+
+    [Fact]
+    public void Without_reports_many_small_steps_show_the_same_as_one_big_one()
+    {
+        var steps = new CleanupPace(Planets);
+        var once = new CleanupPace(Planets);
+        steps.ExpectNoReports();
+        once.ExpectNoReports();
+
+        for (int frame = 0; frame < 6000; frame++)
+        {
+            steps.Advance(0.01);
+        }
+
+        once.Advance(60);
+
+        Assert.Equal(once.Shown, steps.Shown, 1e-6);
+    }
+
+    [Fact]
+    public void Finish_after_no_reports_takes_it_all_the_way()
+    {
+        var pace = new CleanupPace(Planets);
+        pace.ExpectNoReports();
+        pace.Advance(30);
+
+        pace.Finish();
+        pace.Advance(10);
+
+        Assert.True(pace.IsDone);
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]

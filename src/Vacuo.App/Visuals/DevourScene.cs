@@ -117,6 +117,14 @@ internal sealed class DevourScene
         }
     }
 
+    public void ExpectNoReports()
+    {
+        lock (_gate)
+        {
+            _pace.ExpectNoReports();
+        }
+    }
+
     public void Finish()
     {
         lock (_gate)

@@ -42,6 +42,45 @@ public sealed partial class CleanupStage : UserControl
     /// <summary>Shows the stage; false when it does not play (animation effects off, or a contrast theme).</summary>
     internal bool Begin(string title)
     {
+        if (!Open(title))
+        {
+            return false;
+        }
+
+        ShowPercent(0);
+        PercentText.Visibility = Visibility.Visible;
+        // The share under the hole follows the scene, not the work, so the number and the planets agree.
+        _ticker = DispatcherQueue.CreateTimer();
+        _ticker.Interval = TimeSpan.FromMilliseconds(100);
+        _ticker.Tick += (_, _) => ShowPercent(_scene?.Shown ?? 0);
+        _ticker.Start();
+        return true;
+    }
+
+    /// <summary>For work that reports only when done: the planets creep in and no share is shown, as none is known.</summary>
+    internal bool BeginWithoutShare(string title)
+    {
+        if (!Open(title))
+        {
+            return false;
+        }
+
+        _scene!.ExpectNoReports();
+        PercentText.Visibility = Visibility.Collapsed;
+        return true;
+    }
+
+    /// <summary>The panel window was shown or hidden to the tray; the scene only moves while it is seen.</summary>
+    internal void SetWindowOpen(bool open)
+    {
+        if (_scene is not null)
+        {
+            Scene.Paused = !open;
+        }
+    }
+
+    private bool Open(string title)
+    {
         if (!_animationsEnabled || ContrastMode.IsOn)
         {
             return false;
@@ -50,14 +89,8 @@ public sealed partial class CleanupStage : UserControl
         _scene = new DevourScene();
         TitleText.Text = title;
         CountText.Text = string.Empty;
-        ShowPercent(0);
         Visibility = Visibility.Visible;
         Scene.Paused = false;
-        // The share under the hole follows the scene, not the work, so the number and the planets agree.
-        _ticker = DispatcherQueue.CreateTimer();
-        _ticker.Interval = TimeSpan.FromMilliseconds(100);
-        _ticker.Tick += (_, _) => ShowPercent(_scene?.Shown ?? 0);
-        _ticker.Start();
         return true;
     }
 
