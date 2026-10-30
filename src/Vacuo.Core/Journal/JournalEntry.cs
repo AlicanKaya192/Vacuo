@@ -9,6 +9,7 @@ public enum JournalBatchKind
     Duplicates,
     Leftovers,
     Maintenance,
+    DiskMap,
 }
 
 /// <summary>

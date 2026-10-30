@@ -35,4 +35,18 @@ public sealed class FolderNode
     internal void Add(FolderNode child) => (_children ??= []).Add(child);
 
     internal void SortChildren() => _children?.Sort((left, right) => right.Bytes.CompareTo(left.Bytes));
+
+    internal bool IsDetached { get; private set; }
+
+    /// <summary>Takes this node off the tree, and its bytes off every parent, after it moved away.</summary>
+    internal void Detach()
+    {
+        Parent?._children?.Remove(this);
+        for (FolderNode? parent = Parent; parent is not null; parent = parent.Parent)
+        {
+            parent.Bytes -= Bytes;
+        }
+
+        IsDetached = true;
+    }
 }
