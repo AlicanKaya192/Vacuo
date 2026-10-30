@@ -834,6 +834,18 @@
   <data name="DiskCategoriesTitle" xml:space="preserve">
     <value>Kullanılan alan nereye gidiyor</value>
   </data>
+  <data name="DiskGrowthStarting" xml:space="preserve">
+    <value>Disk geçmişi yeni başladı; yarından itibaren burada diskin ne kadar büyüdüğü görünür.</value>
+  </data>
+  <data name="DiskGrowthOneDayFormat" xml:space="preserve">
+    <value>Son 1 günde {0}</value>
+  </data>
+  <data name="DiskGrowthDaysFormat" xml:space="preserve">
+    <value>Son {0} günde {1}</value>
+  </data>
+  <data name="DiskGrowthWithFoldersFormat" xml:space="preserve">
+    <value>{0}; en çok büyüyen: {1}.</value>
+  </data>
   <data name="DiskCategoriesHintFormat" xml:space="preserve">
     <value>Taramanın bulduğu her şey kendi kovasına akar; geri kalanı “{0}” kovasında durur.</value>
   </data>

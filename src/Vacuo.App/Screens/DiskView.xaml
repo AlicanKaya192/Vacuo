@@ -54,6 +54,10 @@
 
         <ScrollViewer x:Name="ListScroller" Grid.Row="2" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="14" Padding="0,0,12,0">
+                <!-- How the drive changed over the last days (Aşama 3g, dilim 2). -->
+                <TextBlock x:Name="GrowthLine"
+                           Style="{StaticResource CardBodyStyle}"
+                           Visibility="Collapsed" />
                 <!-- Where the used space goes (Aşama 3d A, dilim 2): categories flowing into the buckets. -->
                 <StackPanel>
                     <TextBlock x:Name="CategoriesTitle" Style="{StaticResource CardTitleStyle}" />

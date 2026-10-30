@@ -30,11 +30,31 @@ internal static class DiskTexts
 
     public static string UndoFailure(Localizer localizer, UndoFailureReason reason) => localizer.Get($"UndoFailure_{reason}");
 
-    // "tools\__pycache__" says more than "__pycache__" alone, and still fits on a small label.
-    public static string ShortName(string path) =>
-        Path.Join(Path.GetFileName(Path.GetDirectoryName(path)), Path.GetFileName(path));
+    public static string ShortName(string path) => PathNames.Short(path);
 
     public static string Size(Localizer localizer, long bytes) => ByteSizeFormatter.Format(bytes, localizer.Culture);
+
+    /// <summary>The Disk screen's line: how the drive changed and which folders grew most; null until two days compare.</summary>
+    public static string Growth(Localizer localizer, DiskGrowth? growth)
+    {
+        if (growth is null)
+        {
+            return localizer.Get("DiskGrowthStarting");
+        }
+
+        string change = ByteSizeFormatter.FormatChange(growth.ChangeBytes, localizer.Culture);
+        string period = growth.Days == 1
+            ? localizer.Format("DiskGrowthOneDayFormat", change)
+            : localizer.Format("DiskGrowthDaysFormat", growth.Days, change);
+        if (growth.Folders.Count == 0)
+        {
+            return period + ".";
+        }
+
+        IEnumerable<string> folders = growth.Folders.Select(folder =>
+            $"{ShortName(folder.Path)} ({ByteSizeFormatter.FormatChange(folder.GrownBytes, localizer.Culture)})");
+        return localizer.Format("DiskGrowthWithFoldersFormat", period, string.Join(", ", folders));
+    }
 
     /// <summary>What a move ended with, in the same words the screens show: how much was moved, how many could not be.</summary>
     public static string Outcome(Localizer localizer, MoveOutcome outcome)

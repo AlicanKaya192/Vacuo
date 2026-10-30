@@ -1,3 +1,4 @@
+using Vacuo.Core.Disk;
 using Vacuo.Core.Maintenance;
 using Vacuo.Core.Notices;
 using Vacuo.Core.Organize;
@@ -80,6 +81,28 @@ public class NoticeTextsTests
         Assert.Equal(title, text.Title);
         Assert.Contains(left, text.Body);
         Assert.Contains(language == "tr-TR" ? "Tıkla" : "Click", text.Body);
+    }
+
+    [Theory]
+    [InlineData("tr-TR", @"En çok büyüyen: Someone\Downloads (+2,0 GB).")]
+    [InlineData("en-US", @"Grew the most: Someone\Downloads (+2.0 GB).")]
+    public void LowDisk_WithHistory_NamesTheFolderThatGrewMost(string language, string sentence)
+    {
+        var grewMost = new FolderGrowth(@"C:\Users\Someone\Downloads", 2L << 30);
+
+        NoticeText text = NoticeTexts.ForLowDisk(9_126_805_504, "C:", language, grewMost);
+
+        Assert.Contains(sentence, text.Body);
+    }
+
+    [Theory]
+    [InlineData("tr-TR", "büyüyen")]
+    [InlineData("en-US", "Grew")]
+    public void LowDisk_WithoutHistory_NamesNoFolder(string language, string word)
+    {
+        NoticeText text = NoticeTexts.ForLowDisk(9_126_805_504, "C:", language);
+
+        Assert.DoesNotContain(word, text.Body);
     }
 
     // The helper names the Desktop folders itself; they must be the ones Düzen makes in the panel.

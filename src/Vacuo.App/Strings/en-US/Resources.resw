@@ -834,6 +834,18 @@
   <data name="DiskCategoriesTitle" xml:space="preserve">
     <value>Where the used space goes</value>
   </data>
+  <data name="DiskGrowthStarting" xml:space="preserve">
+    <value>The disk history has just started; from tomorrow, this line shows how much the disk has grown.</value>
+  </data>
+  <data name="DiskGrowthOneDayFormat" xml:space="preserve">
+    <value>In the last day: {0}</value>
+  </data>
+  <data name="DiskGrowthDaysFormat" xml:space="preserve">
+    <value>In the last {0} days: {1}</value>
+  </data>
+  <data name="DiskGrowthWithFoldersFormat" xml:space="preserve">
+    <value>{0}; grew the most: {1}.</value>
+  </data>
   <data name="DiskCategoriesHintFormat" xml:space="preserve">
     <value>Everything the scan found flows into its bucket; the rest stays in “{0}”.</value>
   </data>

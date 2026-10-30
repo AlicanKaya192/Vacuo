@@ -30,4 +30,16 @@ public static class ByteSizeFormatter
 
         return string.Create(culture, $"{value:0.0} {UnitsAboveBytes[unitIndex]}");
     }
+
+    /// <summary>A size that went up or down: "+2,0 GB", "−2,0 GB"; no change has no sign.</summary>
+    public static string FormatChange(long bytes, CultureInfo culture)
+    {
+        string size = Format(Math.Abs(bytes), culture);
+        return bytes switch
+        {
+            > 0 => "+" + size,
+            < 0 => "−" + size,
+            _ => size,
+        };
+    }
 }

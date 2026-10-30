@@ -101,6 +101,12 @@ public sealed partial class DiskView : UserControl
         BuildFlow();
     }
 
+    internal void ShowGrowth(string line)
+    {
+        GrowthLine.Text = line;
+        GrowthLine.Visibility = Visibility.Visible;
+    }
+
     internal void ShowScanning() => ShowMessage(_localizer.Get("DiskScanning"));
 
     internal void ShowMessage(string message)

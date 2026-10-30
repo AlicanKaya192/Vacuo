@@ -55,4 +55,22 @@ public class ByteSizeFormatterTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => ByteSizeFormatter.Format(-1, English));
     }
+
+    [Fact]
+    public void FormatChange_Growth_HasAPlus()
+    {
+        Assert.Equal("+2,0 GB", ByteSizeFormatter.FormatChange(2L << 30, Turkish));
+    }
+
+    [Fact]
+    public void FormatChange_Shrinking_HasAMinus()
+    {
+        Assert.Equal("−2.0 GB", ByteSizeFormatter.FormatChange(-(2L << 30), English));
+    }
+
+    [Fact]
+    public void FormatChange_NoChange_HasNoSign()
+    {
+        Assert.Equal("0 B", ByteSizeFormatter.FormatChange(0, English));
+    }
 }

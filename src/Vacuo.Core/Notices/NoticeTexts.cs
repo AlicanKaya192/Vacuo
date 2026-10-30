@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vacuo.Core.Disk;
 using Vacuo.Core.Formatting;
 using Vacuo.Core.Maintenance;
 using Vacuo.Core.Organize;
@@ -27,6 +28,7 @@ public static class NoticeTexts
         MemoryBody: "Programlar yavaşlayabilir. Kullanmadığın programları kapatmak bellek açar; Vacuo hiçbir şeyi kendiliğinden kapatmaz.",
         DiskTitle: "Disk dolmak üzere",
         DiskBody: "{0} sürücüsünde {1} boş yer kaldı. Tıkla, neyin yer kapladığını Disk ekranında gör.",
+        DiskGrewMost: "En çok büyüyen: {0} ({1}).",
         Kinds: new Dictionary<FileKind, string>
         {
             [FileKind.Documents] = "Belgeler",
@@ -49,6 +51,7 @@ public static class NoticeTexts
         MemoryBody: "Programs may slow down. Closing the ones you are not using frees memory; Vacuo never closes anything by itself.",
         DiskTitle: "The disk is almost full",
         DiskBody: "{1} free is left on {0}. Click to see on the Disk screen what takes up the space.",
+        DiskGrewMost: "Grew the most: {0} ({1}).",
         Kinds: new Dictionary<FileKind, string>
         {
             [FileKind.Documents] = "Documents",
@@ -96,11 +99,19 @@ public static class NoticeTexts
         return new NoticeText(words.MemoryTitle, words.MemoryBody);
     }
 
-    public static NoticeText ForLowDisk(long freeBytes, string drive, string language)
+    /// <summary><paramref name="grewMost"/> is known only once there is a disk history to compare.</summary>
+    public static NoticeText ForLowDisk(long freeBytes, string drive, string language, FolderGrowth? grewMost = null)
     {
         Words words = WordsFor(language);
         CultureInfo culture = CultureInfo.GetCultureInfo(language);
-        return new NoticeText(words.DiskTitle, string.Format(culture, words.DiskBody, drive, ByteSizeFormatter.Format(freeBytes, culture)));
+        string body = string.Format(culture, words.DiskBody, drive, ByteSizeFormatter.Format(freeBytes, culture));
+        if (grewMost is not null)
+        {
+            string grew = ByteSizeFormatter.FormatChange(grewMost.GrownBytes, culture);
+            body += " " + string.Format(culture, words.DiskGrewMost, PathNames.Short(grewMost.Path), grew);
+        }
+
+        return new NoticeText(words.DiskTitle, body);
     }
 
     public static string DesktopFolderName(FileKind kind, string language) => WordsFor(language).Kinds[kind];
@@ -118,5 +129,6 @@ public static class NoticeTexts
         string MemoryBody,
         string DiskTitle,
         string DiskBody,
+        string DiskGrewMost,
         IReadOnlyDictionary<FileKind, string> Kinds);
 }

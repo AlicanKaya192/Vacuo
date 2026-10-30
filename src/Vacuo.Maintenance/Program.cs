@@ -1,5 +1,6 @@
 using System.Globalization;
 using Vacuo.Core.Actions;
+using Vacuo.Core.Disk;
 using Vacuo.Core.Hosting;
 using Vacuo.Core.Journal;
 using Vacuo.Core.Maintenance;
@@ -50,7 +51,7 @@ internal static class Program
             // Read again here: the tray's reading may be a few seconds old.
             if (SystemDrive.Read() is { } drive)
             {
-                Tell(NoticeTexts.ForLowDisk(drive.AvailableFreeSpace, SystemDrive.NameOf(drive), language), settings.Sound, OpenDiskInPanel);
+                Tell(NoticeTexts.ForLowDisk(drive.AvailableFreeSpace, SystemDrive.NameOf(drive), language, GrewMost()), settings.Sound, OpenDiskInPanel);
             }
 
             return Done;
@@ -89,6 +90,12 @@ internal static class Program
         MaintenanceSummary summary = outcome.Summary with { Organized = organized };
         state.SaveRun(started, summary);
 
+        // A trial with --root says nothing about the real drive; a user who is back should not wait on the disk.
+        if (root is null && !outcome.Stopped)
+        {
+            RecordDiskHistory(DateOnly.FromDateTime(started.LocalDateTime));
+        }
+
         if (NoticeTexts.ForMaintenance(summary, language) is { } notice)
         {
             // Stopped means the user is already back.
@@ -99,6 +106,24 @@ internal static class Program
         }
 
         return Done;
+    }
+
+    // Gives the disk history its days even when the Disk screen stays closed (Aşama 3g dilim 2).
+    private static void RecordDiskHistory(DateOnly today)
+    {
+        if (SystemDrive.Read() is not { } drive)
+        {
+            return;
+        }
+
+        IReadOnlyList<CategorySize> sizes = CategorySizer.Measure(CategoryRoots.ForThisMachine());
+        new DiskHistoryStore(DiskHistoryStore.DefaultPath).Record(DiskSnapshot.From(today, drive.TotalSize - drive.AvailableFreeSpace, sizes));
+    }
+
+    private static FolderGrowth? GrewMost()
+    {
+        DiskHistory history = new DiskHistoryStore(DiskHistoryStore.DefaultPath).Load();
+        return DiskGrowth.From(history, DateOnly.FromDateTime(DateTime.Now))?.Folders.FirstOrDefault();
     }
 
     /// <summary>Düzen's "by type" on the Desktop, as its own Journal batch; the folder names are the panel's.</summary>

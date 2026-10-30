@@ -1399,6 +1399,7 @@ public sealed partial class PanelWindow : Window
         if (categories is not null)
         {
             disk.ShowCategories(DiskFlow.From(categories));
+            disk.ShowGrowth(DiskTexts.Growth(_localizer, _diskScans.Growth));
         }
         else
         {

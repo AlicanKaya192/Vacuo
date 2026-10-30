@@ -1,4 +1,5 @@
 using Vacuo.Core.Disk;
+using Vacuo.Core.Notices;
 using Vacuo.Core.Scanning;
 
 namespace Vacuo.App.Screens;
@@ -14,12 +15,15 @@ internal sealed class DiskScanCache(TimeProvider time)
     private static readonly TimeSpan MaxAge = TimeSpan.FromMinutes(5);
 
     private Task<ScanSummary>? _running;
-    private Task<IReadOnlyList<CategorySize>>? _measuring;
+    private Task<(IReadOnlyList<CategorySize> Sizes, DiskGrowth? Growth)>? _measuring;
     private DateTimeOffset _scannedAt = DateTimeOffset.MinValue;
 
     public ScanSummary? Latest { get; private set; }
 
     public IReadOnlyList<CategorySize>? CategorySizes { get; private set; }
+
+    /// <summary>From the disk history; null until two different days can be compared.</summary>
+    public DiskGrowth? Growth { get; private set; }
 
     public bool IsStale => Latest is null || time.GetUtcNow() - _scannedAt > MaxAge;
 
@@ -49,13 +53,16 @@ internal sealed class DiskScanCache(TimeProvider time)
         }
     }
 
-    /// <summary>Starts measuring the categories, or joins the measurement already running. Only reads.</summary>
+    /// <summary>
+    /// Starts measuring the categories, or joins the measurement already running. The folders are only read;
+    /// the only thing written is the reading, to the disk history.
+    /// </summary>
     public async Task MeasureCategoriesAsync()
     {
-        _measuring ??= Task.Run(() => CategorySizer.Measure(CategoryRoots.ForThisMachine()));
+        _measuring ??= Task.Run(MeasureAndRecord);
         try
         {
-            CategorySizes = await _measuring;
+            (CategorySizes, Growth) = await _measuring;
         }
         finally
         {
@@ -66,6 +73,17 @@ internal sealed class DiskScanCache(TimeProvider time)
     /// <summary>The used space by category with the latest scan's flows; null until both are in.</summary>
     public DiskCategories? Categories(long usedBytes) =>
         Latest is not null && CategorySizes is not null ? DiskCategories.From(CategorySizes, Latest, usedBytes) : null;
+
+    private (IReadOnlyList<CategorySize> Sizes, DiskGrowth? Growth) MeasureAndRecord()
+    {
+        IReadOnlyList<CategorySize> sizes = CategorySizer.Measure(CategoryRoots.ForThisMachine());
+        DateOnly today = DateOnly.FromDateTime(time.GetLocalNow().DateTime);
+        var store = new DiskHistoryStore(DiskHistoryStore.DefaultPath);
+        DiskHistory history = SystemDrive.Read() is { } drive
+            ? store.Record(DiskSnapshot.From(today, drive.TotalSize - drive.AvailableFreeSpace, sizes))
+            : store.Load();
+        return (sizes, DiskGrowth.From(history, today));
+    }
 
     private static ScanSummary ScanUserFolders()
     {
