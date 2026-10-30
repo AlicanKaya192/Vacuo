@@ -29,7 +29,9 @@ internal static class FileSystemWalk
     }
 
     /// <summary>Junctions and symbolic links point elsewhere; scanning never follows or counts them.</summary>
-    public static bool IsLink(FileSystemInfo entry) => entry.Attributes.HasFlag(FileAttributes.ReparsePoint);
+    public static bool IsLink(FileSystemInfo entry) => IsLink(entry.Attributes);
+
+    public static bool IsLink(FileAttributes attributes) => attributes.HasFlag(FileAttributes.ReparsePoint);
 
     // FILE_ATTRIBUTE_RECALL_ON_OPEN and FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS have no .NET names.
     private const FileAttributes NotOnThisDisk = FileAttributes.Offline | (FileAttributes)0x40000 | (FileAttributes)0x400000;
@@ -38,5 +40,7 @@ internal static class FileSystemWalk
     /// False for OneDrive's online-only placeholders: their content is not on this disk, and
     /// reading it would download the file.
     /// </summary>
-    public static bool IsOnThisDisk(FileInfo file) => (file.Attributes & NotOnThisDisk) == 0;
+    public static bool IsOnThisDisk(FileInfo file) => IsOnThisDisk(file.Attributes);
+
+    public static bool IsOnThisDisk(FileAttributes attributes) => (attributes & NotOnThisDisk) == 0;
 }
