@@ -19,6 +19,18 @@ public sealed record DiskHistory(IReadOnlyList<DiskSnapshot> Snapshots)
 
     public static DiskHistory Empty { get; } = new([]);
 
+    /// <summary>The readings in the window ending today, oldest first; for a day read twice, the later one.</summary>
+    public IReadOnlyList<DiskSnapshot> ReadingsUpTo(DateOnly today)
+    {
+        DateOnly oldest = today.AddDays(-DaysKept);
+        return Snapshots
+            .Where(snapshot => snapshot.Day >= oldest && snapshot.Day <= today)
+            .GroupBy(snapshot => snapshot.Day)
+            .Select(day => day.Last())
+            .OrderBy(snapshot => snapshot.Day)
+            .ToList();
+    }
+
     /// <summary>Days after the new one go too: the clock was set back, and they would never age out.</summary>
     public DiskHistory Recorded(DiskSnapshot snapshot)
     {

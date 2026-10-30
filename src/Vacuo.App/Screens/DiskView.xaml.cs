@@ -53,6 +53,8 @@ public sealed partial class DiskView : UserControl
 
     internal event EventHandler? MapRequested;
 
+    internal event EventHandler? TimelineRequested;
+
     /// <summary>Raised after a move with the paths that went to the Recycle Bin.</summary>
     internal event EventHandler<IReadOnlyList<string>>? Moved;
 
@@ -67,6 +69,7 @@ public sealed partial class DiskView : UserControl
         RescanButton.Content = localizer.Get("DiskRescanButton");
         JournalButton.Content = localizer.Get("DiskJournalButton");
         MapButton.Content = localizer.Get("DiskMapTitle");
+        TimelineButton.Content = localizer.Get("DiskTimelineTitle");
         MoveButton.Content = localizer.Get("DiskMoveButton");
         MovedNote.Text = localizer.Get("DiskMovedNote");
         CategoriesTitle.Text = localizer.Get("DiskCategoriesTitle");
@@ -105,10 +108,12 @@ public sealed partial class DiskView : UserControl
         BuildFlow();
     }
 
-    internal void ShowGrowth(string line)
+    /// <param name="canCompare">Whether two days of readings exist, so the timeline has something to say.</param>
+    internal void ShowGrowth(string line, bool canCompare)
     {
         GrowthLine.Text = line;
-        GrowthLine.Visibility = Visibility.Visible;
+        GrowthRow.Visibility = Visibility.Visible;
+        TimelineButton.Visibility = canCompare ? Visibility.Visible : Visibility.Collapsed;
     }
 
     internal void ShowScanning() => ShowMessage(_localizer.Get("DiskScanning"));
@@ -551,4 +556,6 @@ public sealed partial class DiskView : UserControl
     private void OnJournalClick(object sender, RoutedEventArgs e) => JournalRequested?.Invoke(this, EventArgs.Empty);
 
     private void OnMapClick(object sender, RoutedEventArgs e) => MapRequested?.Invoke(this, EventArgs.Empty);
+
+    private void OnTimelineClick(object sender, RoutedEventArgs e) => TimelineRequested?.Invoke(this, EventArgs.Empty);
 }

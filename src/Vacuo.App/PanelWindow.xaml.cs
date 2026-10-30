@@ -128,6 +128,7 @@ public sealed partial class PanelWindow : Window
     private DriversView? _driversScreen;
     private DuplicatesView? _duplicatesScreen;
     private DiskMapView? _diskMapScreen;
+    private DiskTimelineView? _diskTimelineScreen;
     private UninstallView? _uninstallScreen;
     private JournalView? _journalScreen;
     private WeekView? _weekScreen;
@@ -337,6 +338,7 @@ public sealed partial class PanelWindow : Window
         _driversScreen = null;
         _duplicatesScreen = null;
         _diskMapScreen = null;
+        _diskTimelineScreen = null;
         _uninstallScreen = null;
         _journalScreen = null;
         _weekScreen = null;
@@ -776,6 +778,7 @@ public sealed partial class PanelWindow : Window
         disk.RescanRequested += (_, _) => RefreshDisk();
         disk.JournalRequested += (_, _) => ShowJournal(disk);
         disk.MapRequested += (_, _) => SwitchBetweenDiskScreens(disk, EnsureDiskMapScreen(), "disk-map-shown");
+        disk.TimelineRequested += (_, _) => ShowDiskTimeline(disk);
         disk.Moved += (_, paths) =>
         {
             _diskScans.Forget(paths);
@@ -894,6 +897,28 @@ public sealed partial class PanelWindow : Window
         map.JournalRequested += (_, _) => ShowJournal(map);
         map.Moved += (_, _) => RefreshDisk();
         return _diskMapScreen = map;
+    }
+
+    private DiskTimelineView EnsureDiskTimelineScreen()
+    {
+        if (_diskTimelineScreen is not null)
+        {
+            return _diskTimelineScreen;
+        }
+
+        var timeline = AddScreen(new DiskTimelineView());
+        timeline.Initialize(_localizer);
+        timeline.BackRequested += (_, _) => SwitchBetweenDiskScreens(timeline, EnsureDiskScreen(), "disk-timeline-back-shown");
+        return _diskTimelineScreen = timeline;
+    }
+
+    // The history is read off the UI thread and the screen filled before it appears; only reads.
+    private async void ShowDiskTimeline(DiskView disk)
+    {
+        DiskTimelineView screen = EnsureDiskTimelineScreen();
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+        screen.Show(await Task.Run(() => DiskTimeline.From(new DiskHistoryStore(DiskHistoryStore.DefaultPath).Load(), today)));
+        SwitchBetweenDiskScreens(disk, screen, "disk-timeline-shown");
     }
 
     // The map opens from the Disk screen and goes back to it, in the same window.
@@ -1101,7 +1126,7 @@ public sealed partial class PanelWindow : Window
 
     // Screens not created yet are skipped.
     private UserControl[] LoadedScreens() =>
-        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _driversScreen, _duplicatesScreen, _diskMapScreen, _uninstallScreen, _journalScreen, _updateScreen, _weekScreen }
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _driversScreen, _duplicatesScreen, _diskMapScreen, _diskTimelineScreen, _uninstallScreen, _journalScreen, _updateScreen, _weekScreen }
             .OfType<UserControl>().ToArray();
 
     private void ShowDiskScreen()
@@ -1492,7 +1517,7 @@ public sealed partial class PanelWindow : Window
         if (categories is not null)
         {
             disk.ShowCategories(DiskFlow.From(categories));
-            disk.ShowGrowth(DiskTexts.Growth(_localizer, _diskScans.Growth));
+            disk.ShowGrowth(DiskTexts.Growth(_localizer, _diskScans.Growth), canCompare: _diskScans.Growth is not null);
         }
         else
         {

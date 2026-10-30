@@ -1483,4 +1483,37 @@ Windows sekmesinde yönetici izniyle yapılan temizlik kalıcıdır. Kaldırıla
   <data name="DriversReadFailedFormat" xml:space="preserve">
     <value>Sürücü bilgisi okunamadı: {0}</value>
   </data>
+  <data name="DiskTimelineTitle" xml:space="preserve">
+    <value>Neden doldu?</value>
+  </data>
+  <data name="DiskTimelineLargestFormat" xml:space="preserve">
+    <value>En çok büyüdüğü dönem: {0} ({1})</value>
+  </data>
+  <data name="DiskTimelineQuiet" xml:space="preserve">
+    <value>Belirgin değişiklik yok</value>
+  </data>
+  <data name="DiskTimelineDayFormat" xml:space="preserve">
+    <value>d MMMM</value>
+  </data>
+  <data name="DiskTimelineRangeFromFormat" xml:space="preserve">
+    <value>%d</value>
+  </data>
+  <data name="DiskTimelineRangeToFormat" xml:space="preserve">
+    <value>d MMMM</value>
+  </data>
+  <data name="DiskTimelineBetweenFormat" xml:space="preserve">
+    <value>{0} arasında</value>
+  </data>
+  <data name="DiskTimelineShrankFormat" xml:space="preserve">
+    <value>Azalan: {0}</value>
+  </data>
+  <data name="DiskTimelineOutsideFormat" xml:space="preserve">
+    <value>Ölçülen klasörlerin dışı {0}</value>
+  </data>
+  <data name="DiskTimelineNoteTitle" xml:space="preserve">
+    <value>Bu ekran neyi bilir?</value>
+  </data>
+  <data name="DiskTimelineNote" xml:space="preserve">
+    <value>Vacuo yalnızca Disk ekranı açılınca ya da Otomatik Bakım çalışınca ölçer; aradaki günler tek dönem görünür. Hangi klasörün büyüdüğünü bilir, dosyanın neden geldiğini bilemez. 100 MB'ın altındaki klasör değişimleri listelenmez. Ölçümler 30 gün tutulur ve bu bilgisayardan çıkmaz.</value>
+  </data>
 </root>

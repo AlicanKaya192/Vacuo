@@ -1483,4 +1483,37 @@ Keeping backups of your important files is up to you.</value>
   <data name="DriversReadFailedFormat" xml:space="preserve">
     <value>Could not read the driver information: {0}</value>
   </data>
+  <data name="DiskTimelineTitle" xml:space="preserve">
+    <value>Why is it full?</value>
+  </data>
+  <data name="DiskTimelineLargestFormat" xml:space="preserve">
+    <value>The period it grew most: {0} ({1})</value>
+  </data>
+  <data name="DiskTimelineQuiet" xml:space="preserve">
+    <value>No noticeable change</value>
+  </data>
+  <data name="DiskTimelineDayFormat" xml:space="preserve">
+    <value>MMMM d</value>
+  </data>
+  <data name="DiskTimelineRangeFromFormat" xml:space="preserve">
+    <value>MMMM d</value>
+  </data>
+  <data name="DiskTimelineRangeToFormat" xml:space="preserve">
+    <value>%d</value>
+  </data>
+  <data name="DiskTimelineBetweenFormat" xml:space="preserve">
+    <value>Between {0}</value>
+  </data>
+  <data name="DiskTimelineShrankFormat" xml:space="preserve">
+    <value>Shrank: {0}</value>
+  </data>
+  <data name="DiskTimelineOutsideFormat" xml:space="preserve">
+    <value>Outside the measured folders {0}</value>
+  </data>
+  <data name="DiskTimelineNoteTitle" xml:space="preserve">
+    <value>What this screen knows</value>
+  </data>
+  <data name="DiskTimelineNote" xml:space="preserve">
+    <value>Vacuo measures only when the Disk screen opens or Automatic Maintenance runs; the days between show as one period. It knows which folder grew, not why a file came. Folders that changed by less than 100 MB are not listed. Readings are kept for 30 days and never leave this computer.</value>
+  </data>
 </root>

@@ -42,10 +42,7 @@ internal static class DiskTexts
             return localizer.Get("DiskGrowthStarting");
         }
 
-        string change = ByteSizeFormatter.FormatChange(growth.ChangeBytes, localizer.Culture);
-        string period = growth.Days == 1
-            ? localizer.Format("DiskGrowthOneDayFormat", change)
-            : localizer.Format("DiskGrowthDaysFormat", growth.Days, change);
+        string period = GrowthPeriod(localizer, growth.Days, growth.ChangeBytes);
         if (growth.Folders.Count == 0)
         {
             return period + ".";
@@ -54,6 +51,77 @@ internal static class DiskTexts
         IEnumerable<string> folders = growth.Folders.Select(folder =>
             $"{ShortName(folder.Path)} ({ByteSizeFormatter.FormatChange(folder.GrownBytes, localizer.Culture)})");
         return localizer.Format("DiskGrowthWithFoldersFormat", period, string.Join(", ", folders));
+    }
+
+    private static string GrowthPeriod(Localizer localizer, int days, long changeBytes)
+    {
+        string change = Change(localizer, changeBytes);
+        return days == 1
+            ? localizer.Format("DiskGrowthOneDayFormat", change)
+            : localizer.Format("DiskGrowthDaysFormat", days, change);
+    }
+
+    private static string Change(Localizer localizer, long bytes) => ByteSizeFormatter.FormatChange(bytes, localizer.Culture);
+
+    /// <summary>"The period it grew most: October 27–30 (+4.1 GB)"; only when a step grew noticeably.</summary>
+    public static string TimelineLargest(Localizer localizer, DiskTimeline timeline) => timeline.Largest is { } largest
+        ? localizer.Format("DiskTimelineLargestFormat", TimelineDates(localizer, largest), Change(localizer, largest.ChangeBytes))
+        : string.Empty;
+
+    public static string TimelineTotal(Localizer localizer, DiskTimeline timeline) =>
+        GrowthPeriod(localizer, timeline.Days, timeline.TotalBytes);
+
+    /// <summary>A day alone is that day; a step over several days says only that it happened between them.</summary>
+    public static string TimelinePeriod(Localizer localizer, DiskTimelineStep step) => step.IsOneDay
+        ? TimelineDates(localizer, step)
+        : localizer.Format("DiskTimelineBetweenFormat", TimelineDates(localizer, step));
+
+    public static string TimelineChange(Localizer localizer, DiskTimelineStep step) => step.IsNoticeable
+        ? Change(localizer, step.ChangeBytes)
+        : localizer.Get("DiskTimelineQuiet");
+
+    /// <summary>The folders that grew on one line; what shrank and what no known folder explains on the next.</summary>
+    public static IEnumerable<string> TimelineFolders(Localizer localizer, DiskTimelineStep step)
+    {
+        if (step.Grew.Count > 0)
+        {
+            yield return string.Join(" · ", step.Grew.Select(folder => FolderChangeText(localizer, folder)));
+        }
+
+        var others = new List<string>();
+        if (step.Shrank is { } shrank)
+        {
+            others.Add(localizer.Format("DiskTimelineShrankFormat", FolderChangeText(localizer, shrank)));
+        }
+
+        if (Math.Abs(step.OutsideBytes) >= DiskTimeline.NoticeableBytes)
+        {
+            others.Add(localizer.Format("DiskTimelineOutsideFormat", Change(localizer, step.OutsideBytes)));
+        }
+
+        if (others.Count > 0)
+        {
+            yield return string.Join(" · ", others);
+        }
+    }
+
+    private static string FolderChangeText(Localizer localizer, FolderChange folder) =>
+        $"{ShortName(folder.Path)} {Change(localizer, folder.Bytes)}";
+
+    // "27–30 Ekim" and "October 27–30" put the month on opposite ends, so the day and month forms come from the .resw.
+    private static string TimelineDates(Localizer localizer, DiskTimelineStep step)
+    {
+        string day = localizer.Get("DiskTimelineDayFormat");
+        if (step.IsOneDay)
+        {
+            return step.To.ToString(day, localizer.Culture);
+        }
+
+        return step.From.Month == step.To.Month && step.From.Year == step.To.Year
+            ? step.From.ToString(localizer.Get("DiskTimelineRangeFromFormat"), localizer.Culture)
+                + "–"
+                + step.To.ToString(localizer.Get("DiskTimelineRangeToFormat"), localizer.Culture)
+            : step.From.ToString(day, localizer.Culture) + " – " + step.To.ToString(day, localizer.Culture);
     }
 
     /// <summary>What a move ended with, in the same words the screens show: how much was moved, how many could not be.</summary>

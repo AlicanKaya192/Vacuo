@@ -13,12 +13,8 @@ public sealed record DiskGrowth(int Days, long ChangeBytes, IReadOnlyList<Folder
     /// <summary>Null until two different days in the window can be compared.</summary>
     public static DiskGrowth? From(DiskHistory history, DateOnly today)
     {
-        DateOnly oldest = today.AddDays(-DiskHistory.DaysKept);
-        List<DiskSnapshot> readings = history.Snapshots
-            .Where(snapshot => snapshot.Day >= oldest && snapshot.Day <= today)
-            .OrderBy(snapshot => snapshot.Day)
-            .ToList();
-        if (readings.Count == 0 || readings[0].Day == readings[^1].Day)
+        IReadOnlyList<DiskSnapshot> readings = history.ReadingsUpTo(today);
+        if (readings.Count < 2)
         {
             return null;
         }
