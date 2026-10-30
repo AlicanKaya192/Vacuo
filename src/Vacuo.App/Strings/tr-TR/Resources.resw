@@ -1516,4 +1516,31 @@ Windows sekmesinde yönetici izniyle yapılan temizlik kalıcıdır. Kaldırıla
   <data name="DiskTimelineNote" xml:space="preserve">
     <value>Vacuo yalnızca Disk ekranı açılınca ya da Otomatik Bakım çalışınca ölçer; aradaki günler tek dönem görünür. Hangi klasörün büyüdüğünü bilir, dosyanın neden geldiğini bilemez. 100 MB'ın altındaki klasör değişimleri listelenmez. Ölçümler 30 gün tutulur ve bu bilgisayardan çıkmaz.</value>
   </data>
+  <data name="OrganizeReminderNote" xml:space="preserve">
+    <value>Hatırlat: zamanı gelince Vacuo yalnızca sorar, sen onaylamadan hiçbir şey taşınmaz.</value>
+  </data>
+  <data name="OrganizeReminderOff" xml:space="preserve">
+    <value>Kapalı</value>
+  </data>
+  <data name="OrganizeEvery_Weekly" xml:space="preserve">
+    <value>Haftada bir</value>
+  </data>
+  <data name="OrganizeEvery_Monthly" xml:space="preserve">
+    <value>Ayda bir</value>
+  </data>
+  <data name="OrganizeRemindersTitle" xml:space="preserve">
+    <value>Düzenli hatırlatmalar</value>
+  </data>
+  <data name="OrganizeReminderMissing" xml:space="preserve">
+    <value>Klasör bulunamadı</value>
+  </data>
+  <data name="OrganizeReminderRemove" xml:space="preserve">
+    <value>Kaldır</value>
+  </data>
+  <data name="OrganizeReminderRemoveNameFormat" xml:space="preserve">
+    <value>{0} hatırlatmasını kaldır</value>
+  </data>
+  <data name="OrganizeReminderFailedFormat" xml:space="preserve">
+    <value>Hatırlatma kaydedilemedi: {0}</value>
+  </data>
 </root>

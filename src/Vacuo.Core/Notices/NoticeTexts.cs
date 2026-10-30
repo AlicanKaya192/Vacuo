@@ -29,6 +29,11 @@ public static class NoticeTexts
         DiskTitle: "Disk dolmak üzere",
         DiskBody: "{0} sürücüsünde {1} boş yer kaldı. Tıkla, neyin yer kapladığını Disk ekranında gör.",
         DiskGrewMost: "En çok büyüyen: {0} ({1}).",
+        OrganizeDueTitle: "Düzen zamanı",
+        OrganizeDue: "{0}: {1} dosya düzenlenebilir. Tıkla, önizle; sen onaylamadan hiçbir şey taşınmaz.",
+        OrganizeDueOne: "{0}: 1 dosya düzenlenebilir. Tıkla, önizle; sen onaylamadan hiçbir şey taşınmaz.",
+        Desktop: "Masaüstü",
+        Downloads: "İndirilenler",
         Kinds: new Dictionary<FileKind, string>
         {
             [FileKind.Documents] = "Belgeler",
@@ -53,6 +58,11 @@ public static class NoticeTexts
         DiskTitle: "The disk is almost full",
         DiskBody: "{1} free is left on {0}. Click to see on the Disk screen what takes up the space.",
         DiskGrewMost: "Grew the most: {0} ({1}).",
+        OrganizeDueTitle: "Time to tidy up",
+        OrganizeDue: "{0}: {1} files can be sorted. Click to preview; nothing moves until you approve.",
+        OrganizeDueOne: "{0}: 1 file can be sorted. Click to preview; nothing moves until you approve.",
+        Desktop: "Desktop",
+        Downloads: "Downloads",
         Kinds: new Dictionary<FileKind, string>
         {
             [FileKind.Documents] = "Documents",
@@ -95,6 +105,25 @@ public static class NoticeTexts
         return new NoticeText(words.MaintenanceTitle, string.Join(' ', sentences));
     }
 
+    /// <summary>A reminder only asks: the click opens the preview, and only its confirm card moves anything.</summary>
+    public static NoticeText ForOrganizeDue(string folder, int files, string language)
+    {
+        Words words = WordsFor(language);
+        string format = files == 1 ? words.OrganizeDueOne : words.OrganizeDue;
+        return new NoticeText(words.OrganizeDueTitle, string.Format(CultureInfo.GetCultureInfo(language), format, FolderLabel(folder, words), files));
+    }
+
+    // The two folders Düzen offers go by the names it shows; on disk they are English on a Turkish Windows too.
+    private static string FolderLabel(string folder, Words words)
+    {
+        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        string downloads = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+        string trimmed = Path.TrimEndingDirectorySeparator(folder);
+        return string.Equals(trimmed, desktop, StringComparison.OrdinalIgnoreCase) ? words.Desktop
+            : string.Equals(trimmed, downloads, StringComparison.OrdinalIgnoreCase) ? words.Downloads
+            : Path.GetFileName(trimmed);
+    }
+
     public static NoticeText ForTightMemory(string language)
     {
         Words words = WordsFor(language);
@@ -132,5 +161,10 @@ public static class NoticeTexts
         string DiskTitle,
         string DiskBody,
         string DiskGrewMost,
+        string OrganizeDueTitle,
+        string OrganizeDue,
+        string OrganizeDueOne,
+        string Desktop,
+        string Downloads,
         IReadOnlyDictionary<FileKind, string> Kinds);
 }

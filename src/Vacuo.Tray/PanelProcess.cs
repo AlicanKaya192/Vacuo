@@ -21,6 +21,7 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
 
     private readonly uint _showMessage = RegisterWindowMessage(PanelProtocol.ShowPanelMessage);
     private readonly uint _showDiskMessage = RegisterWindowMessage(PanelProtocol.ShowDiskMessage);
+    private readonly uint _showOrganizeMessage = RegisterWindowMessage(PanelProtocol.ShowOrganizeMessage);
     private readonly uint _quitMessage = RegisterWindowMessage(PanelProtocol.QuitPanelMessage);
     private readonly List<double> _launchesMs = [];
     private Process? _process;
@@ -71,7 +72,7 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
             return;
         }
 
-        if (!TryLaunch(onDisk: false))
+        if (!TryLaunch(screenSwitch: null))
         {
             _panelVisible = false;
             LaunchFailed?.Invoke();
@@ -79,17 +80,22 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
     }
 
     /// <summary>Shows the panel on the Disk screen, open or not (the low-disk notice was clicked).</summary>
-    public void OpenOnDisk()
+    public void OpenOnDisk() => OpenOn(_showDiskMessage, PanelProtocol.ShowDiskSwitch);
+
+    /// <summary>Shows the panel on Düzen, open or not (the organize reminder was clicked).</summary>
+    public void OpenOnOrganize() => OpenOn(_showOrganizeMessage, PanelProtocol.ShowOrganizeSwitch);
+
+    private void OpenOn(uint showMessage, string screenSwitch)
     {
         AllowSetForegroundWindow(AllowAnyProcess);
         _panelVisible = true;
         if (IsRunning)
         {
-            PostToPanel(_showDiskMessage);
+            PostToPanel(showMessage);
             return;
         }
 
-        if (!TryLaunch(onDisk: true))
+        if (!TryLaunch(screenSwitch))
         {
             _panelVisible = false;
             LaunchFailed?.Invoke();
@@ -142,11 +148,11 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
     }
 
     // A missing or blocked Vacuo.exe used to end the tray itself (B-165).
-    private bool TryLaunch(bool onDisk)
+    private bool TryLaunch(string? screenSwitch)
     {
         try
         {
-            Launch(onDisk);
+            Launch(screenSwitch);
             return true;
         }
         catch (Exception exception) when (exception is Win32Exception or InvalidOperationException)
@@ -156,15 +162,15 @@ internal sealed class PanelProcess(string panelPath, nint trayWindow, IReadOnlyL
         }
     }
 
-    private void Launch(bool onDisk)
+    private void Launch(string? screenSwitch)
     {
         var start = new ProcessStartInfo(panelPath) { UseShellExecute = false };
         start.ArgumentList.Add(PanelProtocol.PanelOnlySwitch);
         start.ArgumentList.Add(PanelProtocol.TrayWindowSwitch);
         start.ArgumentList.Add(((long)trayWindow).ToString(CultureInfo.InvariantCulture));
-        if (onDisk)
+        if (screenSwitch is not null)
         {
-            start.ArgumentList.Add(PanelProtocol.ShowDiskSwitch);
+            start.ArgumentList.Add(screenSwitch);
         }
         foreach (string argument in panelArguments)
         {

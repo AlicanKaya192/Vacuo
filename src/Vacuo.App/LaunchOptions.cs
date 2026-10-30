@@ -5,7 +5,7 @@ namespace Vacuo.App;
 
 /// <summary>
 /// Command-line switches: <c>--panel-only</c> with <c>--tray-window &lt;handle&gt;</c> (started by
-/// the tray process, and <c>--show-disk</c> to open on the Disk screen), and for Stage 0 measurement <c>--lang en-US</c>, <c>--measure &lt;file.json&gt;</c>,
+/// the tray process, and <c>--show-disk</c> or <c>--show-organize</c> to open on that screen), and for Stage 0 measurement <c>--lang en-US</c>, <c>--measure &lt;file.json&gt;</c>,
 /// <c>--open</c>, <c>--script idle|coldstart|full|memory|memory-cards</c>, <c>--reduced-motion</c>, <c>--linger-seconds &lt;n&gt;</c>,
 /// and <c>--probe no-void|no-ring|no-3d|narrow</c> (repeatable, only with <c>--measure</c>) to find what the panel's memory comes from.
 /// </summary>
@@ -17,6 +17,7 @@ internal sealed record LaunchOptions(
     bool ForceReducedMotion,
     bool PanelOnly,
     bool StartOnDisk,
+    bool StartOnOrganize,
     nint TrayWindow,
     TimeSpan Linger,
     IReadOnlySet<string> Probes)
@@ -30,6 +31,7 @@ internal sealed record LaunchOptions(
         bool reducedMotion = false;
         bool panelOnly = false;
         bool startOnDisk = false;
+        bool startOnOrganize = false;
         nint trayWindow = 0;
         TimeSpan linger = PanelProtocol.LingerAfterHide;
         var probes = new HashSet<string>(StringComparer.Ordinal);
@@ -62,6 +64,9 @@ internal sealed record LaunchOptions(
                 case PanelProtocol.ShowDiskSwitch:
                     startOnDisk = true;
                     break;
+                case PanelProtocol.ShowOrganizeSwitch:
+                    startOnOrganize = true;
+                    break;
                 case PanelProtocol.TrayWindowSwitch when i + 1 < args.Count:
                     trayWindow = (nint)long.Parse(args[++i], CultureInfo.InvariantCulture);
                     break;
@@ -71,6 +76,6 @@ internal sealed record LaunchOptions(
             }
         }
 
-        return new LaunchOptions(language, measurementPath, openPanel, script, reducedMotion, panelOnly, startOnDisk, trayWindow, linger, probes);
+        return new LaunchOptions(language, measurementPath, openPanel, script, reducedMotion, panelOnly, startOnDisk, startOnOrganize, trayWindow, linger, probes);
     }
 }

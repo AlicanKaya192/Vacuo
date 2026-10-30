@@ -57,6 +57,18 @@
                 <TextBlock x:Name="FolderText" Style="{StaticResource CardBodyStyle}" TextTrimming="CharacterEllipsis" />
                 <TextBlock x:Name="HintText" Style="{StaticResource CardBodyStyle}" />
                 <TextBlock x:Name="GamesNote" Style="{StaticResource CardBodyStyle}" Visibility="Collapsed" />
+                <!-- A reminder only asks when the time comes (Aşama 3m); moving stays with the confirm card. -->
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="170" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="ReminderNote"
+                               VerticalAlignment="Center"
+                               Style="{StaticResource CardBodyStyle}" />
+                    <local:VoidPicker x:Name="ReminderPicker" Grid.Column="1" />
+                </Grid>
+                <StackPanel x:Name="ReminderList" Spacing="4" Visibility="Collapsed" />
             </StackPanel>
         </Border>
 

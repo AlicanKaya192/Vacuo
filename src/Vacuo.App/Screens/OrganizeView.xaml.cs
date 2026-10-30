@@ -1,6 +1,7 @@
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -31,6 +32,10 @@ public sealed partial class OrganizeView : UserControl
     // The strip never holds the result up for long: if it is rebuilt or stops drawing, the result shows anyway.
     private static readonly TimeSpan FlowWaitAtMost = TimeSpan.FromSeconds(4);
 
+    // The "off" row of the reminder picker; the other rows carry a ScheduleEvery.
+    private static readonly object ReminderOff = new();
+
+    private readonly OrganizeScheduleStore _reminders = new(OrganizeScheduleStore.DefaultPath);
     private Localizer _localizer = null!;
     private FolderIcons _icons = null!;
     private FolderOrganizer _organizer = null!;
@@ -86,6 +91,14 @@ public sealed partial class OrganizeView : UserControl
         UndoButton.Content = localizer.Get("JournalUndoButton");
         RulePicker.SetItems(Enum.GetValues<OrganizeRule>().Select(rule => (OrganizeTexts.RuleName(localizer, rule), (object)rule)));
         RulePicker.SelectionChanged += OnRuleChanged;
+        ReminderNote.Text = localizer.Get("OrganizeReminderNote");
+        ReminderPicker.SetItems(
+        [
+            (localizer.Get("OrganizeReminderOff"), ReminderOff),
+            (OrganizeTexts.Every(localizer, ScheduleEvery.Weekly), ScheduleEvery.Weekly),
+            (OrganizeTexts.Every(localizer, ScheduleEvery.Monthly), ScheduleEvery.Monthly),
+        ]);
+        ReminderPicker.SelectionChanged += OnReminderChanged;
         _animationsEnabled = animationsEnabled;
         // The flow only runs while this screen is on view (vacuo-kurallar 9).
         RegisterPropertyChangedCallback(VisibilityProperty, (_, _) => UpdateFlowRunning());
@@ -114,9 +127,93 @@ public sealed partial class OrganizeView : UserControl
         return OrganizePlanner.Plan(folder, items, rule, target => OrganizeTexts.FolderName(localizer, target), PathProbe.Disk);
     }
 
+    /// <summary>The reminder's notice was clicked: its folder and rule, ready for <see cref="Refresh"/> to preview. Moves nothing.</summary>
+    internal void ChooseAskedFolder()
+    {
+        if (_busy || _reminders.LatestAsked() is not { } asked)
+        {
+            return;
+        }
+
+        _folder = asked.Folder;
+        _rule = asked.Rule;
+        RulePicker.SelectedIndex = Array.IndexOf(Enum.GetValues<OrganizeRule>(), asked.Rule);
+        OutcomeCard.Visibility = Visibility.Collapsed;
+        _lastBatch = null;
+        _undoFlow = null;
+    }
+
+    private void ShowReminders()
+    {
+        IReadOnlyList<OrganizeSchedule> reminders = _reminders.Load();
+        OrganizeSchedule? current = reminders.FirstOrDefault(reminder => IsFolder(reminder.Folder));
+        ReminderPicker.SelectedIndex = current is null ? 0 : (int)current.Every + 1;
+        ReminderList.Children.Clear();
+        ReminderList.Visibility = reminders.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (reminders.Count > 0)
+        {
+            ReminderList.Children.Add(Text(_localizer.Get("OrganizeRemindersTitle"), "InkSecondaryBrush"));
+        }
+
+        foreach (OrganizeSchedule reminder in reminders.OrderBy(reminder => LabelOf(reminder.Folder), StringComparer.CurrentCultureIgnoreCase))
+        {
+            ReminderList.Children.Add(ReminderRow(reminder));
+        }
+    }
+
+    private Grid ReminderRow(OrganizeSchedule reminder)
+    {
+        var row = new Grid { ColumnSpacing = 12 };
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        string label = LabelOf(reminder.Folder);
+        string details = Directory.Exists(reminder.Folder)
+            ? $"{label} · {OrganizeTexts.RuleName(_localizer, reminder.Rule)} · {OrganizeTexts.Every(_localizer, reminder.Every)}"
+            : $"{label} · {_localizer.Get("OrganizeReminderMissing")}";
+        TextBlock text = Text(details, "InkBrush");
+        text.VerticalAlignment = VerticalAlignment.Center;
+        row.Children.Add(text);
+
+        var remove = new Button { Content = _localizer.Get("OrganizeReminderRemove"), VerticalAlignment = VerticalAlignment.Center };
+        AutomationProperties.SetName(remove, _localizer.Format("OrganizeReminderRemoveNameFormat", label));
+        remove.Click += (_, _) => ChangeReminders(() => _reminders.Remove(reminder.Folder));
+        Grid.SetColumn(remove, 1);
+        row.Children.Add(remove);
+        return row;
+    }
+
+    // A file that cannot be written only loses the change, and the screen says so.
+    private void ChangeReminders(Action change)
+    {
+        try
+        {
+            change();
+            ShowReminders();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            ShowReminders();
+            ReminderList.Visibility = Visibility.Visible;
+            ReminderList.Children.Add(Text(_localizer.Format("OrganizeReminderFailedFormat", exception.Message), "WarningBrush"));
+        }
+    }
+
+    private void OnReminderChanged(object? sender, EventArgs e) => ChangeReminders(() =>
+    {
+        if (ReminderPicker.SelectedValue is ScheduleEvery every)
+        {
+            _reminders.Set(_folder, _rule, every, DateTimeOffset.Now);
+        }
+        else
+        {
+            _reminders.Remove(_folder);
+        }
+    });
+
     private async Task LoadPreviewAsync()
     {
-        FolderText.Text = $"{FolderLabel()} · {_folder}";
+        FolderText.Text = $"{LabelOf(_folder)} · {_folder}";
+        ShowReminders();
         GamesNote.Visibility = _rule == OrganizeRule.ByType && IsFolder(DesktopFolder) ? Visibility.Visible : Visibility.Collapsed;
         GroupList.Children.Clear();
         _plan = null;
@@ -140,13 +237,17 @@ public sealed partial class OrganizeView : UserControl
         UpdateRunButton();
     }
 
-    private string FolderLabel() =>
-        IsFolder(DesktopFolder) ? _localizer.Get("OrganizeFolderDesktop")
-        : IsFolder(DownloadsFolder) ? _localizer.Get("OrganizeFolderDownloads")
-        : Path.GetFileName(Path.TrimEndingDirectorySeparator(_folder));
+    private string FolderLabel() => LabelOf(_folder);
 
-    private bool IsFolder(string folder) => string.Equals(
-        Path.TrimEndingDirectorySeparator(folder), Path.TrimEndingDirectorySeparator(_folder), StringComparison.OrdinalIgnoreCase);
+    private string LabelOf(string folder) =>
+        IsSameFolder(folder, DesktopFolder) ? _localizer.Get("OrganizeFolderDesktop")
+        : IsSameFolder(folder, DownloadsFolder) ? _localizer.Get("OrganizeFolderDownloads")
+        : Path.GetFileName(Path.TrimEndingDirectorySeparator(folder));
+
+    private bool IsFolder(string folder) => IsSameFolder(folder, _folder);
+
+    private static bool IsSameFolder(string a, string b) => string.Equals(
+        Path.TrimEndingDirectorySeparator(a), Path.TrimEndingDirectorySeparator(b), StringComparison.OrdinalIgnoreCase);
 
     private void ShowPlan(OrganizePlan plan)
     {
@@ -602,7 +703,13 @@ public sealed partial class OrganizeView : UserControl
         if (RulePicker.SelectedValue is OrganizeRule rule && rule != _rule)
         {
             _rule = rule;
+            string folder = _folder;
             await LoadPreviewAsync();
+            if (_reminders.Load().FirstOrDefault(schedule => IsSameFolder(schedule.Folder, folder)) is { } reminder)
+            {
+                // The reminder follows the rule on view. After the preview, whose reload would wipe a failure shown here.
+                ChangeReminders(() => _reminders.Set(folder, rule, reminder.Every, DateTimeOffset.Now));
+            }
         }
     }
 

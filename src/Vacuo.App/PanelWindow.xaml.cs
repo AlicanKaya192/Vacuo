@@ -255,6 +255,32 @@ public sealed partial class PanelWindow : Window
         ShowDiskScreen();
     }
 
+    /// <summary>The organize reminder was clicked: the panel shows, on Düzen with the folder it asked about.</summary>
+    internal void RevealOnOrganize()
+    {
+        Reveal();
+        if (Root.XamlRoot is null)
+        {
+            // As on Disk: a screen switch needs the XamlRoot of the loaded content.
+            Root.Loaded += ShowAskedOrganizeOnceLoaded;
+            return;
+        }
+
+        ShowAskedOrganize();
+    }
+
+    private void ShowAskedOrganizeOnceLoaded(object sender, RoutedEventArgs e)
+    {
+        Root.Loaded -= ShowAskedOrganizeOnceLoaded;
+        ShowAskedOrganize();
+    }
+
+    private void ShowAskedOrganize()
+    {
+        EnsureOrganizeScreen().ChooseAskedFolder();
+        ShowOrganizeScreen();
+    }
+
     // Measurement only (--probe): leaves one graphics part out so its share of memory shows.
     // The parts are taken out before the window is first drawn, so they never create anything.
     private void ApplyMeasurementProbes(IReadOnlySet<string> probes)

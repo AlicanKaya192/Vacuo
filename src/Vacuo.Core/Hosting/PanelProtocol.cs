@@ -24,6 +24,12 @@ public static class PanelProtocol
     public const string ShowDiskMessage = "Vacuo.ShowDisk";
     /// <summary>Tray to a panel it starts: open on the Disk screen.</summary>
     public const string ShowDiskSwitch = "--show-disk";
+    /// <summary>The organize reminder to the tray: open the panel on Düzen, with the folder it asked about.</summary>
+    public const string OpenOrganizeMessage = "Vacuo.OpenOrganize";
+    /// <summary>Tray to panel: show the panel again, on Düzen with the folder last asked about.</summary>
+    public const string ShowOrganizeMessage = "Vacuo.ShowOrganize";
+    /// <summary>Tray to a panel it starts: open on Düzen with the folder last asked about.</summary>
+    public const string ShowOrganizeSwitch = "--show-organize";
     /// <summary>Tray to panel: end the panel process now.</summary>
     public const string QuitPanelMessage = "Vacuo.QuitPanel";
     /// <summary>Panel to tray: the panel was hidden.</summary>

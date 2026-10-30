@@ -28,6 +28,7 @@ internal sealed class TrayWindow : IDisposable
     private readonly uint _panelHiddenMessage = RegisterWindowMessage(PanelProtocol.PanelHiddenMessage);
     private readonly uint _foregroundRequestMessage = RegisterWindowMessage(PanelProtocol.ForegroundRequestMessage);
     private readonly uint _openDiskMessage = RegisterWindowMessage(PanelProtocol.OpenDiskMessage);
+    private readonly uint _openOrganizeMessage = RegisterWindowMessage(PanelProtocol.OpenOrganizeMessage);
     private readonly nint _icon;
     private readonly TrayIconInput _iconInput = new();
     private readonly string _defaultTooltip;
@@ -70,6 +71,9 @@ internal sealed class TrayWindow : IDisposable
 
     /// <summary>The low-disk notice was clicked: open the panel on the Disk screen.</summary>
     public event Action? OpenDiskRequested;
+
+    /// <summary>The organize reminder was clicked: open the panel on Düzen.</summary>
+    public event Action? OpenOrganizeRequested;
 
     /// <summary>The repeating timer from <see cref="StartTimer"/> fired.</summary>
     public event Action? TimerTicked;
@@ -257,6 +261,12 @@ internal sealed class TrayWindow : IDisposable
         if (message == _openDiskMessage)
         {
             OpenDiskRequested?.Invoke();
+            return 0;
+        }
+
+        if (message == _openOrganizeMessage)
+        {
+            OpenOrganizeRequested?.Invoke();
             return 0;
         }
 

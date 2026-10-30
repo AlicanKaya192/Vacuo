@@ -8,6 +8,8 @@ internal static class OrganizeTexts
 {
     public static string RuleName(Localizer localizer, OrganizeRule rule) => localizer.Get($"OrganizeRule_{rule}");
 
+    public static string Every(Localizer localizer, ScheduleEvery every) => localizer.Get($"OrganizeEvery_{every}");
+
     /// <summary>Kinds and topics get a translated name; a month or a website is its own name.</summary>
     public static string FolderName(Localizer localizer, OrganizeTarget target) => target.Rule switch
     {

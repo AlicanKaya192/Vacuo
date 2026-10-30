@@ -1516,4 +1516,31 @@ Keeping backups of your important files is up to you.</value>
   <data name="DiskTimelineNote" xml:space="preserve">
     <value>Vacuo measures only when the Disk screen opens or Automatic Maintenance runs; the days between show as one period. It knows which folder grew, not why a file came. Folders that changed by less than 100 MB are not listed. Readings are kept for 30 days and never leave this computer.</value>
   </data>
+  <data name="OrganizeReminderNote" xml:space="preserve">
+    <value>Remind me: when the time comes Vacuo only asks; nothing moves until you approve.</value>
+  </data>
+  <data name="OrganizeReminderOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="OrganizeEvery_Weekly" xml:space="preserve">
+    <value>Weekly</value>
+  </data>
+  <data name="OrganizeEvery_Monthly" xml:space="preserve">
+    <value>Monthly</value>
+  </data>
+  <data name="OrganizeRemindersTitle" xml:space="preserve">
+    <value>Regular reminders</value>
+  </data>
+  <data name="OrganizeReminderMissing" xml:space="preserve">
+    <value>Folder not found</value>
+  </data>
+  <data name="OrganizeReminderRemove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="OrganizeReminderRemoveNameFormat" xml:space="preserve">
+    <value>Remove the reminder for {0}</value>
+  </data>
+  <data name="OrganizeReminderFailedFormat" xml:space="preserve">
+    <value>Could not save the reminder: {0}</value>
+  </data>
 </root>

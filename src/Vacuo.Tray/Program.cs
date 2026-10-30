@@ -49,6 +49,7 @@ internal static class Program
         window.IconClicked += panel.Toggle;
         window.OpenPanelRequested += panel.Open;
         window.OpenDiskRequested += panel.OpenOnDisk;
+        window.OpenOrganizeRequested += panel.OpenOnOrganize;
         window.ClosePanelRequested += panel.Close;
         window.PanelHidden += panel.HandleHidden;
         window.ForegroundRequested += asker =>
@@ -81,8 +82,10 @@ internal static class Program
         var maintenance = new MaintenanceScheduler(helperPath);
         var memory = new MemoryNoticeWatcher(helperPath);
         var disk = new DiskSpaceWatcher(helperPath);
+        var organize = new OrganizeScheduleWatcher(helperPath);
         window.TimerTicked += memory.Check;
         window.TimerTicked += disk.Check;
+        window.TimerTicked += organize.Check;
         window.TimerTicked += maintenance.Check;
         window.StartTimer(MemoryNoticePolicy.CheckInterval);
 

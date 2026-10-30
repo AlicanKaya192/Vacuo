@@ -51,7 +51,7 @@ internal sealed class MaintenanceScheduler(string helperPath)
         }
     }
 
-    private static bool IsHelperRunning()
+    internal static bool IsHelperRunning()
     {
         if (!Mutex.TryOpenExisting(HelperRunningName, out Mutex? running))
         {
@@ -62,7 +62,7 @@ internal sealed class MaintenanceScheduler(string helperPath)
         return true;
     }
 
-    private static TimeSpan IdleFor()
+    internal static TimeSpan IdleFor()
     {
         var info = new LastInputInfo { cbSize = (uint)Marshal.SizeOf<LastInputInfo>() };
         return GetLastInputInfo(ref info)

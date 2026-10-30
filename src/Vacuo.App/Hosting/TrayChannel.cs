@@ -20,6 +20,7 @@ internal sealed class TrayChannel : IDisposable
     private readonly nint _trayWindow;
     private readonly uint _showMessage = RegisterWindowMessage(PanelProtocol.ShowPanelMessage);
     private readonly uint _showDiskMessage = RegisterWindowMessage(PanelProtocol.ShowDiskMessage);
+    private readonly uint _showOrganizeMessage = RegisterWindowMessage(PanelProtocol.ShowOrganizeMessage);
     private readonly uint _quitMessage = RegisterWindowMessage(PanelProtocol.QuitPanelMessage);
     private readonly uint _hiddenMessage = RegisterWindowMessage(PanelProtocol.PanelHiddenMessage);
     private readonly uint _foregroundRequestMessage = RegisterWindowMessage(PanelProtocol.ForegroundRequestMessage);
@@ -41,6 +42,8 @@ internal sealed class TrayChannel : IDisposable
     public event EventHandler? ShowRequested;
 
     public event EventHandler? ShowDiskRequested;
+
+    public event EventHandler? ShowOrganizeRequested;
 
     public event EventHandler? QuitRequested;
 
@@ -116,6 +119,12 @@ internal sealed class TrayChannel : IDisposable
         if (message == _showDiskMessage)
         {
             ShowDiskRequested?.Invoke(this, EventArgs.Empty);
+            return 0;
+        }
+
+        if (message == _showOrganizeMessage)
+        {
+            ShowOrganizeRequested?.Invoke(this, EventArgs.Empty);
             return 0;
         }
 

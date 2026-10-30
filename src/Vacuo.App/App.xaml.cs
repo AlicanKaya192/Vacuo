@@ -98,11 +98,22 @@ public partial class App : Application
             linger.Stop();
             panel.RevealOnDisk();
         };
+        _channel.ShowOrganizeRequested += (_, _) =>
+        {
+            linger.Stop();
+            panel.RevealOnOrganize();
+        };
         _channel.QuitRequested += (_, _) => Quit(PanelProtocol.PanelClosedExitCode);
         panel.QuitRequested += (_, _) => Quit(PanelProtocol.QuitAllExitCode);
         if (options.StartOnDisk)
         {
             panel.RevealOnDisk();
+            return;
+        }
+
+        if (options.StartOnOrganize)
+        {
+            panel.RevealOnOrganize();
             return;
         }
 

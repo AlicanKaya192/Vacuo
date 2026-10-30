@@ -18,7 +18,8 @@ namespace Vacuo.Maintenance;
 /// to the Recycle Bin as one Journal batch, sorts the Desktop by type if chosen, writes maintenance.json,
 /// and when the user is back tells them in Vacuo's own notice (vacuo-kurallar 16). It stops as soon as the
 /// user is back; what was moved stays in the Journal. One at a time. With <c>--memory</c> it only shows
-/// the "memory is tight" notice the tray asked for. Switches, for trying it out: <c>--now</c> runs whatever
+/// the "memory is tight" notice the tray asked for; with <c>--organize</c> it only looks at the organize reminders
+/// that are due and asks about one. Switches, for trying it out: <c>--now</c> runs whatever
 /// the schedule and the on/off setting say and tells at once; <c>--root &lt;folder&gt;</c> scans only that
 /// folder (its <c>Temp</c> and <c>Desktop</c> subfolders as the temp folder and the Desktop).
 /// </summary>
@@ -27,6 +28,7 @@ internal static class Program
     private const string SingleHelperName = @"Local\Vacuo.Maintenance";
     private const string MemorySwitch = "--memory";
     private const string DiskSwitch = "--disk";
+    private const string OrganizeSwitch = "--organize";
     private const int Done = 0;
     private const int NotDue = 1;
     private const int AlreadyRunning = 2;
@@ -54,6 +56,12 @@ internal static class Program
                 Tell(NoticeTexts.ForLowDisk(drive.AvailableFreeSpace, SystemDrive.NameOf(drive), language, GrewMost()), settings.Sound, OpenDiskInPanel);
             }
 
+            return Done;
+        }
+
+        if (args.Contains(OrganizeSwitch))
+        {
+            AskAboutOrganizing(language, settings.Sound);
             return Done;
         }
 
@@ -155,6 +163,53 @@ internal static class Program
         }
     }
 
+    // The reminders (Aşama 3m) only ask: this looks and tells, and moves nothing; moving is the panel's confirm card.
+    // One notice at a time. A silenced one (full screen, quiet time) leaves its date alone, so the tray tries again.
+    private static void AskAboutOrganizing(string language, bool sound)
+    {
+        var store = new OrganizeScheduleStore(OrganizeScheduleStore.DefaultPath);
+        DateTimeOffset now = DateTimeOffset.Now;
+        try
+        {
+            foreach (OrganizeSchedule schedule in OrganizeSchedulePolicy.Due(store.Load(), now))
+            {
+                int files = FilesToSort(schedule);
+                if (files == 0)
+                {
+                    store.MarkChecked(schedule.Folder, now);
+                    continue;
+                }
+
+                if (NoticeGate.MayShow(UserPresence.NotificationState()))
+                {
+                    store.MarkAsked(schedule.Folder, now);
+                    Tell(NoticeTexts.ForOrganizeDue(schedule.Folder, files, language), sound, () => TellTray(PanelProtocol.OpenOrganizeMessage));
+                }
+
+                return;
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // The dates could not be saved; the tray asks again at the next check.
+        }
+    }
+
+    // A folder that is gone, unreadable or off limits has nothing to say.
+    private static int FilesToSort(OrganizeSchedule schedule)
+    {
+        try
+        {
+            return Directory.Exists(schedule.Folder)
+                ? OrganizeSchedulePolicy.Pending(FolderItems.Read(schedule.Folder, new ShellShortcutReader()), schedule.Rule)
+                : 0;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return 0;
+        }
+    }
+
     // True once there is keyboard or mouse input after `since`.
     private static bool WaitForUser(DateTimeOffset since)
     {
@@ -186,8 +241,10 @@ internal static class Program
         NoticeWindow.Show(notice, sound ? NoticeTone.Wave() : null, clicked);
     }
 
-    // The user clicked, so this process may hand the foreground on; the tray opens the panel on Disk.
-    private static void OpenDiskInPanel()
+    private static void OpenDiskInPanel() => TellTray(PanelProtocol.OpenDiskMessage);
+
+    // The user clicked, so this process may hand the foreground on; the tray opens the panel on that screen.
+    private static void TellTray(string message)
     {
         nint tray = NativeMethods.FindWindow(PanelProtocol.TrayWindowClass, null);
         if (tray == 0)
@@ -196,6 +253,6 @@ internal static class Program
         }
 
         _ = NativeMethods.AllowSetForegroundWindow(NativeMethods.AllowAnyProcess);
-        _ = NativeMethods.PostMessage(tray, NativeMethods.RegisterWindowMessage(PanelProtocol.OpenDiskMessage), 0, 0);
+        _ = NativeMethods.PostMessage(tray, NativeMethods.RegisterWindowMessage(message), 0, 0);
     }
 }
