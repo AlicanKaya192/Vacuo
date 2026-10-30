@@ -57,12 +57,22 @@ internal static class DiskTexts
     }
 
     /// <summary>What a move ended with, in the same words the screens show: how much was moved, how many could not be.</summary>
+    /// <summary>The line under a move's total: what took the most of it; null when the total already says it.</summary>
+    public static string? Largest(Localizer localizer, MoveOutcome outcome) => outcome.Largest is { } largest
+        ? localizer.Format("DiskMovedLargestFormat", ShortName(largest.Path), Size(localizer, largest.Bytes), largest.Percent)
+        : null;
+
     public static string Outcome(Localizer localizer, MoveOutcome outcome)
     {
         var parts = new List<string>();
         if (outcome.Moved.Count > 0)
         {
             parts.Add(localizer.Format("DiskMovedFormat", Size(localizer, outcome.FreedBytes)));
+        }
+
+        if (Largest(localizer, outcome) is { } largest)
+        {
+            parts.Add(largest);
         }
 
         if (outcome.Failed.Count > 0)

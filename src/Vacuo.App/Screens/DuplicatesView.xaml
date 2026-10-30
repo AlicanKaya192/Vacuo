@@ -61,6 +61,12 @@
                        TextWrapping="Wrap"
                        TextAlignment="Center"
                        Foreground="{ThemeResource AccentBrush}" />
+            <TextBlock x:Name="MovedLargest"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Foreground="{ThemeResource InkBrush}"
+                       Visibility="Collapsed" />
             <TextBlock x:Name="MovedNote"
                        HorizontalAlignment="Center"
                        TextWrapping="Wrap"

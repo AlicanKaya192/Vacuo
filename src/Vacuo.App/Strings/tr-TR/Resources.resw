@@ -210,6 +210,9 @@
   <data name="DiskMovedFormat" xml:space="preserve">
     <value>{0} Geri Dönüşüm Kutusu'na taşındı</value>
   </data>
+  <data name="DiskMovedLargestFormat" xml:space="preserve">
+    <value>En büyük pay: {0}, {1} (%{2})</value>
+  </data>
   <data name="DiskMovedNote" xml:space="preserve">
     <value>Yer, Geri Dönüşüm Kutusu boşaltılınca açılır; Vacuo kutuyu boşaltmaz.</value>
   </data>

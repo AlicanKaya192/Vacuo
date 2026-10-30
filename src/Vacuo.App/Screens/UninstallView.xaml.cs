@@ -414,6 +414,11 @@ public sealed partial class UninstallView : UserControl
             OutcomeList.Children.Add(moved);
         }
 
+        if (DiskTexts.Largest(_localizer, outcome) is { } largest)
+        {
+            OutcomeList.Children.Add(BodyText(largest));
+        }
+
         if (outcome.Failed.Count > 0)
         {
             OutcomeList.Children.Add(Warning(_localizer.Format("DiskFailedFormat", outcome.Failed.Count)));

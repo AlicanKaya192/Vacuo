@@ -17,9 +17,28 @@ public enum MoveFailureReason
 
 public sealed record MoveFailure(string Path, MoveFailureReason Reason);
 
+/// <summary>What took the most of a move and its whole-number share of it.</summary>
+public sealed record LargestMove(string Path, long Bytes, int Percent);
+
 public sealed record MoveOutcome(IReadOnlyList<JournalEntry> Moved, IReadOnlyList<MoveFailure> Failed)
 {
     public long FreedBytes => Moved.Sum(entry => entry.SizeBytes);
+
+    /// <summary>Null when the total already says it: one item, or no sizes known. Rounds down, so 100 means all of it.</summary>
+    public LargestMove? Largest
+    {
+        get
+        {
+            long total = FreedBytes;
+            if (Moved.Count < 2 || total <= 0)
+            {
+                return null;
+            }
+
+            JournalEntry largest = Moved.MaxBy(entry => entry.SizeBytes)!;
+            return new LargestMove(largest.Undo.OriginalPath, largest.SizeBytes, Math.Max(1, (int)(100 * largest.SizeBytes / total)));
+        }
+    }
 }
 
 /// <summary>

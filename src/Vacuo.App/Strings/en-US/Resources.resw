@@ -210,6 +210,9 @@
   <data name="DiskMovedFormat" xml:space="preserve">
     <value>{0} moved to the Recycle Bin</value>
   </data>
+  <data name="DiskMovedLargestFormat" xml:space="preserve">
+    <value>Largest share: {0}, {1} ({2}%)</value>
+  </data>
   <data name="DiskMovedNote" xml:space="preserve">
     <value>The space comes back when the Recycle Bin is emptied; Vacuo never empties it.</value>
   </data>

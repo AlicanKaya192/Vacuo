@@ -506,6 +506,9 @@ public sealed partial class DuplicatesView : UserControl
             CountUp(outcome.FreedBytes);
         }
 
+        MovedLargest.Text = DiskTexts.Largest(_localizer, outcome) ?? string.Empty;
+        MovedLargest.Visibility = MovedLargest.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+
         if (outcome.Failed.Count > 0)
         {
             TextBlock header = BodyText(_localizer.Format("DiskFailedFormat", outcome.Failed.Count));
@@ -525,6 +528,7 @@ public sealed partial class DuplicatesView : UserControl
     {
         MovedCounter.Visibility = Visibility.Collapsed;
         MovedNote.Visibility = Visibility.Collapsed;
+        MovedLargest.Visibility = Visibility.Collapsed;
         FailureList.Children.Clear();
         TextBlock error = BodyText(message);
         error.Foreground = (Brush)Application.Current.Resources["WarningBrush"];

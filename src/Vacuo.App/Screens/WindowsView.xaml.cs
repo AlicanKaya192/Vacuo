@@ -434,6 +434,11 @@ public sealed partial class WindowsView : UserControl
                 _localizer.Format("DiskMovedFormat", DiskTexts.Size(_localizer, outcome.FreedBytes)), "AccentBrush"));
         }
 
+        if (DiskTexts.Largest(_localizer, outcome) is { } largest)
+        {
+            TempResult.Children.Add(Text(largest, "InkSecondaryBrush", fontSize: 12));
+        }
+
         if (outcome.Failed.Count > 0)
         {
             TempResult.Children.Add(Text(_localizer.Format("DiskFailedFormat", outcome.Failed.Count), "WarningBrush", fontSize: 12));
