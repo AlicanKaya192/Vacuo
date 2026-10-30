@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Vacuo.App.Screens.DriversView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button x:Name="BackButton" Click="OnBackClick" />
+            <TextBlock x:Name="ScreenTitle"
+                       AutomationProperties.HeadingLevel="Level1"
+                       Grid.Column="1"
+                       VerticalAlignment="Center"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Foreground="{ThemeResource InkBrush}" />
+            <Button x:Name="RefreshButton" Grid.Column="2" Click="OnRefreshClick" />
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="8" Padding="0,0,12,12">
+                <TextBlock x:Name="FailureText"
+                           Style="{StaticResource CardBodyStyle}"
+                           Foreground="{ThemeResource WarningBrush}"
+                           Visibility="Collapsed" />
+
+                <Border x:Name="BiosCard" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock x:Name="BiosTitle" Style="{StaticResource CardTitleStyle}" />
+                        <Grid x:Name="BiosGrid" ColumnSpacing="16" RowSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                        <Button x:Name="BiosSupportButton" HorizontalAlignment="Stretch" Click="OnBiosSupportClick" />
+                    </StackPanel>
+                </Border>
+
+                <!-- One card per device class, filled in code; a class with no driver has no card. -->
+                <StackPanel x:Name="ClassCards" Spacing="8" />
+
+                <TextBlock x:Name="FromWindowsText" Style="{StaticResource CardBodyStyle}" Visibility="Collapsed" />
+
+                <!-- Vacuo downloads and installs nothing (vacuo-kurallar 5, 6). -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="4">
+                        <TextBlock x:Name="AboutTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="AboutText" Style="{StaticResource CardBodyStyle}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

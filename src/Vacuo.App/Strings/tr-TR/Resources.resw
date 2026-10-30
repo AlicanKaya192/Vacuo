@@ -1051,7 +1051,7 @@
     <value>Kopya dosyalar ve programlar</value>
   </data>
   <data name="ToolsCardBody" xml:space="preserve">
-    <value>Aynı içerikli dosyaları bul ya da programı kendi kaldırıcısıyla kaldır.</value>
+    <value>Aynı içerikli dosyaları bul, programı kendi kaldırıcısıyla kaldır ya da sürücülere bak.</value>
   </data>
   <data name="UninstallCardButton" xml:space="preserve">
     <value>Program kaldır</value>
@@ -1413,5 +1413,74 @@ Windows sekmesinde yönetici izniyle yapılan temizlik kalıcıdır. Kaldırıla
   </data>
   <data name="JournalItemsFormat" xml:space="preserve">
     <value>{0} öğe</value>
+  </data>
+  <data name="DriversCardButton" xml:space="preserve">
+    <value>Sürücüler</value>
+  </data>
+  <data name="DriversTitle" xml:space="preserve">
+    <value>Sürücüler ve BIOS</value>
+  </data>
+  <data name="DriversRefreshButton" xml:space="preserve">
+    <value>Yenile</value>
+  </data>
+  <data name="DriversBiosTitle" xml:space="preserve">
+    <value>BIOS</value>
+  </data>
+  <data name="DriversBiosManufacturer" xml:space="preserve">
+    <value>Bilgisayar üreticisi</value>
+  </data>
+  <data name="DriversBiosModel" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="DriversBiosVendor" xml:space="preserve">
+    <value>BIOS üreticisi</value>
+  </data>
+  <data name="DriversBiosVersion" xml:space="preserve">
+    <value>Sürüm</value>
+  </data>
+  <data name="DriversBiosDate" xml:space="preserve">
+    <value>Tarih</value>
+  </data>
+  <data name="DriversNotKnown" xml:space="preserve">
+    <value>Bilinmiyor</value>
+  </data>
+  <data name="DriversClass_Display" xml:space="preserve">
+    <value>Ekran</value>
+  </data>
+  <data name="DriversClass_Network" xml:space="preserve">
+    <value>Ağ</value>
+  </data>
+  <data name="DriversClass_Sound" xml:space="preserve">
+    <value>Ses</value>
+  </data>
+  <data name="DriversVersionFormat" xml:space="preserve">
+    <value>Sürüm {0}</value>
+  </data>
+  <data name="DriversLooksOld" xml:space="preserve">
+    <value>Eski görünüyor</value>
+  </data>
+  <data name="DriversSupportButton" xml:space="preserve">
+    <value>Destek sayfası</value>
+  </data>
+  <data name="DriversWindowsUpdateButton" xml:space="preserve">
+    <value>Windows Update</value>
+  </data>
+  <data name="DriversSupportNameFormat" xml:space="preserve">
+    <value>{0} için destek sayfası</value>
+  </data>
+  <data name="DriversWindowsUpdateNameFormat" xml:space="preserve">
+    <value>{0} için Windows Update</value>
+  </data>
+  <data name="DriversFromWindowsFormat" xml:space="preserve">
+    <value>Windows'la gelen {0} sürücü gösterilmiyor.</value>
+  </data>
+  <data name="DriversAboutTitle" xml:space="preserve">
+    <value>Vacuo sürücü kurmaz</value>
+  </data>
+  <data name="DriversAbout" xml:space="preserve">
+    <value>Vacuo sürücü indirmez ve kurmaz; düğmeler yalnızca tarayıcıyı ya da Windows ayarını açar. Tarihi bir yıldan eski sürücü "Eski görünüyor" diye işaretlenir; yine de üreticinin son sürümü olabilir.</value>
+  </data>
+  <data name="DriversReadFailedFormat" xml:space="preserve">
+    <value>Sürücü bilgisi okunamadı: {0}</value>
   </data>
 </root>

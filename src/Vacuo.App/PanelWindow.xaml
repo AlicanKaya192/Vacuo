@@ -261,7 +261,7 @@
                     </StackPanel>
                 </Border>
             </Grid>
-            <!-- Tools without a card of their own (Aşama 3d): duplicate files and Kaldır. Full width and low,
+            <!-- Tools without a card of their own (Aşama 3d): duplicate files, Kaldır and drivers. Full width and low,
                  buttons side by side, so neither column grows and no card stretches into a gap (vacuo-kurallar 13).
                  Without a battery (a desktop) it moves into the battery's place in the right column instead,
                  buttons below the text (PlaceToolsCard). -->
@@ -282,6 +282,7 @@
                     <StackPanel x:Name="ToolsButtons" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Button x:Name="DuplicatesButton" Click="OnDuplicatesClick" />
                         <Button x:Name="UninstallButton" Click="OnUninstallClick" />
+                        <Button x:Name="DriversButton" Click="OnDriversClick" />
                     </StackPanel>
                 </Grid>
             </Border>

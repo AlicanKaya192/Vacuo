@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Dispatching;
@@ -20,6 +21,7 @@ using Vacuo.App.Updates;
 using Vacuo.App.Visuals;
 using Vacuo.Core.Actions;
 using Vacuo.Core.Disk;
+using Vacuo.Core.Drivers;
 using Vacuo.Core.Journal;
 using Vacuo.Core.Battery;
 using Vacuo.Core.Formatting;
@@ -123,6 +125,7 @@ public sealed partial class PanelWindow : Window
     private OrganizeView? _organizeScreen;
     private SettingsView? _settingsScreen;
     private BatteryView? _batteryScreen;
+    private DriversView? _driversScreen;
     private DuplicatesView? _duplicatesScreen;
     private DiskMapView? _diskMapScreen;
     private UninstallView? _uninstallScreen;
@@ -331,6 +334,7 @@ public sealed partial class PanelWindow : Window
         _organizeScreen = null;
         _settingsScreen = null;
         _batteryScreen = null;
+        _driversScreen = null;
         _duplicatesScreen = null;
         _diskMapScreen = null;
         _uninstallScreen = null;
@@ -430,6 +434,7 @@ public sealed partial class PanelWindow : Window
         ToolsBody.Text = _localizer.Get("ToolsCardBody");
         DuplicatesButton.Content = _localizer.Get("DuplicatesFindButton");
         UninstallButton.Content = _localizer.Get("UninstallCardButton");
+        DriversButton.Content = _localizer.Get("DriversCardButton");
         QuitButton.Content = _localizer.Get("QuitButton");
         VersionText.Text = _localizer.Format("SettingsUpdatesVersionFormat", AppVersion);
         string weekLabel = _localizer.Get("WeekTitle");
@@ -862,6 +867,20 @@ public sealed partial class PanelWindow : Window
         return _batteryScreen = battery;
     }
 
+    private DriversView EnsureDriversScreen()
+    {
+        if (_driversScreen is not null)
+        {
+            return _driversScreen;
+        }
+
+        var drivers = AddScreen(new DriversView());
+        drivers.Initialize(_localizer);
+        drivers.BackRequested += (_, _) => ReturnToCards();
+        drivers.RefreshRequested += async (_, _) => await LoadDriversAsync(drivers);
+        return _driversScreen = drivers;
+    }
+
     private DiskMapView EnsureDiskMapScreen()
     {
         if (_diskMapScreen is not null)
@@ -1082,7 +1101,7 @@ public sealed partial class PanelWindow : Window
 
     // Screens not created yet are skipped.
     private UserControl[] LoadedScreens() =>
-        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _duplicatesScreen, _diskMapScreen, _uninstallScreen, _journalScreen, _updateScreen, _weekScreen }
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _driversScreen, _duplicatesScreen, _diskMapScreen, _uninstallScreen, _journalScreen, _updateScreen, _weekScreen }
             .OfType<UserControl>().ToArray();
 
     private void ShowDiskScreen()
@@ -1127,6 +1146,31 @@ public sealed partial class PanelWindow : Window
         UninstallView uninstall = EnsureUninstallScreen();
         ShowWorkScreen(uninstall);
         uninstall.Refresh();
+    }
+
+    // The screen is filled before it appears, as the Battery screen is.
+    private async void ShowDriversScreen()
+    {
+        DriversButton.IsEnabled = false;
+        DriversView drivers = EnsureDriversScreen();
+        await LoadDriversAsync(drivers);
+        DriversButton.IsEnabled = true;
+        ShowWorkScreen(drivers);
+    }
+
+    // The registry answers at once, but off the UI thread all the same; only reads.
+    private async Task LoadDriversAsync(DriversView drivers)
+    {
+        try
+        {
+            (BiosInfo? bios, DriverOverview overview) = await Task.Run(() =>
+                (DeviceDriverReader.ReadBios(), DriverOverview.From(DeviceDriverReader.ReadDrivers())));
+            drivers.Show(bios, overview, DateOnly.FromDateTime(DateTime.Now));
+        }
+        catch (Exception exception) when (exception is SecurityException or IOException or UnauthorizedAccessException)
+        {
+            drivers.ShowMessage(_localizer.Format("DriversReadFailedFormat", exception.Message));
+        }
     }
 
     private void ShowOrganizeScreen()
@@ -1683,6 +1727,8 @@ public sealed partial class PanelWindow : Window
     private void OnDuplicatesClick(object sender, RoutedEventArgs e) => ShowDuplicatesScreen();
 
     private void OnUninstallClick(object sender, RoutedEventArgs e) => ShowUninstallScreen();
+
+    private void OnDriversClick(object sender, RoutedEventArgs e) => ShowDriversScreen();
 
     // Only with --measure: when each step of a screen change happened, numbered per change.
     // Measurement only: each event gets its own number, so repeats are all kept.

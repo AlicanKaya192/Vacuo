@@ -1051,7 +1051,7 @@
     <value>Duplicate files and programs</value>
   </data>
   <data name="ToolsCardBody" xml:space="preserve">
-    <value>Find files with the same content, or remove a program with its own uninstaller.</value>
+    <value>Find files with the same content, remove a program with its own uninstaller, or check your drivers.</value>
   </data>
   <data name="UninstallCardButton" xml:space="preserve">
     <value>Uninstall a program</value>
@@ -1413,5 +1413,74 @@ Keeping backups of your important files is up to you.</value>
   </data>
   <data name="JournalItemsFormat" xml:space="preserve">
     <value>{0} items</value>
+  </data>
+  <data name="DriversCardButton" xml:space="preserve">
+    <value>Drivers</value>
+  </data>
+  <data name="DriversTitle" xml:space="preserve">
+    <value>Drivers and BIOS</value>
+  </data>
+  <data name="DriversRefreshButton" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="DriversBiosTitle" xml:space="preserve">
+    <value>BIOS</value>
+  </data>
+  <data name="DriversBiosManufacturer" xml:space="preserve">
+    <value>Computer maker</value>
+  </data>
+  <data name="DriversBiosModel" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="DriversBiosVendor" xml:space="preserve">
+    <value>BIOS maker</value>
+  </data>
+  <data name="DriversBiosVersion" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="DriversBiosDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="DriversNotKnown" xml:space="preserve">
+    <value>Not known</value>
+  </data>
+  <data name="DriversClass_Display" xml:space="preserve">
+    <value>Display</value>
+  </data>
+  <data name="DriversClass_Network" xml:space="preserve">
+    <value>Network</value>
+  </data>
+  <data name="DriversClass_Sound" xml:space="preserve">
+    <value>Sound</value>
+  </data>
+  <data name="DriversVersionFormat" xml:space="preserve">
+    <value>Version {0}</value>
+  </data>
+  <data name="DriversLooksOld" xml:space="preserve">
+    <value>Looks old</value>
+  </data>
+  <data name="DriversSupportButton" xml:space="preserve">
+    <value>Support page</value>
+  </data>
+  <data name="DriversWindowsUpdateButton" xml:space="preserve">
+    <value>Windows Update</value>
+  </data>
+  <data name="DriversSupportNameFormat" xml:space="preserve">
+    <value>Support page for {0}</value>
+  </data>
+  <data name="DriversWindowsUpdateNameFormat" xml:space="preserve">
+    <value>Windows Update for {0}</value>
+  </data>
+  <data name="DriversFromWindowsFormat" xml:space="preserve">
+    <value>{0} drivers that come with Windows are not shown.</value>
+  </data>
+  <data name="DriversAboutTitle" xml:space="preserve">
+    <value>Vacuo installs no drivers</value>
+  </data>
+  <data name="DriversAbout" xml:space="preserve">
+    <value>Vacuo downloads and installs no drivers; the buttons only open your browser or a Windows setting. A driver dated more than a year ago is marked "Looks old"; it may still be its maker's latest.</value>
+  </data>
+  <data name="DriversReadFailedFormat" xml:space="preserve">
+    <value>Could not read the driver information: {0}</value>
   </data>
 </root>
