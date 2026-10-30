@@ -1,4 +1,5 @@
 using System.Numerics;
+using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -7,8 +8,11 @@ using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
 using Vacuo.App.Localization;
 using Vacuo.App.Visuals;
+using Vacuo.Core.Actions;
+using Vacuo.Core.Disk;
 using Vacuo.Core.DiskMap;
 using Vacuo.Core.Notices;
+using Vacuo.Core.Scanning;
 using Windows.Foundation;
 using Windows.UI;
 
@@ -29,7 +33,7 @@ public sealed partial class DiskMapView : UserControl
     private const double SmallestNamedHeight = 26;
     private const double SmallestSizedHeight = 44;
     private const double SmallestMarkedBox = 34;
-    private const int ChipsShown = 2;
+    private const int ChipsShown = 1;
 
     private static readonly TimeSpan MaxAge = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan DiveDuration = TimeSpan.FromMilliseconds(240);
@@ -50,8 +54,13 @@ public sealed partial class DiskMapView : UserControl
     ];
 
     private readonly MapProtection _protection = new(MapProtectedPaths.ForThisMachine());
+    private readonly Dictionary<FolderNode, FrameworkElement> _drawn = [];
     private Localizer _localizer = null!;
+    private ActionRunner _runner = null!;
+    private IRecycleBin _recycleBin = null!;
     private bool _animationsEnabled;
+    private bool _moving;
+    private volatile PullBurst? _burst;
     private DiskMapScreen? _screen;
     private long _usedBytes;
     private DateTimeOffset _scannedAt;
@@ -67,30 +76,61 @@ public sealed partial class DiskMapView : UserControl
 
     internal event EventHandler? BackRequested;
 
-    internal void Initialize(Localizer localizer, bool animationsEnabled)
+    internal event EventHandler? JournalRequested;
+
+    /// <summary>Raised after a move sent something to the Recycle Bin.</summary>
+    internal event EventHandler? Moved;
+
+    internal void Initialize(Localizer localizer, ActionRunner runner, IRecycleBin recycleBin, bool animationsEnabled)
     {
         _localizer = localizer;
+        _runner = runner;
+        _recycleBin = recycleBin;
         _animationsEnabled = animationsEnabled;
         ScreenTitle.Text = localizer.Get("DiskMapTitle");
         BackButton.Content = localizer.Get("DiskBackButton");
         RescanButton.Content = localizer.Get("DiskRescanButton");
+        JournalButton.Content = localizer.Get("DiskJournalButton");
+        MoveButton.Content = localizer.Get("DiskMoveButton");
         StopButton.Content = localizer.Get("DiskMapStop");
-        ScanNote.Text = localizer.Get("DiskMapScanning");
         RampLess.Text = localizer.Get("DiskMapRampLess");
         RampMore.Text = localizer.Get("DiskMapRampMore");
         MapPill.Content = PillContent("\uE80A", localizer.Get("DiskMapPillMap"));
         ListPill.Content = PillContent("\uE8FD", localizer.Get("DiskMapPillList"));
         AutomationProperties.SetName(MapPill, localizer.Get("DiskMapPillMap"));
         AutomationProperties.SetName(ListPill, localizer.Get("DiskMapPillList"));
+        Confirm.Initialize(animationsEnabled);
         ShowPills();
     }
 
-    /// <summary>A scan does not outlive the window.</summary>
-    internal void Shutdown() => _scan?.Cancel();
+    /// <summary>A scan does not outlive the window; Win2D's game-loop threads stop before it goes away.</summary>
+    internal void Shutdown()
+    {
+        _scan?.Cancel();
+        BurstCanvas.RemoveFromVisualTree();
+        Confirm.Shutdown();
+    }
+
+    /// <summary>Something came back from the Recycle Bin: the next look scans again.</summary>
+    internal void Forget()
+    {
+        if (!_moving)
+        {
+            _screen = null;
+        }
+    }
 
     /// <summary>Shows the last scan while it is fresh, or scans.</summary>
     internal void Refresh()
     {
+        // The tree is being changed on another thread; the screen comes back when the move ends.
+        if (_moving)
+        {
+            return;
+        }
+
+        // A confirm step left open (e.g. the panel was hidden) belongs to what was shown before.
+        Confirm.Cancel();
         if (_screen is not null && DateTimeOffset.UtcNow - _scannedAt < MaxAge)
         {
             Render();
@@ -123,10 +163,9 @@ public sealed partial class DiskMapView : UserControl
             }
         });
 
-        ScanPercent.Text = 0d.ToString("P0", _localizer.Culture);
-        ScanPanel.Visibility = Visibility.Visible;
-        MapCanvas.Visibility = Visibility.Collapsed;
-        ListScroller.Visibility = Visibility.Collapsed;
+        ResultPanel.Visibility = Visibility.Collapsed;
+        MoveButton.IsEnabled = false;
+        ShowProgress(_localizer.Get("DiskMapScanning"), canStop: true);
         SetNote(string.Empty, warning: false);
         try
         {
@@ -160,9 +199,21 @@ public sealed partial class DiskMapView : UserControl
         }
     }
 
+    // Hides the map and the list: nothing on them can be used while a scan or a move runs.
+    private void ShowProgress(string note, bool canStop)
+    {
+        ScanPercent.Text = 0d.ToString("P0", _localizer.Culture);
+        ScanNote.Text = note;
+        StopButton.Visibility = canStop ? Visibility.Visible : Visibility.Collapsed;
+        ScanPanel.Visibility = Visibility.Visible;
+        MapCanvas.Visibility = Visibility.Collapsed;
+        ListScroller.Visibility = Visibility.Collapsed;
+    }
+
     private void Render()
     {
         ShowPills();
+        _drawn.Clear();
         if (_screen is not { } screen)
         {
             UsedText.Text = string.Empty;
@@ -171,6 +222,7 @@ public sealed partial class DiskMapView : UserControl
             ListPanel.Children.Clear();
             ChipPanel.Children.Clear();
             SelectionSummary.Text = string.Empty;
+            MoveButton.IsEnabled = false;
             return;
         }
 
@@ -220,6 +272,7 @@ public sealed partial class DiskMapView : UserControl
 
     private void RenderMap(DiskMapScreen screen)
     {
+        _drawn.Clear();
         MapCanvas.Children.Clear();
         if (MapFrame.ActualWidth <= 0 || MapFrame.ActualHeight <= 0)
         {
@@ -262,6 +315,7 @@ public sealed partial class DiskMapView : UserControl
         AutomationProperties.SetName(header, _localizer.Format("DiskMapEnterFormat", NameOf(box.Item), DiskTexts.Size(_localizer, box.Item.Bytes)));
         header.Click += (sender, _) => Open(screen, box, (Button)sender);
         Describe(header, screen, box);
+        Remember(box.Item, header);
         outer.Children.Add(header);
 
         var inner = new Canvas();
@@ -297,6 +351,7 @@ public sealed partial class DiskMapView : UserControl
             : _localizer.Format("DiskMapItemFormat", NameOf(box.Item), size));
         button.Click += (sender, _) => Open(screen, box, (Button)sender);
         Describe(button, screen, box);
+        Remember(box.Item, button);
         tile.Children.Add(button);
 
         if (box.Item.Node is { } item && tile.Width >= SmallestMarkedBox && tile.Height >= SmallestMarkedBox)
@@ -305,6 +360,15 @@ public sealed partial class DiskMapView : UserControl
         }
 
         return tile;
+    }
+
+    // A move starts its burst from where the item is drawn.
+    private void Remember(MapItem item, FrameworkElement element)
+    {
+        if (item.Node is { } node)
+        {
+            _drawn[node] = element;
+        }
     }
 
     private static Grid Placed(MapBox box)
@@ -519,6 +583,7 @@ public sealed partial class DiskMapView : UserControl
         };
         AutomationProperties.SetName(open, _localizer.Format("DiskMapItemFormat", NameOf(item.Item), DiskTexts.Size(_localizer, item.Item.Bytes)));
         open.Click += (sender, _) => Open(screen, item, (Button)sender);
+        Remember(item.Item, open);
         Grid.SetColumn(open, 1);
         row.Children.Add(open);
 
@@ -572,7 +637,163 @@ public sealed partial class DiskMapView : UserControl
         SelectionSummary.Text = picked.Count > 0
             ? _localizer.Format("DiskMapSelectedFormat", picked.Count, DiskTexts.Size(_localizer, screen.SelectedBytes))
             : _localizer.Get("DiskMapNothingSelected");
+        MoveButton.IsEnabled = picked.Count > 0 && !_moving;
     }
+
+    private async void OnMoveClick(object sender, RoutedEventArgs e)
+    {
+        if (_screen is not { SelectedCount: > 0 } screen || !await ConfirmAsync(screen))
+        {
+            return;
+        }
+
+        int selectedBefore = screen.SelectedCount;
+        var progress = new Progress<MoveProgress>(step => ScanPercent.Text = step.Fraction.ToString("P0", _localizer.Culture));
+        try
+        {
+            Dictionary<string, PulledItem> pulled = screen.Preview().ToDictionary(
+                node => node.FullPath,
+                node => new PulledItem(StartOf(node), DiskTexts.ShortName(node.FullPath)),
+                StringComparer.OrdinalIgnoreCase);
+            ResultPanel.Visibility = Visibility.Collapsed;
+            SetMoving(true);
+            MoveOutcome outcome = await Task.Run(() => screen.MoveSelected(_runner, _recycleBin, progress));
+            ShowMapAgain();
+            await PlayBurstAsync(outcome.Moved
+                .Select(entry => entry.Undo.OriginalPath)
+                .Where(pulled.ContainsKey)
+                .Select(path => pulled[path])
+                .ToList());
+            ShowOutcome(outcome);
+        }
+        catch (Exception exception)
+        {
+            // Unexpected (e.g. the journal could not be written): say so and show what is left.
+            string message = _localizer.Format("DiskMoveErrorFormat", exception.Message);
+            ShowMapAgain();
+            ShowResult(message, warning: true);
+            Announcer.Say(ScreenTitle, message);
+        }
+        finally
+        {
+            SetMoving(false);
+        }
+
+        if (screen.SelectedCount < selectedBefore)
+        {
+            Moved?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    // Whatever is selected may be the user's own and the map cannot tell (vacuo-kurallar 12): the warning always shows.
+    private Task<bool> ConfirmAsync(DiskMapScreen screen)
+    {
+        IReadOnlyList<FolderNode> preview = screen.Preview();
+        var parts = new List<UIElement>
+        {
+            ConfirmCard.Warning(_localizer.Format("DiskMapPreviewWarningFormat", preview.Count)),
+            ConfirmCard.List(preview.Select(node => new ConfirmItem(
+                DiskRing.ColorOf(Bucket.Yours),
+                NameOf(node),
+                node.FullPath,
+                DiskTexts.Size(_localizer, node.Bytes)))),
+            ConfirmCard.Note(_localizer.Get("DiskPreviewRecycleNote")),
+        };
+        return Confirm.AskAsync(new ConfirmRequest(
+            _localizer.Get("DiskPreviewTitle"),
+            _localizer.Format("DiskPreviewFormat", preview.Count, DiskTexts.Size(_localizer, screen.SelectedBytes)),
+            _localizer.Get("DiskConfirmMove"),
+            _localizer.Get("DiskPreviewClose"),
+            parts));
+    }
+
+    private void SetMoving(bool moving)
+    {
+        _moving = moving;
+        BackButton.IsEnabled = !moving;
+        RescanButton.IsEnabled = !moving;
+        JournalButton.IsEnabled = !moving;
+        MapPill.IsEnabled = !moving;
+        ListPill.IsEnabled = !moving;
+        if (moving)
+        {
+            ShowProgress(_localizer.Get("DiskMoving"), canStop: false);
+            TrailPanel.Visibility = Visibility.Collapsed;
+            ChipPanel.Visibility = Visibility.Collapsed;
+            SelectionSummary.Text = _localizer.Get("DiskMoving");
+            MoveButton.IsEnabled = false;
+        }
+        else if (_screen is { } screen)
+        {
+            RenderSelection(screen);
+        }
+    }
+
+    private void ShowMapAgain()
+    {
+        ScanPanel.Visibility = Visibility.Collapsed;
+        TrailPanel.Visibility = Visibility.Visible;
+        ChipPanel.Visibility = Visibility.Visible;
+        Render();
+    }
+
+    // Items in another folder, or scrolled out of sight, start from the nearest edge of the map.
+    private Vector2 StartOf(FolderNode node)
+    {
+        Rect frame = MapFrame.TransformToVisual(this).TransformBounds(new Rect(0, 0, MapFrame.ActualWidth, MapFrame.ActualHeight));
+        if (!_drawn.TryGetValue(node, out FrameworkElement? element))
+        {
+            return new Vector2((float)(frame.Left + frame.Width / 2), (float)frame.Bottom);
+        }
+
+        Point center = element.TransformToVisual(this).TransformPoint(new Point(element.ActualWidth / 2, element.ActualHeight / 2));
+        return new Vector2((float)center.X, (float)Math.Clamp(center.Y, frame.Top, frame.Bottom));
+    }
+
+    private async Task PlayBurstAsync(IReadOnlyList<PulledItem> items)
+    {
+        // A contrast theme skips it like animations off: the burst is drawn in fixed VOID colours (Aşama 3f).
+        if (!_animationsEnabled || ContrastMode.IsOn || items.Count == 0)
+        {
+            return;
+        }
+
+        var burst = new PullBurst(items, new Vector2((float)ActualWidth, (float)ActualHeight));
+        _burst = burst;
+        BurstCanvas.Visibility = Visibility.Visible;
+        BurstCanvas.Paused = false;
+        await Task.Delay(burst.Duration);
+        BurstCanvas.Paused = true;
+        BurstCanvas.Visibility = Visibility.Collapsed;
+        _burst = null;
+    }
+
+    private void ShowOutcome(MoveOutcome outcome)
+    {
+        ShowResult(DiskTexts.Outcome(_localizer, outcome), warning: outcome.Failed.Count > 0);
+        if (outcome.Moved.Count > 0)
+        {
+            ResultLines.Children.Add(ResultLine(_localizer.Get("DiskMovedNote"), "InkSecondaryBrush"));
+        }
+
+        foreach (MoveFailure failure in outcome.Failed)
+        {
+            ResultLines.Children.Add(ResultLine($"{DiskTexts.FailureReason(_localizer, failure.Reason)} · {failure.Path}", "InkSecondaryBrush"));
+        }
+
+        Announcer.Say(ScreenTitle, DiskTexts.Outcome(_localizer, outcome));
+    }
+
+    // Under the map, where pointing at a box does not replace it.
+    private void ShowResult(string text, bool warning)
+    {
+        ResultLines.Children.Clear();
+        ResultLines.Children.Add(ResultLine(text, warning ? "WarningBrush" : "InkBrush"));
+        ResultPanel.Visibility = Visibility.Visible;
+    }
+
+    private static TextBlock ResultLine(string text, string brush) =>
+        new() { Text = text, FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = Themed(brush) };
 
     private Button Chip(DiskMapScreen screen, FolderNode node)
     {
@@ -691,6 +912,14 @@ public sealed partial class DiskMapView : UserControl
     }
 
     private void OnRescanClick(object sender, RoutedEventArgs e) => StartScan();
+
+    private void OnJournalClick(object sender, RoutedEventArgs e) => JournalRequested?.Invoke(this, EventArgs.Empty);
+
+    private void OnBurstUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) =>
+        _burst?.Advance(args.Timing.ElapsedTime);
+
+    private void OnBurstDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) =>
+        _burst?.Draw(args.DrawingSession);
 
     private void OnStopClick(object sender, RoutedEventArgs e) => _scan?.Cancel();
 

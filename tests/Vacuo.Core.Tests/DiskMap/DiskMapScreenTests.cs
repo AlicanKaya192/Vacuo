@@ -42,6 +42,13 @@ public class DiskMapScreenTests
         public void Dispose() => Tree.Dispose();
     }
 
+    private sealed class RefusingRecycleBin(ActionRefusedException refusal) : IRecycleBin
+    {
+        public RecycledItem MoveToBin(string path) => throw refusal;
+
+        public void Restore(RecycledItem item) => throw new InvalidOperationException("Nothing was recycled.");
+    }
+
     private static FolderNode Child(FolderNode node, string name) => node.Children.Single(child => child.Name == name);
 
     [Fact]
@@ -262,6 +269,25 @@ public class DiskMapScreenTests
         screen.MoveSelected(setup.Runner, setup.Bin);
 
         Assert.Equal(1, screen.SelectedCount);
+    }
+
+    [Fact]
+    public void Move_TheBinRefuses_StaysOnTheMapWithItsBytes()
+    {
+        using var setup = new Setup();
+        string a = setup.Add(@"A\a.bin", 300);
+        DiskMapScreen screen = setup.Screen();
+        FolderNode node = Child(screen.Root, "A");
+        screen.TrySelect(node);
+        var bin = new RefusingRecycleBin(new NotRecyclableException("too large"));
+
+        MoveOutcome outcome = screen.MoveSelected(new ActionRunner(setup.Journal, bin, new FixedTimeProvider(Now)), bin);
+
+        Assert.Equal(MoveFailureReason.NotRecyclable, Assert.Single(outcome.Failed).Reason);
+        Assert.Empty(outcome.Moved);
+        Assert.True(File.Exists(a));
+        Assert.Contains(node, screen.Root.Children);
+        Assert.Equal(300, screen.Root.Bytes);
     }
 
     [Fact]

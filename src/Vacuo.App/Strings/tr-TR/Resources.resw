@@ -915,6 +915,9 @@
   <data name="DiskMapMoreFormat" xml:space="preserve">
     <value>+{0} öğe</value>
   </data>
+  <data name="DiskMapPreviewWarningFormat" xml:space="preserve">
+    <value>Dikkat: seçtiğin {0} öğe senin dosyan ya da bir programın klasörü olabilir. Vacuo bunlara hâlâ ihtiyacın olup olmadığını bilemez ve bir programın klasörünü taşımak o programı bozabilir; taşımadan önce yollarına bak.</value>
+  </data>
   <data name="DiskMapSelectedFormat" xml:space="preserve">
     <value>Seçilen: {0} öğe, {1}</value>
   </data>

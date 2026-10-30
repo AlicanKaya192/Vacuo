@@ -915,6 +915,9 @@
   <data name="DiskMapMoreFormat" xml:space="preserve">
     <value>+{0} items</value>
   </data>
+  <data name="DiskMapPreviewWarningFormat" xml:space="preserve">
+    <value>Careful: the {0} items you selected may be your own files or a program's folder. Vacuo can't know whether you still need them, and moving a program's folder can break that program; check their paths before moving.</value>
+  </data>
   <data name="DiskMapSelectedFormat" xml:space="preserve">
     <value>Selected: {0} items, {1}</value>
   </data>

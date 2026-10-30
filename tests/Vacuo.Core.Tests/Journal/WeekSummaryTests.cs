@@ -60,6 +60,17 @@ public class WeekSummaryTests
     }
 
     [Fact]
+    public void AMoveFromTheDiskMap_IsADiskCard()
+    {
+        var map = Guid.NewGuid();
+
+        WeekCard card = Assert.Single(WeekSummary.From([Recycled(300, Now.AddDays(-1), map, JournalBatchKind.DiskMap)], Now).Cards);
+
+        Assert.Equal(WeekSource.Disk, card.Source);
+        Assert.Equal(300, card.Bytes);
+    }
+
+    [Fact]
     public void RunsAreCountedByTheScreenThatMadeThem()
     {
         var maintenance = Guid.NewGuid();

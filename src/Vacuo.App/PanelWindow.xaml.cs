@@ -868,8 +868,10 @@ public sealed partial class PanelWindow : Window
         }
 
         var map = AddScreen(new DiskMapView());
-        map.Initialize(_localizer, _animationsEnabled);
+        map.Initialize(_localizer, _runner, _recycleBin, _animationsEnabled);
         map.BackRequested += (_, _) => SwitchBetweenDiskScreens(map, EnsureDiskScreen(), "disk-map-back-shown");
+        map.JournalRequested += (_, _) => ShowJournal(map);
+        map.Moved += (_, _) => RefreshDisk();
         return _diskMapScreen = map;
     }
 
@@ -1357,7 +1359,13 @@ public sealed partial class PanelWindow : Window
             return;
         }
 
-        if (_journalOpenedFrom is WindowsView windows)
+        _diskMapScreen?.Forget();
+        if (_journalOpenedFrom is DiskMapView map)
+        {
+            map.Refresh();
+            RefreshDisk();
+        }
+        else if (_journalOpenedFrom is WindowsView windows)
         {
             windows.Refresh();
         }

@@ -118,6 +118,7 @@ public sealed partial class JournalView : UserControl
             {
                 JournalBatchKind.Leftovers => "JournalLeftovers",
                 JournalBatchKind.Maintenance => "JournalMaintenance",
+                JournalBatchKind.DiskMap => "DiskMapTitle",
                 _ => "DuplicatesTitle",
             };
             details.Children.Add(Text(_localizer.Get(title), "InkBrush"));
@@ -131,8 +132,8 @@ public sealed partial class JournalView : UserControl
         string count = batch.BatchKind switch
         {
             JournalBatchKind.Leftovers => "JournalFoldersFormat",
-            // Otomatik Bakım moves files and folders alike.
-            JournalBatchKind.Maintenance => "JournalItemsFormat",
+            // These two move files and folders alike.
+            JournalBatchKind.Maintenance or JournalBatchKind.DiskMap => "JournalItemsFormat",
             _ => "JournalFilesFormat",
         };
         details.Children.Add(Text(
