@@ -66,6 +66,34 @@ public class FolderOrganizerTests
         }
     }
 
+    private sealed class NoLinks : IShortcutReader
+    {
+        public string? TargetOf(string shortcut) => null;
+    }
+
+    // Only the game's shortcut goes: the other one is left where the user put it, and undo brings the game back.
+    [Fact]
+    public void AGameShortcut_MovesToGames_AndUndoBringsItBack()
+    {
+        using var setup = new Setup();
+        AddText(setup, @"Desktop\Dota.url", "[InternetShortcut]\r\nURL=steam://rungameid/570\r\n");
+        AddText(setup, @"Desktop\site.url", "[InternetShortcut]\r\nURL=https://example.com/\r\n");
+        OrganizePlan plan = OrganizePlanner.Plan(
+            setup.Desktop, FolderItems.Read(setup.Desktop, new NoLinks()), OrganizeRule.ByType, target => target.Key + " folder", PathProbe.Disk);
+
+        OrganizeOutcome outcome = setup.Organizer.Run(plan);
+
+        string moved = setup.Tree.PathOf(@"Desktop\Games folder\Dota.url");
+        Assert.Single(plan.Moves);
+        Assert.True(File.Exists(moved));
+        Assert.True(File.Exists(setup.Tree.PathOf(@"Desktop\site.url")));
+
+        Assert.Empty(setup.Screen.UndoBatch(outcome.BatchId));
+
+        Assert.True(File.Exists(setup.Tree.PathOf(@"Desktop\Dota.url")));
+        Assert.False(File.Exists(moved));
+    }
+
     [Fact]
     public void OrganizeThenUndo_PutsEveryFileBackUnchanged()
     {

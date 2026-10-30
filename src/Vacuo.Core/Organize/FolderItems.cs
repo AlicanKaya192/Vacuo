@@ -4,25 +4,28 @@ namespace Vacuo.Core.Organize;
 
 /// <summary>
 /// The files Düzen may move from a folder: only those at its top level (B-161). Subfolders, hidden and
-/// system files, shortcuts and desktop.ini are left alone; system folders are refused outright.
+/// system files, shortcuts and desktop.ini are left alone; system folders are refused outright. Given
+/// <paramref name="gameShortcuts"/>, the shortcuts of games are read too; the automatic run does not ask for them,
+/// since a shortcut moving by itself is harder to find again than a file.
 /// </summary>
 public static class FolderItems
 {
-    private static readonly HashSet<string> ShortcutExtensions = new([".lnk", ".url"], StringComparer.OrdinalIgnoreCase);
-
-    public static IReadOnlyList<FolderItem> Read(string folder)
+    public static IReadOnlyList<FolderItem> Read(string folder, IShortcutReader? gameShortcuts = null)
     {
         ScanRootGuard.ForThisMachine().EnsureAllowed(folder);
         return new DirectoryInfo(folder)
             .EnumerateFiles()
-            .Where(IsTheUsersOwn)
-            .Select(file => new FolderItem(file.Name, new DateTimeOffset(file.LastWriteTime), SourceHostOf(file.FullName)))
+            .Where(IsVisible)
+            .Select(file => (File: file, IsGame: gameShortcuts is not null && GameShortcut.IsGame(file.FullName, gameShortcuts)))
+            .Where(found => found.IsGame || IsTheUsersOwn(found.File))
+            .Select(found => new FolderItem(found.File.Name, new DateTimeOffset(found.File.LastWriteTime), SourceHostOf(found.File.FullName), found.IsGame))
             .ToList();
     }
 
+    private static bool IsVisible(FileInfo file) => (file.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0;
+
     private static bool IsTheUsersOwn(FileInfo file) =>
-        (file.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0
-        && !ShortcutExtensions.Contains(file.Extension)
+        !GameShortcut.IsShortcut(file.Name)
         && !file.Name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase);
 
     private static string? SourceHostOf(string path)

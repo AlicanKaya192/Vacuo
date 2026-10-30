@@ -18,6 +18,7 @@ public enum FileKind
     Archives,
     Installers,
     Code,
+    Games,
 }
 
 /// <summary>Found only from keywords in the file name; contents are never read (B-161).</summary>
@@ -31,7 +32,7 @@ public enum Topic
 }
 
 /// <summary>A file at the top of the folder being organized. <paramref name="SourceHost"/> is the website a download came from, if Windows recorded it.</summary>
-public sealed record FolderItem(string Name, DateTimeOffset LastWrite, string? SourceHost);
+public sealed record FolderItem(string Name, DateTimeOffset LastWrite, string? SourceHost, bool IsGameShortcut = false);
 
 /// <summary>
 /// Where an item goes under a rule. <paramref name="Key"/> is a <see cref="FileKind"/> or <see cref="Topic"/> name the

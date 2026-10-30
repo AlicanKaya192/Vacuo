@@ -38,6 +38,7 @@ public static class NoticeTexts
             [FileKind.Archives] = "Arşivler",
             [FileKind.Installers] = "Kurulum dosyaları",
             [FileKind.Code] = "Kod",
+            [FileKind.Games] = "Oyunlar",
         });
 
     private static readonly Words English = new(
@@ -61,6 +62,7 @@ public static class NoticeTexts
             [FileKind.Archives] = "Archives",
             [FileKind.Installers] = "Installers",
             [FileKind.Code] = "Code",
+            [FileKind.Games] = "Games",
         });
 
     /// <summary>Null when the run neither moved nor sorted anything: there is nothing to tell.</summary>

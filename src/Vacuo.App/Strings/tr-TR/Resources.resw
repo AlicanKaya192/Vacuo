@@ -645,6 +645,12 @@
   <data name="Organize_Kind_Installers" xml:space="preserve">
     <value>Kurulum dosyaları</value>
   </data>
+  <data name="Organize_Kind_Games" xml:space="preserve">
+    <value>Oyunlar</value>
+  </data>
+  <data name="OrganizeGamesNote" xml:space="preserve">
+    <value>Oyun kısayolları da Oyunlar klasörüne gider. Ortak masaüstündeki kısayollara dokunulmaz, çünkü onlar yönetici izni ister.</value>
+  </data>
   <data name="Organize_Kind_Code" xml:space="preserve">
     <value>Kod</value>
   </data>

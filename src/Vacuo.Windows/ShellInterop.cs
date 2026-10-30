@@ -5,6 +5,15 @@ namespace Vacuo.Windows;
 // Declarations follow ShObjIdl_core.h, ShellAPI.h, ShlGuid.h and KnownFolders.h of the
 // Windows SDK 10.0.26100.0. COM methods must stay in the header's vtable order.
 
+// Only the first method is declared: the ones after it are not called.
+[ComImport]
+[Guid("000214F9-0000-0000-C000-000000000046")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+internal interface IShellLinkW
+{
+    void GetPath([Out, MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder file, int maximumCharacters, nint findData, uint flags);
+}
+
 [ComImport]
 [Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

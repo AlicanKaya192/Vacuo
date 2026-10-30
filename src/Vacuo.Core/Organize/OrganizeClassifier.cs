@@ -30,6 +30,11 @@ public static class OrganizeClassifier
 
     public static OrganizeTarget? TargetOf(FolderItem item, OrganizeRule rule)
     {
+        if (item.IsGameShortcut)
+        {
+            return rule == OrganizeRule.ByType ? new OrganizeTarget(rule, nameof(FileKind.Games)) : null;
+        }
+
         string? key = rule switch
         {
             OrganizeRule.ByType => KindOf(item.Name)?.ToString(),

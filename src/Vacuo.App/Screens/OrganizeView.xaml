@@ -56,6 +56,7 @@
                 </Grid>
                 <TextBlock x:Name="FolderText" Style="{StaticResource CardBodyStyle}" TextTrimming="CharacterEllipsis" />
                 <TextBlock x:Name="HintText" Style="{StaticResource CardBodyStyle}" />
+                <TextBlock x:Name="GamesNote" Style="{StaticResource CardBodyStyle}" Visibility="Collapsed" />
             </StackPanel>
         </Border>
 

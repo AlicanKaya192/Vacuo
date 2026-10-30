@@ -43,6 +43,7 @@ public sealed partial class OrganizeView : UserControl
     private bool _busy;
     private bool _animationsEnabled;
     private volatile FlowMap? _flow;
+    private volatile bool _flowHidden;
     private IReadOnlyList<FlowTarget> _flowTargets = [];
 
     // While a run or an undo plays, the strip is not rebuilt under it.
@@ -81,6 +82,7 @@ public sealed partial class OrganizeView : UserControl
         DownloadsButton.Content = localizer.Get("OrganizeFolderDownloads");
         PickButton.Content = localizer.Get("OrganizeFolderPick");
         HintText.Text = localizer.Get("OrganizeHint");
+        GamesNote.Text = localizer.Get("OrganizeGamesNote");
         UndoButton.Content = localizer.Get("JournalUndoButton");
         RulePicker.SetItems(Enum.GetValues<OrganizeRule>().Select(rule => (OrganizeTexts.RuleName(localizer, rule), (object)rule)));
         RulePicker.SelectionChanged += OnRuleChanged;
@@ -108,13 +110,14 @@ public sealed partial class OrganizeView : UserControl
     /// </summary>
     internal static async Task<OrganizePlan> PlanAsync(Localizer localizer, string folder, OrganizeRule rule)
     {
-        IReadOnlyList<FolderItem> items = await Task.Run(() => FolderItems.Read(folder));
+        IReadOnlyList<FolderItem> items = await Task.Run(() => FolderItems.Read(folder, new ShellShortcutReader()));
         return OrganizePlanner.Plan(folder, items, rule, target => OrganizeTexts.FolderName(localizer, target), PathProbe.Disk);
     }
 
     private async Task LoadPreviewAsync()
     {
         FolderText.Text = $"{FolderLabel()} · {_folder}";
+        GamesNote.Visibility = _rule == OrganizeRule.ByType && IsFolder(DesktopFolder) ? Visibility.Visible : Visibility.Collapsed;
         GroupList.Children.Clear();
         _plan = null;
         BuildFlow();
@@ -346,8 +349,13 @@ public sealed partial class OrganizeView : UserControl
     private void OnFlowUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) =>
         _flow?.Advance(args.Timing.ElapsedTime);
 
-    private void OnFlowDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) =>
-        _flow?.Draw(args.DrawingSession);
+    private void OnFlowDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
+    {
+        if (!_flowHidden)
+        {
+            _flow?.Draw(args.DrawingSession);
+        }
+    }
 
     private static IEnumerable<IGrouping<string, PlannedMove>> Groups(OrganizePlan plan) =>
         plan.Moves.GroupBy(move => Path.GetDirectoryName(move.Destination)!, StringComparer.OrdinalIgnoreCase);
@@ -452,7 +460,23 @@ public sealed partial class OrganizeView : UserControl
         }
     }
 
-    private Task<bool> ConfirmAsync(OrganizePlan plan)
+    // The strip's drawing shows through the confirm card's black hole, so it draws nothing while the card is up.
+    private async Task<bool> ConfirmAsync(OrganizePlan plan)
+    {
+        _flowHidden = true;
+        FlowCanvas.Invalidate();
+        try
+        {
+            return await AskAsync(plan);
+        }
+        finally
+        {
+            _flowHidden = false;
+            FlowCanvas.Invalidate();
+        }
+    }
+
+    private Task<bool> AskAsync(OrganizePlan plan)
     {
         List<IGrouping<string, PlannedMove>> groups = Groups(plan).ToList();
         var items = groups.Select(group => new ConfirmItem(

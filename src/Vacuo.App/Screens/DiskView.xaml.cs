@@ -37,6 +37,7 @@ public sealed partial class DiskView : UserControl
     private volatile PullBurst? _burst;
     private DiskFlow? _diskFlow;
     private volatile DiskFlowMap? _flowMap;
+    private volatile bool _flowHidden;
     private bool _windowOpen;
 
     public DiskView()
@@ -331,7 +332,23 @@ public sealed partial class DiskView : UserControl
         }
     }
 
-    private Task<bool> ConfirmAsync(DiskScreen screen)
+    // The flow's drawing shows through the confirm card's black hole, so it draws nothing while the card is up.
+    private async Task<bool> ConfirmAsync(DiskScreen screen)
+    {
+        _flowHidden = true;
+        FlowCanvas.Invalidate();
+        try
+        {
+            return await AskAsync(screen);
+        }
+        finally
+        {
+            _flowHidden = false;
+            FlowCanvas.Invalidate();
+        }
+    }
+
+    private Task<bool> AskAsync(DiskScreen screen)
     {
         var parts = new List<UIElement>();
         if (screen.SelectedYoursCount > 0)
@@ -513,8 +530,13 @@ public sealed partial class DiskView : UserControl
     private void OnFlowUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) =>
         _flowMap?.Advance(args.Timing.ElapsedTime);
 
-    private void OnFlowDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) =>
-        _flowMap?.Draw(args.DrawingSession);
+    private void OnFlowDraw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
+    {
+        if (!_flowHidden)
+        {
+            _flowMap?.Draw(args.DrawingSession);
+        }
+    }
 
     private void OnBurstUpdate(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) =>
         _burst?.Advance(args.Timing.ElapsedTime);

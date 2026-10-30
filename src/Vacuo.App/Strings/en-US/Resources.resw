@@ -645,6 +645,12 @@
   <data name="Organize_Kind_Installers" xml:space="preserve">
     <value>Installers</value>
   </data>
+  <data name="Organize_Kind_Games" xml:space="preserve">
+    <value>Games</value>
+  </data>
+  <data name="OrganizeGamesNote" xml:space="preserve">
+    <value>Game shortcuts go to a Games folder too. Shortcuts on the shared desktop are left alone, because they need administrator rights.</value>
+  </data>
   <data name="Organize_Kind_Code" xml:space="preserve">
     <value>Code</value>
   </data>
