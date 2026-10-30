@@ -38,15 +38,15 @@ public sealed partial class DiskMapView : UserControl
     private static readonly Color Void = Color.FromArgb(0xFF, 0x0A, 0x08, 0x11);
     private static readonly Color Quiet = Color.FromArgb(0xFF, 0x1D, 0x17, 0x2A);
 
-    // From "takes little" to "takes a lot"; the two brightest carry dark text.
+    // From "takes little" to "takes a lot". The largest boxes fill most of the map, so even the top stays muted.
     private static readonly Color[] HeatColors =
     [
+        Color.FromArgb(0xFF, 0x24, 0x1C, 0x38),
         Color.FromArgb(0xFF, 0x2A, 0x21, 0x40),
-        Color.FromArgb(0xFF, 0x3D, 0x31, 0x63),
-        Color.FromArgb(0xFF, 0x4A, 0x3F, 0x66),
-        Color.FromArgb(0xFF, 0x66, 0x50, 0xB4),
-        Color.FromArgb(0xFF, 0x9D, 0x7C, 0xFF),
-        Color.FromArgb(0xFF, 0xD4, 0xC6, 0xFF),
+        Color.FromArgb(0xFF, 0x35, 0x2A, 0x50),
+        Color.FromArgb(0xFF, 0x41, 0x34, 0x63),
+        Color.FromArgb(0xFF, 0x4E, 0x3E, 0x78),
+        Color.FromArgb(0xFF, 0x5C, 0x4A, 0x8E),
     ];
 
     private readonly MapProtection _protection = new(MapProtectedPaths.ForThisMachine());
@@ -333,7 +333,7 @@ public sealed partial class DiskMapView : UserControl
             return (new SolidColorBrush(Quiet), InkSecondary);
         }
 
-        return (new SolidColorBrush(HeatColors[box.Heat]), box.Heat >= HeatColors.Length - 2 ? Void : Ink);
+        return (new SolidColorBrush(HeatColors[box.Heat]), Ink);
     }
 
     // What takes the most space is drawn as the black hole that pulls the disk in.
@@ -341,10 +341,9 @@ public sealed partial class DiskMapView : UserControl
     {
         var brush = new RadialGradientBrush { Center = new Point(0.5, 0.54), GradientOrigin = new Point(0.5, 0.54), RadiusX = 0.72, RadiusY = 0.72 };
         brush.GradientStops.Add(new GradientStop { Color = Void, Offset = 0.14 });
-        brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(0xFF, 0x1B, 0x14, 0x30), Offset = 0.24 });
-        brush.GradientStops.Add(new GradientStop { Color = HeatColors[2], Offset = 0.44 });
-        brush.GradientStops.Add(new GradientStop { Color = HeatColors[3], Offset = 0.66 });
-        brush.GradientStops.Add(new GradientStop { Color = HeatColors[4], Offset = 1 });
+        brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(0xFF, 0x16, 0x11, 0x24), Offset = 0.3 });
+        brush.GradientStops.Add(new GradientStop { Color = HeatColors[1], Offset = 0.6 });
+        brush.GradientStops.Add(new GradientStop { Color = HeatColors[3], Offset = 1 });
         return brush;
     }
 
@@ -546,7 +545,7 @@ public sealed partial class DiskMapView : UserControl
         var bar = new Grid { Height = 6, VerticalAlignment = VerticalAlignment.Center, CornerRadius = new CornerRadius(3), Background = Themed("LineBrush") };
         bar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(Math.Max(share, 0.001), GridUnitType.Star) });
         bar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(Math.Max(1 - share, 0.001), GridUnitType.Star) });
-        bar.Children.Add(new Border { Background = ContrastMode.IsOn ? Themed("InkBrush") : new SolidColorBrush(HeatColors[Math.Max(item.Heat, 2)]) });
+        bar.Children.Add(new Border { Background = Themed(ContrastMode.IsOn ? "InkBrush" : "AccentBrush") });
         return bar;
     }
 

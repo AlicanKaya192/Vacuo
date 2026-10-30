@@ -157,11 +157,10 @@
                 <Border Width="72" Height="8" VerticalAlignment="Center" CornerRadius="2" AutomationProperties.AccessibilityView="Raw">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                            <GradientStop Color="#FF2A2140" Offset="0" />
-                            <GradientStop Color="#FF4A3F66" Offset="0.25" />
-                            <GradientStop Color="#FF6650B4" Offset="0.5" />
-                            <GradientStop Color="#FF9D7CFF" Offset="0.75" />
-                            <GradientStop Color="#FFD4C6FF" Offset="1" />
+                            <GradientStop Color="#FF241C38" Offset="0" />
+                            <GradientStop Color="#FF352A50" Offset="0.4" />
+                            <GradientStop Color="#FF4E3E78" Offset="0.8" />
+                            <GradientStop Color="#FF5C4A8E" Offset="1" />
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>
