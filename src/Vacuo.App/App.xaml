@@ -357,6 +357,52 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <!-- The panel's tabs: the same pill as the Disk map's Map and List switch. The code colours the chosen
+                 one (PanelWindow.ShowTabs); hover and press only lighten it. -->
+            <Style x:Key="VoidTabStyle" TargetType="Button">
+                <Setter Property="Padding" Value="14,6" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="CornerRadius" Value="14" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Background" Value="{ThemeResource GhostFillBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource GhostBorderBrush}" />
+                <Setter Property="Foreground" Value="{ThemeResource InkSecondaryBrush}" />
+                <Setter Property="UseSystemFocusVisuals" Value="True" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid Background="{TemplateBinding Background}"
+                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                  CornerRadius="{TemplateBinding CornerRadius}">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="Shine.Opacity" Value="0.5" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="Shine.Opacity" Value="1" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled" />
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                                <Border x:Name="Shine" Background="{ThemeResource ShineBrush}" Opacity="0" />
+                                <ContentPresenter Padding="{TemplateBinding Padding}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Content="{TemplateBinding Content}"
+                                                  Foreground="{TemplateBinding Foreground}" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <!-- Every button without a style of its own is a compact ghost button (vacuo-kurallar 15). -->
             <Style TargetType="Button" BasedOn="{StaticResource VoidGhostButtonStyle}">
                 <Setter Property="Padding" Value="14,8" />

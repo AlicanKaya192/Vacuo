@@ -1047,12 +1047,6 @@
   <data name="DuplicatesFindButton" xml:space="preserve">
     <value>Find copies</value>
   </data>
-  <data name="ToolsCardTitle" xml:space="preserve">
-    <value>Duplicate files and programs</value>
-  </data>
-  <data name="ToolsCardBody" xml:space="preserve">
-    <value>Find files with the same content, remove a program with its own uninstaller, or check your drivers.</value>
-  </data>
   <data name="UninstallCardButton" xml:space="preserve">
     <value>Uninstall a program</value>
   </data>
@@ -1542,5 +1536,62 @@ Keeping backups of your important files is up to you.</value>
   </data>
   <data name="OrganizeReminderFailedFormat" xml:space="preserve">
     <value>Could not save the reminder: {0}</value>
+  </data>
+  <data name="PanelTabDisk" xml:space="preserve">
+    <value>Disk</value>
+  </data>
+  <data name="PanelTabPrograms" xml:space="preserve">
+    <value>Programs</value>
+  </data>
+  <data name="PanelTabOrganize" xml:space="preserve">
+    <value>Organize</value>
+  </data>
+  <data name="PanelTabHistory" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="PanelTabSelected" xml:space="preserve">
+    <value>selected</value>
+  </data>
+  <data name="DiskMapCardBody" xml:space="preserve">
+    <value>Shows as boxes which folders take up the most space.</value>
+  </data>
+  <data name="DiskMapCardButton" xml:space="preserve">
+    <value>Open the map</value>
+  </data>
+  <data name="DiskGrowthCardBody" xml:space="preserve">
+    <value>Shows when the disk filled up, and with what.</value>
+  </data>
+  <data name="DiskGrowthCardButton" xml:space="preserve">
+    <value>Show</value>
+  </data>
+  <data name="DuplicatesCardBody" xml:space="preserve">
+    <value>Finds files with the same content; you choose which one stays.</value>
+  </data>
+  <data name="UninstallCardBody" xml:space="preserve">
+    <value>Removes a program with its own uninstaller and shows the folders it leaves behind.</value>
+  </data>
+  <data name="DriversCardBody" xml:space="preserve">
+    <value>Shows the version and date of your drivers and BIOS.</value>
+  </data>
+  <data name="RemindersCardNone" xml:space="preserve">
+    <value>No reminders yet. You can set one for a folder in Organize.</value>
+  </data>
+  <data name="RemindersCardFormat" xml:space="preserve">
+    <value>Folders with a reminder: {0}</value>
+  </data>
+  <data name="RemindersCardButton" xml:space="preserve">
+    <value>See the reminders</value>
+  </data>
+  <data name="JournalCardBody" xml:space="preserve">
+    <value>Everything Vacuo moved is here; you can put any of it back.</value>
+  </data>
+  <data name="JournalCardButton" xml:space="preserve">
+    <value>Open the journal</value>
+  </data>
+  <data name="WeekCardFormat" xml:space="preserve">
+    <value>Items Vacuo moved or deleted in the last 7 days: {0}</value>
+  </data>
+  <data name="WeekCardButton" xml:space="preserve">
+    <value>See the week</value>
   </data>
 </root>

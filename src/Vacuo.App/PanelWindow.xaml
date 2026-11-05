@@ -14,6 +14,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition x:Name="VoidRow" Height="200" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -69,14 +70,8 @@
                         Visibility="Collapsed"
                         Click="OnUpdateBadgeClick" />
             </StackPanel>
-            <!-- "Freed this week" and Settings open from the cards only, like every other screen (Alican, 21 October 2026:
-                 its own icon button beside Settings). -->
-            <Button x:Name="WeekButton"
-                    Grid.Column="1"
-                    Style="{StaticResource VoidIconButtonStyle}"
-                    Click="OnWeekClick">
-                <FontIcon Glyph="&#xE81C;" FontSize="13" />
-            </Button>
+            <!-- Settings opens from the cards only, like every other screen. "Freed this week" has its card on the
+                 Geçmiş tab (Alican, 5 November 2026: every feature in its own place). -->
             <Button x:Name="SettingsButton"
                     Grid.Column="2"
                     Style="{StaticResource VoidIconButtonStyle}"
@@ -120,30 +115,40 @@
                        Style="{StaticResource CardBodyStyle}" />
         </StackPanel>
 
+        <!-- The four tabs (Alican, 5 November 2026: "her birinin ayrı yeri olsun"); PanelMenu says what is on each.
+             Left and right arrows move between them. -->
+        <StackPanel x:Name="TabsBar"
+                    Grid.Row="2"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    KeyDown="OnTabsKeyDown">
+            <Button x:Name="DiskTabButton" Style="{StaticResource VoidTabStyle}" Click="OnTabClick" />
+            <Button x:Name="ProgramsTabButton" Style="{StaticResource VoidTabStyle}" Click="OnTabClick" />
+            <Button x:Name="OrganizeTabButton" Style="{StaticResource VoidTabStyle}" Click="OnTabClick" />
+            <Button x:Name="HistoryTabButton" Style="{StaticResource VoidTabStyle}" Click="OnTabClick" />
+        </StackPanel>
+
         <!-- Only scrolls on a screen too short for the measured panel; normally every card shows. -->
         <ScrollViewer x:Name="CardsScroller"
-                      Grid.Row="2"
+                      Grid.Row="3"
                       VerticalScrollBarVisibility="Auto"
                       SizeChanged="OnCardsSizeChanged">
-        <!-- Two columns (B-137): Disk and Windows on the left, Memory, Organize and Battery on the right;
-             the tools card spans both below them. -->
-        <Grid x:Name="Cards" ColumnSpacing="8" RowSpacing="8" SizeChanged="OnCardsSizeChanged">
+        <!-- One tab's cards show at a time, all in the same cell: the panel is measured with every tab in it, so
+             it is as tall as the tallest and keeps its size when the tab changes (vacuo-kurallar 13, 14). -->
+        <Grid x:Name="Cards" VerticalAlignment="Top" SizeChanged="OnCardsSizeChanged">
             <Grid.Transform3D>
                 <PerspectiveTransform3D Depth="700" />
             </Grid.Transform3D>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <!-- Both columns end level: the stretching row takes up the shorter column's spare height. -->
-            <Grid RowSpacing="8">
+
+            <Grid x:Name="DiskTabCards" ColumnSpacing="8" RowSpacing="8" VerticalAlignment="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Border x:Name="DiskCard" Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="10">
@@ -181,9 +186,8 @@
                                 Click="OnDiskInspectClick" />
                     </StackPanel>
                 </Border>
-                <!-- When it stretches, the three kinds sit centred between title and button, and the
-                     button stays at the bottom like the cards beside it. -->
-                <Border x:Name="WindowsCard" Grid.Row="1" Style="{StaticResource CardStyle}">
+                <!-- As tall as the Disk card beside it: the three kinds sit centred between title and button. -->
+                <Border x:Name="WindowsCard" Grid.Column="1" Style="{StaticResource CardStyle}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -212,93 +216,194 @@
                                 Click="OnWindowsInspectClick" />
                     </Grid>
                 </Border>
-            </Grid>
-            <Grid x:Name="RightColumn" Grid.Column="1" RowSpacing="8">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Border x:Name="MemoryCard" Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="10">
-                        <TextBlock x:Name="MemoryTitle" Style="{StaticResource CardTitleStyle}" />
-                        <TextBlock x:Name="MemoryPressureText" FontSize="22" FontWeight="SemiBold" />
-                        <TextBlock x:Name="MemoryBody" Style="{StaticResource CardBodyStyle}" />
-                        <Button x:Name="MemoryInspectButton"
-                                HorizontalAlignment="Stretch"
-                                Click="OnMemoryInspectClick" />
-                    </StackPanel>
-                </Border>
-                <!-- Stretches instead when there is no battery and the left column is the taller one. -->
-                <Border x:Name="OrganizeCard" Grid.Row="1" Style="{StaticResource CardStyle}">
-                    <Grid>
+                <Border x:Name="DiskMapCard" Grid.Row="1" Style="{StaticResource CardStyle}">
+                    <Grid RowSpacing="10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <StackPanel Spacing="10">
-                            <TextBlock x:Name="OrganizeTitle" Style="{StaticResource CardTitleStyle}" />
-                            <TextBlock x:Name="OrganizeBody" Style="{StaticResource CardBodyStyle}" />
+                        <TextBlock x:Name="DiskMapCardTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="DiskMapCardBody" Grid.Row="1" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="DiskMapButton" Grid.Row="2" HorizontalAlignment="Stretch" Click="OnDiskMapClick" />
+                    </Grid>
+                </Border>
+                <Border x:Name="DiskGrowthCard" Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="DiskGrowthCardTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="DiskGrowthCardBody" Grid.Row="1" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="DiskGrowthButton" Grid.Row="2" HorizontalAlignment="Stretch" Click="OnDiskGrowthClick" />
+                    </Grid>
+                </Border>
+                <!-- Low and full width: text on the left, its button on the right. -->
+                <Border x:Name="DuplicatesCard" Grid.Row="2" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="4" VerticalAlignment="Center">
+                            <TextBlock x:Name="DuplicatesCardTitle" Style="{StaticResource CardTitleStyle}" />
+                            <TextBlock x:Name="DuplicatesCardBody" Style="{StaticResource CardBodyStyle}" />
                         </StackPanel>
+                        <Button x:Name="DuplicatesButton" Grid.Column="1" VerticalAlignment="Center" Click="OnDuplicatesClick" />
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <Grid x:Name="ProgramsTabCards" ColumnSpacing="8" RowSpacing="8" VerticalAlignment="Top" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Border x:Name="UninstallCard" Style="{StaticResource CardStyle}">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="UninstallCardTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="UninstallCardBody" Grid.Row="1" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="UninstallButton" Grid.Row="2" HorizontalAlignment="Stretch" Click="OnUninstallClick" />
+                    </Grid>
+                </Border>
+                <Border x:Name="DriversCard" Grid.Column="1" Style="{StaticResource CardStyle}">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="DriversCardTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="DriversCardBody" Grid.Row="1" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="DriversButton" Grid.Row="2" HorizontalAlignment="Stretch" Click="OnDriversClick" />
+                    </Grid>
+                </Border>
+                <!-- Full width without a battery (PlaceMemoryCard), so no card stands alone beside a gap. -->
+                <Border x:Name="MemoryCard" Grid.Row="1" Style="{StaticResource CardStyle}">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="MemoryTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="MemoryPressureText" Grid.Row="1" FontSize="22" FontWeight="SemiBold" />
+                        <TextBlock x:Name="MemoryBody" Grid.Row="2" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="MemoryInspectButton"
+                                Grid.Row="3"
+                                HorizontalAlignment="Stretch"
+                                Click="OnMemoryInspectClick" />
+                    </Grid>
+                </Border>
+                <!-- Only on a machine with a battery (Aşama 3b); shown once the driver has answered. -->
+                <Border x:Name="BatteryCard" Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}" Visibility="Collapsed">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="BatteryTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="BatteryHealthText" Grid.Row="1" FontSize="22" FontWeight="SemiBold" />
+                        <TextBlock x:Name="BatteryBody" Grid.Row="2" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="BatteryInspectButton"
+                                Grid.Row="3"
+                                HorizontalAlignment="Stretch"
+                                Click="OnBatteryInspectClick" />
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <Grid x:Name="OrganizeTabCards" ColumnSpacing="8" VerticalAlignment="Top" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border x:Name="OrganizeCard" Style="{StaticResource CardStyle}">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="OrganizeTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="OrganizeBody" Grid.Row="1" Style="{StaticResource CardBodyStyle}" />
                         <Button x:Name="OrganizeInspectButton"
                                 Grid.Row="2"
-                                Margin="0,10,0,0"
                                 HorizontalAlignment="Stretch"
                                 Click="OnOrganizeInspectClick" />
                     </Grid>
                 </Border>
-                <!-- Only on a machine with a battery (Aşama 3b); shown once the driver has answered.
-                     On the right, the shorter column, so the panel does not grow (vacuo-kurallar 13). -->
-                <Border x:Name="BatteryCard" Grid.Row="2" Style="{StaticResource CardStyle}" Visibility="Collapsed">
-                    <StackPanel Spacing="10">
-                        <TextBlock x:Name="BatteryTitle" Style="{StaticResource CardTitleStyle}" />
-                        <TextBlock x:Name="BatteryHealthText" FontSize="22" FontWeight="SemiBold" />
-                        <TextBlock x:Name="BatteryBody" Style="{StaticResource CardBodyStyle}" />
-                        <Button x:Name="BatteryInspectButton"
-                                HorizontalAlignment="Stretch"
-                                Click="OnBatteryInspectClick" />
-                    </StackPanel>
+                <Border x:Name="RemindersCard" Grid.Column="1" Style="{StaticResource CardStyle}">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="RemindersCardTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="RemindersCardBody" Grid.Row="1" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="RemindersButton" Grid.Row="2" HorizontalAlignment="Stretch" Click="OnOrganizeInspectClick" />
+                    </Grid>
                 </Border>
             </Grid>
-            <!-- Tools without a card of their own (Aşama 3d): duplicate files, Kaldır and drivers. Full width and low,
-                 buttons side by side, so neither column grows and no card stretches into a gap (vacuo-kurallar 13).
-                 Without a battery (a desktop) it moves into the battery's place in the right column instead,
-                 buttons below the text (PlaceToolsCard). -->
-            <Border x:Name="ToolsCard" Grid.Row="1" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}">
-                <Grid x:Name="ToolsLayout" ColumnSpacing="16" RowSpacing="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <StackPanel Spacing="4" VerticalAlignment="Center">
-                        <TextBlock x:Name="ToolsTitle" Style="{StaticResource CardTitleStyle}" />
-                        <TextBlock x:Name="ToolsBody" Style="{StaticResource CardBodyStyle}" />
-                    </StackPanel>
-                    <StackPanel x:Name="ToolsButtons" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Button x:Name="DuplicatesButton" Click="OnDuplicatesClick" />
-                        <Button x:Name="UninstallButton" Click="OnUninstallClick" />
-                        <Button x:Name="DriversButton" Click="OnDriversClick" />
-                    </StackPanel>
-                </Grid>
-            </Border>
+
+            <Grid x:Name="HistoryTabCards" ColumnSpacing="8" VerticalAlignment="Top" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border x:Name="JournalCard" Style="{StaticResource CardStyle}">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="JournalCardTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="JournalCardBody" Grid.Row="1" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="JournalButton" Grid.Row="2" HorizontalAlignment="Stretch" Click="OnJournalClick" />
+                    </Grid>
+                </Border>
+                <Border x:Name="WeekCard" Grid.Column="1" Style="{StaticResource CardStyle}">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="WeekCardTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="WeekCardBody" Grid.Row="1" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="WeekButton" Grid.Row="2" HorizontalAlignment="Stretch" Click="OnWeekClick" />
+                    </Grid>
+                </Border>
+            </Grid>
         </Grid>
         </ScrollViewer>
 
         <!-- The running version, always in sight (Alican, 20 October 2026); beside Quit, so the row keeps its height. -->
         <TextBlock x:Name="VersionText"
-                   Grid.Row="3"
+                   Grid.Row="4"
                    HorizontalAlignment="Left"
                    VerticalAlignment="Center"
                    FontSize="12"
                    Foreground="{ThemeResource InkSecondaryBrush}" />
 
         <Button x:Name="QuitButton"
-                Grid.Row="3"
+                Grid.Row="4"
                 HorizontalAlignment="Right"
                 Click="OnQuitClick" />
     </Grid>

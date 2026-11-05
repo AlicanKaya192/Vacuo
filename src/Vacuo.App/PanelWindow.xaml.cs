@@ -25,6 +25,7 @@ using Vacuo.Core.Drivers;
 using Vacuo.Core.Journal;
 using Vacuo.Core.Battery;
 using Vacuo.Core.Formatting;
+using Vacuo.Core.Hosting;
 using Vacuo.Core.Organize;
 using Vacuo.Core.Ram;
 using Vacuo.Core.Thermals;
@@ -53,10 +54,6 @@ public sealed partial class PanelWindow : Window
     // Two card columns side by side (B-137); the screens use the same window.
     private const int PanelWidth = 720;
     private const int NarrowProbeWidth = 400;
-    // The battery card's row in the right column; the tools card takes it on a desktop.
-    private const int BatteryCardRow = 2;
-    private const double ToolsSideBySideSpacing = 16;
-    private const double ToolsStackedSpacing = 10;
     // The panel is as tall as its cards (vacuo-kurallar 13), never shorter than this.
     private const int MinPanelHeight = 640;
     private const double VoidHeight = 200;
@@ -108,7 +105,13 @@ public sealed partial class PanelWindow : Window
     private Control? _openedFrom;
     private int _cardPanelHeight;
     private int _measureShortfall;
-    private UserControl _journalOpenedFrom = null!;
+    // Kept while Vacuo runs, not saved: a screen goes back to the tab it was opened from.
+    private PanelTab _tab = PanelTab.Disk;
+    // The last reading, so the sun can come back when its tab shows again.
+    private GpuTemperature? _gpu;
+    // The screen the Journal, the map or the timeline was opened from; null when it was a card.
+    private UserControl? _journalOpenedFrom;
+    private UserControl? _diskSideScreenFrom;
     private bool _restoredSinceJournalOpened;
     private DateTime _hiddenAt = DateTime.MinValue;
     private bool _isOpen;
@@ -246,12 +249,19 @@ public sealed partial class PanelWindow : Window
             return;
         }
 
-        ShowDiskScreen();
+        ShowDiskFromNotice();
     }
 
     private void ShowDiskOnceLoaded(object sender, RoutedEventArgs e)
     {
         Root.Loaded -= ShowDiskOnceLoaded;
+        ShowDiskFromNotice();
+    }
+
+    // Back from the screen a notice opened, the cards show that screen's tab.
+    private void ShowDiskFromNotice()
+    {
+        ShowTabNow(PanelTab.Disk);
         ShowDiskScreen();
     }
 
@@ -277,6 +287,7 @@ public sealed partial class PanelWindow : Window
 
     private void ShowAskedOrganize()
     {
+        ShowTabNow(PanelTab.Organize);
         EnsureOrganizeScreen().ChooseAskedFolder();
         ShowOrganizeScreen();
     }
@@ -383,6 +394,8 @@ public sealed partial class PanelWindow : Window
         }
 
         RefreshOrganizeCard();
+        RefreshRemindersCard();
+        RefreshWeekCard();
         if (BatteryCard.Visibility == Visibility.Visible)
         {
             _ = LoadBatteryAsync();
@@ -458,16 +471,39 @@ public sealed partial class PanelWindow : Window
         OrganizeInspectButton.Content = _localizer.Get("OrganizeInspectButton");
         BatteryTitle.Text = _localizer.Get("BatteryTitle");
         BatteryInspectButton.Content = _localizer.Get("BatteryInspectButton");
-        ToolsTitle.Text = _localizer.Get("ToolsCardTitle");
-        ToolsBody.Text = _localizer.Get("ToolsCardBody");
+        DiskMapCardTitle.Text = _localizer.Get("DiskMapTitle");
+        DiskMapCardBody.Text = _localizer.Get("DiskMapCardBody");
+        DiskMapButton.Content = _localizer.Get("DiskMapCardButton");
+        DiskGrowthCardTitle.Text = _localizer.Get("DiskTimelineTitle");
+        DiskGrowthCardBody.Text = _localizer.Get("DiskGrowthCardBody");
+        DiskGrowthButton.Content = _localizer.Get("DiskGrowthCardButton");
+        DuplicatesCardTitle.Text = _localizer.Get("DuplicatesTitle");
+        DuplicatesCardBody.Text = _localizer.Get("DuplicatesCardBody");
         DuplicatesButton.Content = _localizer.Get("DuplicatesFindButton");
+        UninstallCardTitle.Text = _localizer.Get("UninstallTitle");
+        UninstallCardBody.Text = _localizer.Get("UninstallCardBody");
         UninstallButton.Content = _localizer.Get("UninstallCardButton");
+        DriversCardTitle.Text = _localizer.Get("DriversTitle");
+        DriversCardBody.Text = _localizer.Get("DriversCardBody");
         DriversButton.Content = _localizer.Get("DriversCardButton");
+        RemindersCardTitle.Text = _localizer.Get("OrganizeRemindersTitle");
+        RemindersButton.Content = _localizer.Get("RemindersCardButton");
+        JournalCardTitle.Text = _localizer.Get("JournalTitle");
+        JournalCardBody.Text = _localizer.Get("JournalCardBody");
+        JournalButton.Content = _localizer.Get("JournalCardButton");
+        WeekCardTitle.Text = _localizer.Get("WeekTitle");
+        WeekButton.Content = _localizer.Get("WeekCardButton");
+        foreach (PanelTab tab in PanelMenu.Tabs)
+        {
+            Button button = TabButton(tab);
+            string name = _localizer.Get(TabTextKey(tab));
+            button.Content = TabContent(TabGlyph(tab), name);
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, name);
+        }
+
+        ShowTabs();
         QuitButton.Content = _localizer.Get("QuitButton");
         VersionText.Text = _localizer.Format("SettingsUpdatesVersionFormat", AppVersion);
-        string weekLabel = _localizer.Get("WeekTitle");
-        ToolTipService.SetToolTip(WeekButton, weekLabel);
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(WeekButton, weekLabel);
         string settingsLabel = _localizer.Get("SettingsTitle");
         ToolTipService.SetToolTip(SettingsButton, settingsLabel);
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(SettingsButton, settingsLabel);
@@ -520,6 +556,8 @@ public sealed partial class PanelWindow : Window
         RefreshMemoryCounters();
         _memoryTimer.Start();
         RefreshOrganizeCard();
+        RefreshRemindersCard();
+        RefreshWeekCard();
         _ = LoadBatteryAsync();
         _updateScreen?.SetWindowOpen(true);
         _weekScreen?.SetWindowOpen(true);
@@ -540,7 +578,7 @@ public sealed partial class PanelWindow : Window
             return;
         }
 
-        DiskInspectButton.Focus(FocusState.Programmatic);
+        TabButton(_tab).Focus(FocusState.Programmatic);
         VoidCanvas.Paused = !_animationsEnabled;
         if (_animationsEnabled)
         {
@@ -602,7 +640,7 @@ public sealed partial class PanelWindow : Window
                 ShowCardsNow();
                 FitCardPanel();
                 // Focus goes back to what opened the screen, so a keyboard user carries on where they were.
-                (_openedFrom ?? DiskInspectButton).Focus(FocusState.Programmatic);
+                (_openedFrom ?? TabButton(_tab)).Focus(FocusState.Programmatic);
                 _openedFrom = null;
                 if (_animationsEnabled)
                 {
@@ -621,15 +659,15 @@ public sealed partial class PanelWindow : Window
         _showingWorkScreen = false;
         _presenter.IsAlwaysOnTop = true;
         SettingsButton.Visibility = Visibility.Visible;
-        WeekButton.Visibility = Visibility.Visible;
         foreach (UserControl screen in LoadedScreens())
         {
             screen.Visibility = Visibility.Collapsed;
         }
 
         VoidCanvas.Visibility = Visibility.Visible;
-        GpuTemperaturePanel.Visibility = Visibility.Visible;
+        TabsBar.Visibility = Visibility.Visible;
         CardsScroller.Visibility = Visibility.Visible;
+        ShowTabCardsNow();
         VoidCanvas.Paused = !_isOpen || !_animationsEnabled;
         if (_isOpen && !_animationsEnabled)
         {
@@ -648,16 +686,16 @@ public sealed partial class PanelWindow : Window
 
         _openedFrom = FocusManager.GetFocusedElement(Root.XamlRoot) as Control;
         SwitchContent(
-            [CardsScroller, VoidCanvas, GpuTemperaturePanel],
+            [CardsScroller, TabsBar, VoidCanvas, GpuTemperaturePanel],
             () =>
             {
                 _showingWorkScreen = true;
                 _presenter.IsAlwaysOnTop = false;
                 SettingsButton.Visibility = Visibility.Collapsed;
-                WeekButton.Visibility = Visibility.Collapsed;
                 VoidCanvas.Paused = true;
                 VoidCanvas.Visibility = Visibility.Collapsed;
                 GpuTemperaturePanel.Visibility = Visibility.Collapsed;
+                TabsBar.Visibility = Visibility.Collapsed;
                 CardsScroller.Visibility = Visibility.Collapsed;
                 foreach (UserControl loaded in LoadedScreens())
                 {
@@ -803,7 +841,7 @@ public sealed partial class PanelWindow : Window
         disk.BackRequested += (_, _) => ReturnToCards();
         disk.RescanRequested += (_, _) => RefreshDisk();
         disk.JournalRequested += (_, _) => ShowJournal(disk);
-        disk.MapRequested += (_, _) => SwitchBetweenDiskScreens(disk, EnsureDiskMapScreen(), "disk-map-shown");
+        disk.MapRequested += (_, _) => OpenDiskSideScreen(disk, EnsureDiskMapScreen(), "disk-map-shown");
         disk.TimelineRequested += (_, _) => ShowDiskTimeline(disk);
         disk.Moved += (_, paths) =>
         {
@@ -919,7 +957,7 @@ public sealed partial class PanelWindow : Window
 
         var map = AddScreen(new DiskMapView());
         map.Initialize(_localizer, _runner, _recycleBin, _animationsEnabled);
-        map.BackRequested += (_, _) => SwitchBetweenDiskScreens(map, EnsureDiskScreen(), "disk-map-back-shown");
+        map.BackRequested += (_, _) => BackFromDiskSideScreen(map, "disk-map-back-shown");
         map.JournalRequested += (_, _) => ShowJournal(map);
         map.Moved += (_, _) => RefreshDisk();
         return _diskMapScreen = map;
@@ -934,20 +972,51 @@ public sealed partial class PanelWindow : Window
 
         var timeline = AddScreen(new DiskTimelineView());
         timeline.Initialize(_localizer);
-        timeline.BackRequested += (_, _) => SwitchBetweenDiskScreens(timeline, EnsureDiskScreen(), "disk-timeline-back-shown");
+        timeline.BackRequested += (_, _) => BackFromDiskSideScreen(timeline, "disk-timeline-back-shown");
         return _diskTimelineScreen = timeline;
     }
 
     // The history is read off the UI thread and the screen filled before it appears; only reads.
-    private async void ShowDiskTimeline(DiskView disk)
+    // From the Disk screen, or from its own card when <paramref name="from"/> is null.
+    private async void ShowDiskTimeline(DiskView? from)
     {
         DiskTimelineView screen = EnsureDiskTimelineScreen();
         DateOnly today = DateOnly.FromDateTime(DateTime.Now);
         screen.Show(await Task.Run(() => DiskTimeline.From(new DiskHistoryStore(DiskHistoryStore.DefaultPath).Load(), today)));
-        SwitchBetweenDiskScreens(disk, screen, "disk-timeline-shown");
+        OpenDiskSideScreen(from, screen, "disk-timeline-shown");
     }
 
-    // The map opens from the Disk screen and goes back to it, in the same window.
+    // The map and the timeline open from the Disk screen and go back to it, or from their own cards and go
+    // back to the cards; either way in the same window.
+    private void OpenDiskSideScreen(UserControl? from, UserControl screen, string shownPhase)
+    {
+        if (_switching)
+        {
+            return;
+        }
+
+        _diskSideScreenFrom = from;
+        if (from is null)
+        {
+            ShowWorkScreen(screen, shownPhase);
+            (screen as DiskMapView)?.Refresh();
+            return;
+        }
+
+        SwitchBetweenDiskScreens(from, screen, shownPhase);
+    }
+
+    private void BackFromDiskSideScreen(UserControl screen, string shownPhase)
+    {
+        if (_diskSideScreenFrom is { } from)
+        {
+            SwitchBetweenDiskScreens(screen, from, shownPhase);
+            return;
+        }
+
+        ReturnToCards();
+    }
+
     private void SwitchBetweenDiskScreens(UserControl from, UserControl to, string shownPhase)
     {
         if (_switching)
@@ -1287,35 +1356,16 @@ public sealed partial class PanelWindow : Window
         }
 
         bool shown = BatteryCard.Visibility == Visibility.Visible;
-        PlaceToolsCard(shown);
+        PlaceMemoryCard(shown);
         if (wasShown != shown)
         {
             FitCardPanel();
         }
     }
 
-    // With a battery the tools card spans both columns below them, buttons beside the text. Without one the
-    // right column would end a battery card short and stretch Organize into a gap, so the tools card takes the
-    // battery's place there, buttons below the text, and both columns end level (Alican, 21 October 2026).
-    private void PlaceToolsCard(bool batteryShown)
-    {
-        // FrameworkElement.Parent is null here, so the card is looked for in the panel it would leave.
-        Panel home = batteryShown ? Cards : RightColumn;
-        Panel away = batteryShown ? RightColumn : Cards;
-        if (!away.Children.Remove(ToolsCard))
-        {
-            return;
-        }
-
-        Grid.SetRow(ToolsCard, batteryShown ? 1 : BatteryCardRow);
-        Grid.SetColumnSpan(ToolsCard, batteryShown ? 2 : 1);
-        home.Children.Add(ToolsCard);
-
-        Grid.SetColumn(ToolsButtons, batteryShown ? 1 : 0);
-        Grid.SetRow(ToolsButtons, batteryShown ? 0 : 1);
-        ToolsLayout.ColumnSpacing = batteryShown ? ToolsSideBySideSpacing : 0;
-        ToolsLayout.RowSpacing = batteryShown ? 0 : ToolsStackedSpacing;
-    }
+    // Beside the battery card on a laptop; without one (a desktop) Memory takes the whole row instead of
+    // standing beside a gap.
+    private void PlaceMemoryCard(bool batteryShown) => Grid.SetColumnSpan(MemoryCard, batteryShown ? 1 : 2);
 
     // The screen is filled before it appears, so it never opens on "Reading…".
     private async void ShowMemoryScreen()
@@ -1385,12 +1435,21 @@ public sealed partial class PanelWindow : Window
 
     // Only the graphics card: the processor's temperature needs a kernel driver (Alican, 22 October 2026).
     // It shows as a sun beside the black hole, not as a line on the Memory card (Alican: "burada durmasın").
+    // On the Programs tab only, with the other parts of the computer (Alican, 5 November 2026).
     private void ShowGpuTemperature(GpuTemperature? gpu)
     {
-        _sun.Level = gpu is null ? null : HeatLevel.From(gpu.Celsius);
+        _gpu = gpu;
+        bool onItsTab = _tab == PanelTab.Programs;
+        _sun.Level = gpu is null || !onItsTab ? null : HeatLevel.From(gpu.Celsius);
+        GpuTemperaturePanel.Visibility = onItsTab && !_showingWorkScreen ? Visibility.Visible : Visibility.Collapsed;
         GpuTemperatureValue.Visibility = gpu is null ? Visibility.Collapsed : Visibility.Visible;
         GpuTemperatureValue.Text = gpu is null ? string.Empty : _localizer.Format("GpuTemperatureValueFormat", (int)Math.Round(gpu.Celsius));
         GpuTemperatureLabel.Text = _localizer.Get(gpu is null ? "GpuTemperatureNotReported" : "GpuTemperatureLabel");
+        // With animation effects off the scene is one still frame; it is drawn again so the sun comes or goes.
+        if (!_animationsEnabled && _isOpen && !_showingWorkScreen)
+        {
+            VoidCanvas.Invalidate();
+        }
     }
 
     private void UpdateMemoryCard(MemorySnapshot snapshot)
@@ -1404,9 +1463,10 @@ public sealed partial class PanelWindow : Window
         FitCardPanel();
     }
 
-    // The Journal opens in the same window as the screen that asked for it; its frame and size stay.
-    // The rows are read before the switch, so the Journal arrives filled, with the same animation as any screen.
-    private async void ShowJournal(UserControl from)
+    // The Journal opens in the same window as the screen that asked for it, or from its card on Geçmiş when
+    // <paramref name="from"/> is null; its frame and size stay. The rows are read before the switch, so the
+    // Journal arrives filled, with the same animation as any screen.
+    private async void ShowJournal(UserControl? from)
     {
         if (_switching)
         {
@@ -1419,6 +1479,12 @@ public sealed partial class PanelWindow : Window
         _restoredSinceJournalOpened = false;
         JournalView journal = EnsureJournalScreen();
         await journal.LoadAsync();
+        if (from is null)
+        {
+            ShowWorkScreen(journal, "journal-shown");
+            return;
+        }
+
         SwitchContent(
             [from],
             () =>
@@ -1441,23 +1507,37 @@ public sealed partial class PanelWindow : Window
         _transition++;
         MarkTransition("journal-back-click");
         JournalView journal = EnsureJournalScreen();
-        UserControl from = _journalOpenedFrom;
-        SwitchContent(
-            [journal],
-            () =>
-            {
-                journal.Visibility = Visibility.Collapsed;
-                from.Visibility = Visibility.Visible;
-                EmergeFromVoid(from);
-            },
-            "journal-back-shown");
+        if (_journalOpenedFrom is { } from)
+        {
+            SwitchContent(
+                [journal],
+                () =>
+                {
+                    journal.Visibility = Visibility.Collapsed;
+                    from.Visibility = Visibility.Visible;
+                    EmergeFromVoid(from);
+                },
+                "journal-back-shown");
+        }
+        else
+        {
+            ReturnToCards();
+        }
+
         if (!_restoredSinceJournalOpened)
         {
             return;
         }
 
         _diskMapScreen?.Forget();
-        if (_journalOpenedFrom is DiskMapView map)
+        RefreshWeekCard();
+        if (_journalOpenedFrom is null)
+        {
+            // From the card anything may have come back: the cards that count files read again.
+            RefreshDisk();
+            RefreshOrganizeCard();
+        }
+        else if (_journalOpenedFrom is DiskMapView map)
         {
             map.Refresh();
             RefreshDisk();
@@ -1613,10 +1693,19 @@ public sealed partial class PanelWindow : Window
         return _cardPanelHeight;
     }
 
+    // Every tab's cards are in for the measurement, so the panel fits the tallest tab and keeps its height
+    // whichever tab shows (vacuo-kurallar 13, 14).
     private int MeasuredPanelHeight()
     {
+        foreach (PanelTab tab in PanelMenu.Tabs)
+        {
+            TabCards(tab).Visibility = Visibility.Visible;
+        }
+
         Root.Measure(new Size(_panelWidth, double.PositiveInfinity));
-        return (int)Math.Ceiling(Root.DesiredSize.Height) + FrameAllowance + _measureShortfall;
+        int height = (int)Math.Ceiling(Root.DesiredSize.Height) + FrameAllowance + _measureShortfall;
+        ShowTabCardsNow();
+        return height;
     }
 
     // The measurement fell a little short of the real window (the cards scrolled by a few pixels
@@ -1676,12 +1765,12 @@ public sealed partial class PanelWindow : Window
             height));
     }
 
-    // Cards tip forward out of the void, one after another; runs on the composition thread.
+    // The open tab's cards tip forward out of the void, one after another; runs on the composition thread.
     private void AnimateCardsIn()
     {
         Compositor compositor = ElementCompositionPreview.GetElementVisual(Root).Compositor;
         var easing = compositor.CreateCubicBezierEasingFunction(new Vector2(0.2f, 0.7f), new Vector2(0.2f, 1f));
-        UIElement[] cards = [DiskCard, WindowsCard, MemoryCard, OrganizeCard, BatteryCard, ToolsCard];
+        UIElement[] cards = TabCards(_tab).Children.Where(card => card.Visibility == Visibility.Visible).ToArray();
 
         for (int i = 0; i < cards.Length; i++)
         {
@@ -1780,6 +1869,167 @@ public sealed partial class PanelWindow : Window
     private void OnUninstallClick(object sender, RoutedEventArgs e) => ShowUninstallScreen();
 
     private void OnDriversClick(object sender, RoutedEventArgs e) => ShowDriversScreen();
+
+    private void OnDiskMapClick(object sender, RoutedEventArgs e) => OpenDiskSideScreen(null, EnsureDiskMapScreen(), "disk-map-shown");
+
+    private void OnDiskGrowthClick(object sender, RoutedEventArgs e) => ShowDiskTimeline(null);
+
+    private void OnJournalClick(object sender, RoutedEventArgs e) => ShowJournal(null);
+
+    private void OnTabClick(object sender, RoutedEventArgs e) => SelectTab(PanelMenu.Tabs.First(tab => ReferenceEquals(TabButton(tab), sender)));
+
+    // Left and right move to the next tab, round the ends, as in a tab list.
+    private void OnTabsKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        int step = e.Key switch
+        {
+            VirtualKey.Left => -1,
+            VirtualKey.Right => 1,
+            _ => 0,
+        };
+        if (step == 0)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        int count = PanelMenu.Tabs.Count;
+        int index = (PanelMenu.Tabs.ToList().IndexOf(_tab) + step + count) % count;
+        SelectTab(PanelMenu.Tabs[index]);
+        TabButton(_tab).Focus(FocusState.Keyboard);
+    }
+
+    // The cards of the tab before fade into the void and the new tab's come out of it; the window stays.
+    private void SelectTab(PanelTab tab)
+    {
+        if (tab == _tab || _switching)
+        {
+            return;
+        }
+
+        Grid leaving = TabCards(_tab);
+        _tab = tab;
+        ShowTabs();
+        _transition++;
+        SwitchContent(
+            [leaving],
+            () =>
+            {
+                ShowTabCardsNow();
+                EmergeFromVoid(TabCards(tab));
+            },
+            "tab-shown");
+    }
+
+    // At once, without the change animation: a notice opens a screen straight away.
+    private void ShowTabNow(PanelTab tab)
+    {
+        _tab = tab;
+        ShowTabs();
+        ShowTabCardsNow();
+    }
+
+    private void ShowTabCardsNow()
+    {
+        foreach (PanelTab tab in PanelMenu.Tabs)
+        {
+            TabCards(tab).Visibility = tab == _tab ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        ShowGpuTemperature(_gpu);
+    }
+
+    // The chosen tab is lit like the Disk map's chosen pill; a screen reader hears which one it is.
+    private void ShowTabs()
+    {
+        for (int i = 0; i < PanelMenu.Tabs.Count; i++)
+        {
+            PanelTab tab = PanelMenu.Tabs[i];
+            Button button = TabButton(tab);
+            bool on = tab == _tab;
+            button.Background = Themed(on ? "StrongPressedFillBrush" : "GhostFillBrush");
+            button.BorderBrush = Themed(on ? "HoverBorderBrush" : "GhostBorderBrush");
+            button.Foreground = Themed(on ? "InkBrush" : "InkSecondaryBrush");
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetItemStatus(button, on ? _localizer.Get("PanelTabSelected") : string.Empty);
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetPositionInSet(button, i + 1);
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetSizeOfSet(button, PanelMenu.Tabs.Count);
+        }
+    }
+
+    private static Brush Themed(string key) => (Brush)Application.Current.Resources[key];
+
+    private static StackPanel TabContent(string glyph, string text)
+    {
+        var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+        content.Children.Add(new FontIcon { Glyph = glyph, FontSize = 13 });
+        content.Children.Add(new TextBlock { Text = text, FontSize = 13 });
+        return content;
+    }
+
+    private Grid TabCards(PanelTab tab) => tab switch
+    {
+        PanelTab.Disk => DiskTabCards,
+        PanelTab.Programs => ProgramsTabCards,
+        PanelTab.Organize => OrganizeTabCards,
+        PanelTab.History => HistoryTabCards,
+        _ => throw new ArgumentOutOfRangeException(nameof(tab), tab, null),
+    };
+
+    private Button TabButton(PanelTab tab) => tab switch
+    {
+        PanelTab.Disk => DiskTabButton,
+        PanelTab.Programs => ProgramsTabButton,
+        PanelTab.Organize => OrganizeTabButton,
+        PanelTab.History => HistoryTabButton,
+        _ => throw new ArgumentOutOfRangeException(nameof(tab), tab, null),
+    };
+
+    private static string TabTextKey(PanelTab tab) => tab switch
+    {
+        PanelTab.Disk => "PanelTabDisk",
+        PanelTab.Programs => "PanelTabPrograms",
+        PanelTab.Organize => "PanelTabOrganize",
+        PanelTab.History => "PanelTabHistory",
+        _ => throw new ArgumentOutOfRangeException(nameof(tab), tab, null),
+    };
+
+    // Segoe Fluent Icons: hard drive, apps, folder, history.
+    private static string TabGlyph(PanelTab tab) => tab switch
+    {
+        PanelTab.Disk => "",
+        PanelTab.Programs => "",
+        PanelTab.Organize => "",
+        PanelTab.History => "",
+        _ => throw new ArgumentOutOfRangeException(nameof(tab), tab, null),
+    };
+
+    // How many folders have a reminder; the store reads an unreadable file as none.
+    private void RefreshRemindersCard()
+    {
+        int count = new OrganizeScheduleStore(OrganizeScheduleStore.DefaultPath).Load().Count;
+        RemindersCardBody.Text = count == 0
+            ? _localizer.Get("RemindersCardNone")
+            : _localizer.Format("RemindersCardFormat", count);
+    }
+
+    // How many items the last seven days moved, read off the UI thread like the Week screen's own figures.
+    // A count, not a size: Organize moves files without freeing space, and "0 B" would read as nothing done.
+    private async void RefreshWeekCard()
+    {
+        try
+        {
+            WeekSummary week = await Task.Run(() => WeekSummary.From(_journal.ReadAll(), DateTimeOffset.Now));
+            WeekCardBody.Text = week.Cards.Count == 0
+                ? _localizer.Get("WeekEmpty")
+                : _localizer.Format("WeekCardFormat", week.Cards.Sum(card => card.Items));
+        }
+        catch (JournalCorruptException exception)
+        {
+            WeekCardBody.Text = _localizer.Format("JournalReadErrorFormat", exception.Message);
+        }
+
+        FitCardPanel();
+    }
 
     // Only with --measure: when each step of a screen change happened, numbered per change.
     // Measurement only: each event gets its own number, so repeats are all kept.

@@ -1047,12 +1047,6 @@
   <data name="DuplicatesFindButton" xml:space="preserve">
     <value>Kopyaları bul</value>
   </data>
-  <data name="ToolsCardTitle" xml:space="preserve">
-    <value>Kopya dosyalar ve programlar</value>
-  </data>
-  <data name="ToolsCardBody" xml:space="preserve">
-    <value>Aynı içerikli dosyaları bul, programı kendi kaldırıcısıyla kaldır ya da sürücülere bak.</value>
-  </data>
   <data name="UninstallCardButton" xml:space="preserve">
     <value>Program kaldır</value>
   </data>
@@ -1542,5 +1536,62 @@ Windows sekmesinde yönetici izniyle yapılan temizlik kalıcıdır. Kaldırıla
   </data>
   <data name="OrganizeReminderFailedFormat" xml:space="preserve">
     <value>Hatırlatma kaydedilemedi: {0}</value>
+  </data>
+  <data name="PanelTabDisk" xml:space="preserve">
+    <value>Disk</value>
+  </data>
+  <data name="PanelTabPrograms" xml:space="preserve">
+    <value>Programlar</value>
+  </data>
+  <data name="PanelTabOrganize" xml:space="preserve">
+    <value>Düzen</value>
+  </data>
+  <data name="PanelTabHistory" xml:space="preserve">
+    <value>Geçmiş</value>
+  </data>
+  <data name="PanelTabSelected" xml:space="preserve">
+    <value>seçili</value>
+  </data>
+  <data name="DiskMapCardBody" xml:space="preserve">
+    <value>Hangi klasörün ne kadar yer kapladığını kutularla gösterir.</value>
+  </data>
+  <data name="DiskMapCardButton" xml:space="preserve">
+    <value>Haritayı aç</value>
+  </data>
+  <data name="DiskGrowthCardBody" xml:space="preserve">
+    <value>Diskin ne zaman ve neyle dolduğunu gösterir.</value>
+  </data>
+  <data name="DiskGrowthCardButton" xml:space="preserve">
+    <value>Göster</value>
+  </data>
+  <data name="DuplicatesCardBody" xml:space="preserve">
+    <value>Aynı içerikli dosyaları bulur; hangisinin kalacağını sen seçersin.</value>
+  </data>
+  <data name="UninstallCardBody" xml:space="preserve">
+    <value>Programı kendi kaldırıcısıyla kaldırır, geride kalan klasörleri gösterir.</value>
+  </data>
+  <data name="DriversCardBody" xml:space="preserve">
+    <value>Sürücülerin ve BIOS'un sürümünü ve tarihini gösterir.</value>
+  </data>
+  <data name="RemindersCardNone" xml:space="preserve">
+    <value>Henüz hatırlatma yok. Düzen'de bir klasör için kurabilirsin.</value>
+  </data>
+  <data name="RemindersCardFormat" xml:space="preserve">
+    <value>Hatırlatması olan klasör: {0}</value>
+  </data>
+  <data name="RemindersCardButton" xml:space="preserve">
+    <value>Hatırlatmaları gör</value>
+  </data>
+  <data name="JournalCardBody" xml:space="preserve">
+    <value>Vacuo'nun taşıdığı her şey burada; istediğini geri alabilirsin.</value>
+  </data>
+  <data name="JournalCardButton" xml:space="preserve">
+    <value>Günlüğü aç</value>
+  </data>
+  <data name="WeekCardFormat" xml:space="preserve">
+    <value>Vacuo'nun son 7 günde taşıdığı ya da sildiği öğe: {0}</value>
+  </data>
+  <data name="WeekCardButton" xml:space="preserve">
+    <value>Haftaya bak</value>
   </data>
 </root>
