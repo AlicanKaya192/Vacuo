@@ -39,6 +39,7 @@ internal static class Program
 
     private static int Main(string[] args)
     {
+        CrashLog.CatchUnhandled("Vacuo.Maintenance");
         VacuoSettings saved = new SettingsStore(SettingsStore.DefaultPath).Load();
         string language = LanguageRule.Resolve(saved.Language, CultureInfo.CurrentUICulture.Name);
         MaintenanceSettings settings = saved.Maintenance;

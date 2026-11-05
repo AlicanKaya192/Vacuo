@@ -22,6 +22,7 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
+        CrashLog.CatchUnhandled("Vacuo.Tray");
         // One tray per user: a second start (the Start menu shortcut, a setup) opens the running tray's panel.
         using var singleTray = new Mutex(initiallyOwned: true, SingleTrayName, out bool firstTray);
         if (!firstTray)

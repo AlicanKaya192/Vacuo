@@ -22,7 +22,12 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
+        // A crash leaves a file on this computer (Aşama 3p); the error still ends the program as before.
+        CrashLog.CatchUnhandled(ProgramName);
+        UnhandledException += (_, args) => CrashLog.ForThisComputer().Write(ProgramName, CrashLog.EntryVersion, args.Exception);
     }
+
+    private const string ProgramName = "Vacuo";
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
