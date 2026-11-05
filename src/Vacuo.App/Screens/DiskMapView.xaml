@@ -146,7 +146,11 @@
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Row="3" ColumnSpacing="12">
+        <Grid Grid.Row="3" ColumnSpacing="12" RowSpacing="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -171,6 +175,13 @@
                 </Border>
                 <TextBlock x:Name="RampMore" FontSize="12" Foreground="{ThemeResource InkSecondaryBrush}" />
             </StackPanel>
+            <!-- The whole drive by type of file, as the scan counted it (Aşama 3q). -->
+            <TextBlock x:Name="KindsText"
+                       Grid.Row="1"
+                       Grid.ColumnSpan="2"
+                       FontSize="12"
+                       TextWrapping="Wrap"
+                       Foreground="{ThemeResource InkSecondaryBrush}" />
         </Grid>
 
         <ScrollViewer x:Name="ResultPanel"

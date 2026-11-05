@@ -1,5 +1,6 @@
 using System.Runtime.Versioning;
 using Vacuo.Core.DiskMap;
+using Vacuo.Core.Organize;
 using Vacuo.Core.Tests.Scanning;
 
 namespace Vacuo.Core.Tests.DiskMap;
@@ -18,6 +19,31 @@ public class FolderTreeScannerTests
         public List<double> Values { get; } = [];
 
         public void Report(double value) => Values.Add(value);
+    }
+
+    [Fact]
+    public void Kinds_AddUpEveryFileByTypeLargestFirst()
+    {
+        using var tree = new TempTree();
+        tree.AddFile(@"Films\a.mp4", 300);
+        tree.AddFile(@"Films\b.MKV", 100);
+        tree.AddFile(@"Backups\c.zip", 200);
+        tree.AddFile(@"Deep\Small\d.mp4", 20);
+        tree.AddFile("e.unknown", 50);
+
+        IReadOnlyList<KindTotal> kinds = Scan(tree).Kinds;
+
+        Assert.Equal(
+            [new KindTotal(FileKind.Videos, 420), new KindTotal(FileKind.Archives, 200), new KindTotal(null, 50)],
+            kinds);
+    }
+
+    [Fact]
+    public void Kinds_EmptyDrive_HasNone()
+    {
+        using var tree = new TempTree();
+
+        Assert.Empty(Scan(tree).Kinds);
     }
 
     [Fact]

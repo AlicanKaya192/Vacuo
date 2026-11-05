@@ -1693,4 +1693,13 @@ Keeping backups of your important files is up to you.</value>
   <data name="WeekNothingInBinFormat" xml:space="preserve">
     <value>Items Vacuo moved in the last 7 days: {0}; none went to the Recycle Bin.</value>
   </data>
+  <data name="DiskMapKindsFormat" xml:space="preserve">
+    <value>By type: {0}</value>
+  </data>
+  <data name="DiskMapKindOther" xml:space="preserve">
+    <value>other files</value>
+  </data>
+  <data name="DiskMapKindInstallers" xml:space="preserve">
+    <value>Programs and setups</value>
+  </data>
 </root>

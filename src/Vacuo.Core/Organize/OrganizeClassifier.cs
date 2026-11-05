@@ -46,8 +46,15 @@ public static class OrganizeClassifier
         return key is null ? null : new OrganizeTarget(rule, key);
     }
 
-    private static FileKind? KindOf(string fileName) =>
-        KindByExtension.TryGetValue(Path.GetExtension(fileName), out FileKind kind) ? kind : null;
+    private static FileKind? KindOf(string fileName) => KindOfExtension(Path.GetExtension(fileName.AsSpan()));
+
+    // Looked up from the span itself: the disk map asks this for every file on the drive, millions of them.
+    private static readonly Dictionary<string, FileKind>.AlternateLookup<ReadOnlySpan<char>> KindBySpan =
+        ((Dictionary<string, FileKind>)KindByExtension).GetAlternateLookup<ReadOnlySpan<char>>();
+
+    /// <summary>The kind of file an extension such as ".mp4" stands for, in any case; null when it is none of them.</summary>
+    public static FileKind? KindOfExtension(ReadOnlySpan<char> extension) =>
+        KindBySpan.TryGetValue(extension, out FileKind kind) ? kind : null;
 
     private static Topic? TopicOf(string fileName)
     {

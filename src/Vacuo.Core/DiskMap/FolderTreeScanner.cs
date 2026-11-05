@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Enumeration;
+using Vacuo.Core.Organize;
 using Vacuo.Core.Scanning;
 
 namespace Vacuo.Core.DiskMap;
@@ -7,6 +8,8 @@ namespace Vacuo.Core.DiskMap;
 /// <summary>What a whole-drive scan found. Hard links count once per name, so the total can exceed the used space.</summary>
 public sealed record FolderTreeScan(FolderNode Root, int SkippedFolders, long UsedBytes)
 {
+    public IReadOnlyList<KindTotal> Kinds { get; init; } = [];
+
     /// <summary>The used space no readable folder accounts for: Windows' own files, other users, the page file.</summary>
     public long UnreadBytes => Math.Max(0, UsedBytes - Root.Bytes);
 }
@@ -52,7 +55,7 @@ public sealed class FolderTreeScanner(long smallestKeptBytes = FolderTreeScanner
         }
 
         tally.Finish();
-        return new FolderTreeScan(rootNode, tally.SkippedFolders, usedBytes);
+        return new FolderTreeScan(rootNode, tally.SkippedFolders, usedBytes) { Kinds = tally.Kinds() };
     }
 
     private OpenFolder Read(FolderNode node, string path, Tally tally)
@@ -86,17 +89,19 @@ public sealed class FolderTreeScanner(long smallestKeptBytes = FolderTreeScanner
         return new OpenFolder(node, path, subfolders);
     }
 
-    // Small files need no name: they only add to a total, and a drive has millions of them.
+    // Small files need no name: they only add to a total, and a drive has millions of them. Their kind is
+    // read from the name before it is let go, so the drive can be told by type of file too.
     private Entry ToEntry(ref FileSystemEntry entry) =>
         new(entry.IsDirectory || entry.Length >= smallestKeptBytes ? entry.FileName.ToString() : string.Empty,
             entry.Attributes,
             entry.IsDirectory ? 0 : entry.Length,
-            entry.IsDirectory);
+            entry.IsDirectory,
+            entry.IsDirectory ? null : OrganizeClassifier.KindOfExtension(Path.GetExtension(entry.FileName)));
 
     private void AddFile(FolderNode folder, Entry file, Tally tally)
     {
         folder.Bytes += file.Length;
-        tally.Found(file.Length);
+        tally.Found(file.Length, file.Kind);
         if (file.Length >= smallestKeptBytes)
         {
             folder.Add(new FolderNode(file.Name, folder, isFile: true, file.Length));
@@ -126,7 +131,7 @@ public sealed class FolderTreeScanner(long smallestKeptBytes = FolderTreeScanner
         }
     }
 
-    private readonly record struct Entry(string Name, FileAttributes Attributes, long Length, bool IsDirectory);
+    private readonly record struct Entry(string Name, FileAttributes Attributes, long Length, bool IsDirectory, FileKind? Kind);
 
     private sealed class OpenFolder(FolderNode node, string path, List<string> subfolders)
     {
@@ -145,13 +150,16 @@ public sealed class FolderTreeScanner(long smallestKeptBytes = FolderTreeScanner
 
     private sealed class Tally(long usedBytes, IProgress<double>? progress)
     {
+        // One slot per kind, and the last for every other file.
+        private readonly long[] _byKind = new long[Enum.GetValues<FileKind>().Length + 1];
         private long _found;
         private double _reported;
 
         public int SkippedFolders { get; set; }
 
-        public void Found(long bytes)
+        public void Found(long bytes, FileKind? kind)
         {
+            _byKind[kind is { } known ? (int)known : _byKind.Length - 1] += bytes;
             _found += bytes;
             if (usedBytes > 0 && (double)_found / usedBytes >= _reported + ProgressStep)
             {
@@ -162,5 +170,11 @@ public sealed class FolderTreeScanner(long smallestKeptBytes = FolderTreeScanner
         }
 
         public void Finish() => progress?.Report(1);
+
+        public IReadOnlyList<KindTotal> Kinds() => _byKind
+            .Select((bytes, slot) => new KindTotal(slot < _byKind.Length - 1 ? (FileKind)slot : null, bytes))
+            .Where(total => total.Bytes > 0)
+            .OrderByDescending(total => total.Bytes)
+            .ToList();
     }
 }

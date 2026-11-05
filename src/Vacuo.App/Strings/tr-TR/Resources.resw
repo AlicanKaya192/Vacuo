@@ -1693,4 +1693,13 @@ Windows sekmesinde yönetici izniyle yapılan temizlik kalıcıdır. Kaldırıla
   <data name="WeekNothingInBinFormat" xml:space="preserve">
     <value>Vacuo'nun son 7 günde taşıdığı öğe: {0}; Geri Dönüşüm Kutusu'na giden olmadı.</value>
   </data>
+  <data name="DiskMapKindsFormat" xml:space="preserve">
+    <value>Türe göre: {0}</value>
+  </data>
+  <data name="DiskMapKindOther" xml:space="preserve">
+    <value>diğer dosyalar</value>
+  </data>
+  <data name="DiskMapKindInstallers" xml:space="preserve">
+    <value>Program ve kurulum dosyaları</value>
+  </data>
 </root>

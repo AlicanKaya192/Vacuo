@@ -12,6 +12,7 @@ using Vacuo.Core.Actions;
 using Vacuo.Core.Disk;
 using Vacuo.Core.DiskMap;
 using Vacuo.Core.Notices;
+using Vacuo.Core.Organize;
 using Vacuo.Core.Scanning;
 using Windows.Foundation;
 using Windows.UI;
@@ -31,6 +32,8 @@ public sealed partial class DiskMapView : UserControl
     private const double SmallestDrawnBox = 2;
     private const double SmallestNamedWidth = 52;
     private const double SmallestNamedHeight = 26;
+    // Beyond five the line wraps twice on the panel; the rest go into "other files".
+    private const int MaxKindsShown = 5;
     private const double SmallestSizedHeight = 44;
     private const double SmallestMarkedBox = 34;
     private const int ChipsShown = 1;
@@ -65,6 +68,8 @@ public sealed partial class DiskMapView : UserControl
     private long _usedBytes;
     private DateTimeOffset _scannedAt;
     private CancellationTokenSource? _scan;
+    // By type of file, from the last scan; a move afterwards is not taken off.
+    private IReadOnlyList<KindTotal> _kinds = [];
     private bool _showingList;
     private FolderNode? _focusCheckOf;
     private bool _focusFirstBox;
@@ -171,6 +176,7 @@ public sealed partial class DiskMapView : UserControl
         {
             FolderTreeScan result = await Task.Run(() => new FolderTreeScanner().Scan(root, used, progress, scan.Token));
             _screen = new DiskMapScreen(result, _protection);
+            _kinds = result.Kinds;
             _usedBytes = used;
             _scannedAt = DateTimeOffset.UtcNow;
             SetNote(result.SkippedFolders > 0 ? _localizer.Format("DiskMapSkippedFormat", result.SkippedFolders) : _localizer.Get("DiskMapHint"), warning: false);
@@ -199,6 +205,32 @@ public sealed partial class DiskMapView : UserControl
         }
     }
 
+    // "Türe göre: Videolar 40 GB · Arşivler 12 GB · … · diğer dosyalar 300 GB": the known kinds largest first, then the rest.
+    private string KindsLine()
+    {
+        List<string> parts = _kinds
+            .Where(total => total.Kind is not null)
+            .Take(MaxKindsShown)
+            .Select(total => $"{KindName(total.Kind!.Value)} {DiskTexts.Size(_localizer, total.Bytes)}")
+            .ToList();
+        if (parts.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        long rest = _kinds.Sum(total => total.Bytes) - _kinds.Where(total => total.Kind is not null).Take(MaxKindsShown).Sum(total => total.Bytes);
+        if (rest > 0)
+        {
+            parts.Add($"{_localizer.Get("DiskMapKindOther")} {DiskTexts.Size(_localizer, rest)}");
+        }
+
+        return _localizer.Format("DiskMapKindsFormat", string.Join(" · ", parts));
+    }
+
+    // On a whole drive most .exe files belong to installed programs, not setups; Organize's own name would mislead here.
+    private string KindName(FileKind kind) =>
+        _localizer.Get(kind == FileKind.Installers ? "DiskMapKindInstallers" : "Organize_Kind_" + kind);
+
     // Hides the map and the list: nothing on them can be used while a scan or a move runs.
     private void ShowProgress(string note, bool canStop)
     {
@@ -217,6 +249,7 @@ public sealed partial class DiskMapView : UserControl
         if (_screen is not { } screen)
         {
             UsedText.Text = string.Empty;
+            KindsText.Text = string.Empty;
             TrailPanel.Children.Clear();
             MapCanvas.Children.Clear();
             ListPanel.Children.Clear();
@@ -227,6 +260,7 @@ public sealed partial class DiskMapView : UserControl
         }
 
         UsedText.Text = _localizer.Format("DiskMapUsedFormat", DiskTexts.Size(_localizer, _usedBytes));
+        KindsText.Text = KindsLine();
         RenderTrail(screen);
         MapCanvas.Visibility = _showingList ? Visibility.Collapsed : Visibility.Visible;
         ListScroller.Visibility = _showingList ? Visibility.Visible : Visibility.Collapsed;
