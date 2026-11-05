@@ -107,7 +107,7 @@ public sealed partial class PanelWindow : Window
     private int _measureShortfall;
     // Kept while Vacuo runs, not saved: a screen goes back to the tab it was opened from.
     private PanelTab _tab = PanelTab.Disk;
-    // The last reading, so the sun can come back when its tab shows again.
+    // The last reading, shown again when the cards come back from a screen.
     private GpuTemperature? _gpu;
     // The screen the Journal, the map or the timeline was opened from; null when it was a card.
     private UserControl? _journalOpenedFrom;
@@ -1231,12 +1231,13 @@ public sealed partial class PanelWindow : Window
         ShowUpdateScreen();
     }
 
-    // Where the screens sit: over the void and the cards, below the quit button.
+    // Where the screens sit: over the void, the tabs and the cards, below the quit button. The span must
+    // reach the cards' stretching row, or a screen gets only the void's height and its lists shrink to nothing.
     private T AddScreen<T>(T screen)
         where T : UserControl
     {
-        Grid.SetRow(screen, 1);
-        Grid.SetRowSpan(screen, 2);
+        Grid.SetRow(screen, Grid.GetRow(VoidCanvas));
+        Grid.SetRowSpan(screen, Grid.GetRow(CardsScroller) - Grid.GetRow(VoidCanvas) + 1);
         screen.Visibility = Visibility.Collapsed;
         Root.Children.Insert(Root.Children.IndexOf(QuitButton), screen);
         return screen;
@@ -1465,13 +1466,12 @@ public sealed partial class PanelWindow : Window
 
     // Only the graphics card: the processor's temperature needs a kernel driver (Alican, 22 October 2026).
     // It shows as a sun beside the black hole, not as a line on the Memory card (Alican: "burada durmasın").
-    // On the Programs tab only, with the other parts of the computer (Alican, 5 November 2026).
+    // Part of the void scene, so it shows on every tab (Alican, 5 November 2026: "her zaman görünecek").
     private void ShowGpuTemperature(GpuTemperature? gpu)
     {
         _gpu = gpu;
-        bool onItsTab = _tab == PanelTab.Programs;
-        _sun.Level = gpu is null || !onItsTab ? null : HeatLevel.From(gpu.Celsius);
-        GpuTemperaturePanel.Visibility = onItsTab && !_showingWorkScreen ? Visibility.Visible : Visibility.Collapsed;
+        _sun.Level = gpu is null ? null : HeatLevel.From(gpu.Celsius);
+        GpuTemperaturePanel.Visibility = _showingWorkScreen ? Visibility.Collapsed : Visibility.Visible;
         GpuTemperatureValue.Visibility = gpu is null ? Visibility.Collapsed : Visibility.Visible;
         GpuTemperatureValue.Text = gpu is null ? string.Empty : _localizer.Format("GpuTemperatureValueFormat", (int)Math.Round(gpu.Celsius));
         GpuTemperatureLabel.Text = _localizer.Get(gpu is null ? "GpuTemperatureNotReported" : "GpuTemperatureLabel");
