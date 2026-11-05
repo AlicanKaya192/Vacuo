@@ -1594,4 +1594,100 @@ Keeping backups of your important files is up to you.</value>
   <data name="WeekCardButton" xml:space="preserve">
     <value>See the week</value>
   </data>
+  <data name="BrowsersTitle" xml:space="preserve">
+    <value>Browsers</value>
+  </data>
+  <data name="BrowsersHint" xml:space="preserve">
+    <value>The caches browsers build up as they open pages. The browser downloads them again by itself; cookies, history, passwords and extensions are left alone.</value>
+  </data>
+  <data name="BrowsersEmpty" xml:space="preserve">
+    <value>No browser caches were found on this computer.</value>
+  </data>
+  <data name="BrowsersLockedFormat" xml:space="preserve">
+    <value>{0} is open. Close it, then press Scan again; its cache cannot be moved while it runs.</value>
+  </data>
+  <data name="BrowsersPreviewNote" xml:space="preserve">
+    <value>Pages may load a little slower the first time; the browser fills its cache again.</value>
+  </data>
+  <data name="BrowsersLeftOpenFormat" xml:space="preserve">
+    <value>{0} caches of browsers opened in the meantime were not moved.</value>
+  </data>
+  <data name="BrowsersCardBody" xml:space="preserve">
+    <value>The caches your browsers build up, browser by browser. Cookies and passwords are left alone.</value>
+  </data>
+  <data name="BrowsersCardButton" xml:space="preserve">
+    <value>See the browsers</value>
+  </data>
+  <data name="BrowserCache_PageCache" xml:space="preserve">
+    <value>Page cache</value>
+  </data>
+  <data name="BrowserCache_CodeCache" xml:space="preserve">
+    <value>Code cache</value>
+  </data>
+  <data name="BrowserCache_GpuCache" xml:space="preserve">
+    <value>Graphics cache</value>
+  </data>
+  <data name="Browser_edge" xml:space="preserve">
+    <value>Microsoft Edge</value>
+  </data>
+  <data name="Browser_edge_beta" xml:space="preserve">
+    <value>Microsoft Edge Beta</value>
+  </data>
+  <data name="Browser_edge_dev" xml:space="preserve">
+    <value>Microsoft Edge Dev</value>
+  </data>
+  <data name="Browser_edge_canary" xml:space="preserve">
+    <value>Microsoft Edge Canary</value>
+  </data>
+  <data name="Browser_brave" xml:space="preserve">
+    <value>Brave</value>
+  </data>
+  <data name="Browser_brave_beta" xml:space="preserve">
+    <value>Brave Beta</value>
+  </data>
+  <data name="Browser_brave_nightly" xml:space="preserve">
+    <value>Brave Nightly</value>
+  </data>
+  <data name="Browser_chrome" xml:space="preserve">
+    <value>Google Chrome</value>
+  </data>
+  <data name="Browser_chrome_beta" xml:space="preserve">
+    <value>Google Chrome Beta</value>
+  </data>
+  <data name="Browser_chrome_dev" xml:space="preserve">
+    <value>Google Chrome Dev</value>
+  </data>
+  <data name="Browser_chrome_canary" xml:space="preserve">
+    <value>Google Chrome Canary</value>
+  </data>
+  <data name="Browser_chromium" xml:space="preserve">
+    <value>Chromium</value>
+  </data>
+  <data name="Browser_vivaldi" xml:space="preserve">
+    <value>Vivaldi</value>
+  </data>
+  <data name="Browser_yandex" xml:space="preserve">
+    <value>Yandex Browser</value>
+  </data>
+  <data name="Browser_opera" xml:space="preserve">
+    <value>Opera</value>
+  </data>
+  <data name="Browser_opera_gx" xml:space="preserve">
+    <value>Opera GX</value>
+  </data>
+  <data name="Browser_firefox" xml:space="preserve">
+    <value>Mozilla Firefox</value>
+  </data>
+  <data name="Browser_librewolf" xml:space="preserve">
+    <value>LibreWolf</value>
+  </data>
+  <data name="Browser_waterfox" xml:space="preserve">
+    <value>Waterfox</value>
+  </data>
+  <data name="Browser_floorp" xml:space="preserve">
+    <value>Floorp</value>
+  </data>
+  <data name="Browser_zen" xml:space="preserve">
+    <value>Zen Browser</value>
+  </data>
 </root>

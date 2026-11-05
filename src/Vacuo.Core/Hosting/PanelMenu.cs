@@ -16,6 +16,7 @@ public enum PanelFeature
     WindowsLeftovers,
     DiskMap,
     DiskGrowth,
+    Browsers,
     Duplicates,
     Uninstall,
     Drivers,
@@ -35,7 +36,7 @@ public static class PanelMenu
 {
     private static readonly IReadOnlyDictionary<PanelTab, PanelFeature[]> Groups = new Dictionary<PanelTab, PanelFeature[]>
     {
-        [PanelTab.Disk] = [PanelFeature.DiskCleanup, PanelFeature.WindowsLeftovers, PanelFeature.DiskMap, PanelFeature.DiskGrowth, PanelFeature.Duplicates],
+        [PanelTab.Disk] = [PanelFeature.DiskCleanup, PanelFeature.WindowsLeftovers, PanelFeature.DiskMap, PanelFeature.DiskGrowth, PanelFeature.Browsers, PanelFeature.Duplicates],
         [PanelTab.Programs] = [PanelFeature.Uninstall, PanelFeature.Drivers, PanelFeature.Memory, PanelFeature.Battery],
         [PanelTab.Organize] = [PanelFeature.Organize, PanelFeature.OrganizeReminders],
         [PanelTab.History] = [PanelFeature.Journal, PanelFeature.Week],

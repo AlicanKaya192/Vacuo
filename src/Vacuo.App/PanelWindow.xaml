@@ -240,18 +240,28 @@
                         <Button x:Name="DiskGrowthButton" Grid.Row="2" HorizontalAlignment="Stretch" Click="OnDiskGrowthClick" />
                     </Grid>
                 </Border>
-                <!-- Low and full width: text on the left, its button on the right. -->
-                <Border x:Name="DuplicatesCard" Grid.Row="2" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}">
-                    <Grid ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Spacing="4" VerticalAlignment="Center">
-                            <TextBlock x:Name="DuplicatesCardTitle" Style="{StaticResource CardTitleStyle}" />
-                            <TextBlock x:Name="DuplicatesCardBody" Style="{StaticResource CardBodyStyle}" />
-                        </StackPanel>
-                        <Button x:Name="DuplicatesButton" Grid.Column="1" VerticalAlignment="Center" Click="OnDuplicatesClick" />
+                <Border x:Name="BrowsersCard" Grid.Row="2" Style="{StaticResource CardStyle}">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="BrowsersCardTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="BrowsersCardBody" Grid.Row="1" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="BrowsersButton" Grid.Row="2" HorizontalAlignment="Stretch" Click="OnBrowsersClick" />
+                    </Grid>
+                </Border>
+                <Border x:Name="DuplicatesCard" Grid.Row="2" Grid.Column="1" Style="{StaticResource CardStyle}">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="DuplicatesCardTitle" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock x:Name="DuplicatesCardBody" Grid.Row="1" Style="{StaticResource CardBodyStyle}" />
+                        <Button x:Name="DuplicatesButton" Grid.Row="2" HorizontalAlignment="Stretch" Click="OnDuplicatesClick" />
                     </Grid>
                 </Border>
             </Grid>

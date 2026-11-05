@@ -130,6 +130,7 @@ public sealed partial class PanelWindow : Window
     private BatteryView? _batteryScreen;
     private DriversView? _driversScreen;
     private DuplicatesView? _duplicatesScreen;
+    private BrowsersView? _browsersScreen;
     private DiskMapView? _diskMapScreen;
     private DiskTimelineView? _diskTimelineScreen;
     private UninstallView? _uninstallScreen;
@@ -348,6 +349,7 @@ public sealed partial class PanelWindow : Window
         _memoryScreen?.Shutdown();
         _organizeScreen?.Shutdown();
         _duplicatesScreen?.Shutdown();
+        _browsersScreen?.Shutdown();
         _diskMapScreen?.Shutdown();
         _uninstallScreen?.Shutdown();
         _updateScreen?.Shutdown();
@@ -374,6 +376,7 @@ public sealed partial class PanelWindow : Window
         _batteryScreen = null;
         _driversScreen = null;
         _duplicatesScreen = null;
+        _browsersScreen = null;
         _diskMapScreen = null;
         _diskTimelineScreen = null;
         _uninstallScreen = null;
@@ -477,6 +480,9 @@ public sealed partial class PanelWindow : Window
         DiskGrowthCardTitle.Text = _localizer.Get("DiskTimelineTitle");
         DiskGrowthCardBody.Text = _localizer.Get("DiskGrowthCardBody");
         DiskGrowthButton.Content = _localizer.Get("DiskGrowthCardButton");
+        BrowsersCardTitle.Text = _localizer.Get("BrowsersTitle");
+        BrowsersCardBody.Text = _localizer.Get("BrowsersCardBody");
+        BrowsersButton.Content = _localizer.Get("BrowsersCardButton");
         DuplicatesCardTitle.Text = _localizer.Get("DuplicatesTitle");
         DuplicatesCardBody.Text = _localizer.Get("DuplicatesCardBody");
         DuplicatesButton.Content = _localizer.Get("DuplicatesFindButton");
@@ -543,6 +549,7 @@ public sealed partial class PanelWindow : Window
         Activate();
         _isOpen = true;
         _diskScreen?.SetWindowOpen(true);
+        _browsersScreen?.SetWindowOpen(true);
         _windowsScreen?.SetWindowOpen(true);
         if (_diskScans.IsStale)
         {
@@ -605,6 +612,7 @@ public sealed partial class PanelWindow : Window
         VoidCanvas.Paused = true;
         LogoGlowMotion.Stop();
         _diskScreen?.SetWindowOpen(false);
+        _browsersScreen?.SetWindowOpen(false);
         _windowsScreen?.SetWindowOpen(false);
         _updateScreen?.SetWindowOpen(false);
         _weekScreen?.SetWindowOpen(false);
@@ -1052,6 +1060,21 @@ public sealed partial class PanelWindow : Window
         return _duplicatesScreen = duplicates;
     }
 
+    private BrowsersView EnsureBrowsersScreen()
+    {
+        if (_browsersScreen is not null)
+        {
+            return _browsersScreen;
+        }
+
+        var browsers = AddScreen(new BrowsersView());
+        browsers.Initialize(_localizer, _runner, _recycleBin, _animationsEnabled);
+        browsers.BackRequested += (_, _) => ReturnToCards();
+        browsers.JournalRequested += (_, _) => ShowJournal(browsers);
+        browsers.SetWindowOpen(_isOpen);
+        return _browsersScreen = browsers;
+    }
+
     private UninstallView EnsureUninstallScreen()
     {
         if (_uninstallScreen is not null)
@@ -1221,7 +1244,7 @@ public sealed partial class PanelWindow : Window
 
     // Screens not created yet are skipped.
     private UserControl[] LoadedScreens() =>
-        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _driversScreen, _duplicatesScreen, _diskMapScreen, _diskTimelineScreen, _uninstallScreen, _journalScreen, _updateScreen, _weekScreen }
+        new UserControl?[] { _diskScreen, _windowsScreen, _memoryScreen, _organizeScreen, _settingsScreen, _batteryScreen, _driversScreen, _duplicatesScreen, _browsersScreen, _diskMapScreen, _diskTimelineScreen, _uninstallScreen, _journalScreen, _updateScreen, _weekScreen }
             .OfType<UserControl>().ToArray();
 
     private void ShowDiskScreen()
@@ -1259,6 +1282,13 @@ public sealed partial class PanelWindow : Window
         DuplicatesView duplicates = EnsureDuplicatesScreen();
         ShowWorkScreen(duplicates);
         duplicates.Refresh();
+    }
+
+    private void ShowBrowsersScreen()
+    {
+        BrowsersView browsers = EnsureBrowsersScreen();
+        ShowWorkScreen(browsers);
+        browsers.Refresh();
     }
 
     private void ShowUninstallScreen()
@@ -1550,6 +1580,10 @@ public sealed partial class PanelWindow : Window
         {
             organize.Refresh();
             RefreshOrganizeCard();
+        }
+        else if (_journalOpenedFrom is BrowsersView browsers)
+        {
+            browsers.Refresh();
         }
         else if (_journalOpenedFrom is DuplicatesView duplicates)
         {
@@ -1865,6 +1899,8 @@ public sealed partial class PanelWindow : Window
     private void OnBatteryInspectClick(object sender, RoutedEventArgs e) => ShowBatteryScreen();
 
     private void OnDuplicatesClick(object sender, RoutedEventArgs e) => ShowDuplicatesScreen();
+
+    private void OnBrowsersClick(object sender, RoutedEventArgs e) => ShowBrowsersScreen();
 
     private void OnUninstallClick(object sender, RoutedEventArgs e) => ShowUninstallScreen();
 

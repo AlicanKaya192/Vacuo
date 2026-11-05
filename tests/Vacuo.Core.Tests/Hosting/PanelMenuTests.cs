@@ -49,7 +49,7 @@ public class PanelMenuTests
     public void Groups_AreTheOnesAlicanChose()
     {
         Assert.Equal(
-            [PanelFeature.DiskCleanup, PanelFeature.WindowsLeftovers, PanelFeature.DiskMap, PanelFeature.DiskGrowth, PanelFeature.Duplicates],
+            [PanelFeature.DiskCleanup, PanelFeature.WindowsLeftovers, PanelFeature.DiskMap, PanelFeature.DiskGrowth, PanelFeature.Browsers, PanelFeature.Duplicates],
             PanelMenu.FeaturesOn(PanelTab.Disk, hasBattery: false));
         Assert.Equal(
             [PanelFeature.Uninstall, PanelFeature.Drivers, PanelFeature.Memory],
