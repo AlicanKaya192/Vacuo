@@ -32,13 +32,21 @@ Tek bir kurala göre yapıldı: **dürüst ölç, sana sormadan hiçbir şeyi de
   <img src="docs/media/disk-flow.gif" alt="Beş kategoriden önbellek, kişisel dosyalar ve Kalsın kovalarına akan parçacıklar" width="720">
 </p>
 
+Vacuo'nun bölümleri kara deliğin altındaki dört sekmede durur: **Disk**, **Programlar**, **Düzen** ve **Geçmiş**.
+
+**Disk haritası ve neden doldu.** Disk haritası sürücüdeki her klasörü boyutuna göre kutularla çizer, alanı hangi dosya türlerinin kapladığını söyler (videolar, arşivler, program ve kurulum dosyaları…) ve seçtiklerini Geri Dönüşüm Kutusu'na taşır. *Neden doldu?* diskin ne zaman büyüdüğünü ve en çok hangi klasörlerin büyüdüğünü gösterir. Sistem diski dolmak üzereyken Vacuo uyarır.
+
+**Tarayıcılar.** Edge, Chrome, Brave, Firefox ve diğer tarayıcıların biriktirdiği önbellekler tarayıcı tarayıcı, profil profil listelenir; çerezlere, geçmişe, parolalara ve eklentilere dokunulmaz. Açık olan tarayıcının önbelleği, sen kapatana kadar yerinde kalır.
+
+**Sürücüler ve BIOS** sürücülerini tarihleriyle listeler, eskileri işaretler ve üreticinin destek sayfasını açar; Vacuo hiçbir sürücüyü kendisi indirmez ya da kurmaz.
+
 **Windows kalıntıları.** Geçici klasörün tek tek listelenir; birkaçını seç ya da *Tümünü seç*'e bas, Geri Dönüşüm Kutusu'na taşımayı bir çubuk izler. Windows Temp, güncelleme indirmeleri ve DISM bileşen temizliği sağ tarafta: yönetici onayı ister, kalıcı silinir ve Vacuo bunu başlamadan önce söyler.
 
 <p align="center">
   <img src="docs/media/windows-cleanup.gif" alt="Bütün geçici dosyaları seçme, onaylama ve Geri Dönüşüm Kutusu'na taşımayı sayan ilerleme çubuğu" width="600">
 </p>
 
-**Bu hafta neler boşaldı.** Başlıktaki geçmiş simgesi son yedi günü yavaşça dönen bir karusele çevirir: Vacuo'nun her bölümünün ne kadar yer açtığı, kaç öğe ve ne zaman. Windows'ta animasyonlar kapalıysa düz bir listedir.
+**Bu hafta neler boşaldı.** Geçmiş sekmesindeki kart son yedi günü yavaşça dönen bir karusele çevirir: Vacuo'nun her bölümünün ne kadar yer açtığı, kaç öğe ve ne zaman. Windows'ta animasyonlar kapalıysa düz bir listedir.
 
 <p align="center">
   <img src="docs/media/freed-this-week.gif" alt="Disk, Windows kalıntıları, Otomatik Bakım ve Düzen kartları arasında dönen Bu hafta karuseli" width="600">
@@ -68,7 +76,7 @@ Tek bir kurala göre yapıldı: **dürüst ölç, sana sormadan hiçbir şeyi de
 
 ### Verilerin nerede durur
 
-Ayarların, Günlük, yönetici temizliklerinin sonuçları ve güncelleme durumu programdan ayrı, `%LOCALAPPDATA%\Vacuo\` klasöründe tutulur. Güncelleme ya da yeniden kurulum onlara dokunmaz; kaldırma da onları bırakır, her şeyin gitmesini istiyorsan o klasörü de sil. Tarama sonuçları, kopya araması ve program listesi yalnızca bellekte durur.
+Ayarların, Günlük, yönetici temizliklerinin sonuçları ve güncelleme durumu programdan ayrı, `%LOCALAPPDATA%\Vacuo\` klasöründe tutulur. Güncelleme ya da yeniden kurulum onlara dokunmaz; kaldırma da onları bırakır, her şeyin gitmesini istiyorsan o klasörü de sil. Vacuo beklenmedik bir hatayla kapanırsa ne olduğu `%LOCALAPPDATA%\Vacuo\crash-logs\` klasörüne yazılır ve hiçbir yere gönderilmez. Tarama sonuçları, kopya araması ve program listesi yalnızca bellekte durur.
 
 ### Güncelleme
 

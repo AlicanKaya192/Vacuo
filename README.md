@@ -32,13 +32,21 @@ It is built around one rule: **measure honestly, change nothing without you.** C
   <img src="docs/media/disk-flow.gif" alt="Particles flowing from five categories into the Caches and temporary, Your personal files and Keep buckets" width="720">
 </p>
 
+Vacuo's features sit on four tabs under the black hole: **Disk**, **Programs**, **Organize** and **History**.
+
+**Disk map and why it filled up.** The disk map draws every folder of the drive as boxes by size, says which types of file take the space (videos, archives, programs and setups…), and moves what you pick to the Recycle Bin. *Why is it full?* shows when the disk grew and which folders grew the most. When the system disk is almost full, Vacuo warns you.
+
+**Browsers.** The caches Edge, Chrome, Brave, Firefox and other browsers build up are listed browser by browser and profile by profile; cookies, history, passwords and extensions are left alone. A browser that is open keeps its cache until you close it.
+
+**Drivers and BIOS** lists your drivers with their dates, marks the old ones, and opens the manufacturer's support page; Vacuo never downloads or installs a driver itself.
+
 **Windows leftovers.** Your temp folder is listed item by item; pick some or press *Select all*, and a bar follows the move to the Recycle Bin. Windows Temp, update downloads and the DISM component cleanup sit on the right: they need administrator approval, are deleted for good, and Vacuo tells you that before you start.
 
 <p align="center">
   <img src="docs/media/windows-cleanup.gif" alt="Selecting all temp files, confirming, and the progress bar counting the move to the Recycle Bin" width="600">
 </p>
 
-**Freed this week.** The history icon in the header turns the last seven days into a slowly turning carousel: how much each part of Vacuo freed, how many items, and when. With animations off in Windows, it is a plain list.
+**Freed this week.** The card on the History tab turns the last seven days into a slowly turning carousel: how much each part of Vacuo freed, how many items, and when. With animations off in Windows, it is a plain list.
 
 <p align="center">
   <img src="docs/media/freed-this-week.gif" alt="The Freed this week carousel turning between Disk, Windows leftovers, Automatic maintenance and Organize" width="600">
@@ -68,7 +76,7 @@ It is built around one rule: **measure honestly, change nothing without you.** C
 
 ### Where your data lives
 
-Your settings, the Journal, the results of administrator clean-ups and the update state are kept in `%LOCALAPPDATA%\Vacuo\`, apart from the program. Updating or reinstalling never touches them; uninstalling leaves them too, so delete that folder as well if you want everything gone. Scan results, the duplicate search and the program list live in memory only.
+Your settings, the Journal, the results of administrator clean-ups and the update state are kept in `%LOCALAPPDATA%\Vacuo\`, apart from the program. Updating or reinstalling never touches them; uninstalling leaves them too, so delete that folder as well if you want everything gone. If Vacuo ever stops on an unexpected error, what happened is written to `%LOCALAPPDATA%\Vacuo\crash-logs\` and never sent anywhere. Scan results, the duplicate search and the program list live in memory only.
 
 ### Updating
 
