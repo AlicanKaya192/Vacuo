@@ -1690,4 +1690,7 @@ Windows sekmesinde yönetici izniyle yapılan temizlik kalıcıdır. Kaldırıla
   <data name="Browser_zen" xml:space="preserve">
     <value>Zen Browser</value>
   </data>
+  <data name="WeekNothingInBinFormat" xml:space="preserve">
+    <value>Vacuo'nun son 7 günde taşıdığı öğe: {0}; Geri Dönüşüm Kutusu'na giden olmadı.</value>
+  </data>
 </root>

@@ -72,9 +72,12 @@ public sealed partial class WeekView : UserControl
 
     internal void Show(WeekSummary week)
     {
+        // Organize only moves files; "0 B went to the Recycle Bin" would read as nothing done, so the items are counted.
         TotalText.Text = week.Cards.Count == 0
             ? _localizer.Get("WeekEmpty")
-            : _localizer.Format("WeekTotalFormat", ByteSizeFormatter.Format(week.InBinBytes, _localizer.Culture));
+            : week.InBinBytes == 0
+                ? _localizer.Format("WeekNothingInBinFormat", week.Cards.Sum(card => card.Items))
+                : _localizer.Format("WeekTotalFormat", ByteSizeFormatter.Format(week.InBinBytes, _localizer.Culture));
         DeletedText.Text = _localizer.Format("WeekDeletedFormat", ByteSizeFormatter.Format(week.DeletedBytes, _localizer.Culture));
         DeletedText.Visibility = week.DeletedBytes > 0 ? Visibility.Visible : Visibility.Collapsed;
 
